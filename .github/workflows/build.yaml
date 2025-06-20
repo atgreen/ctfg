@@ -63,7 +63,9 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Playwright tests
-        run: make check
+        run: |
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          make check
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
