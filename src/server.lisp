@@ -83,7 +83,8 @@
                :trim-outer-whitespace t)))
     (dolist (row csv)
       (when (not (string= "username" (car row)))
-        (setf (gethash (car row) *credentials*) (cadr row))))))
+        (setf (gethash (car row) *credentials*) (cadr row))))
+    (log:info "Read ~A credentials from credentials.csv" (hash-table-count *credentials*))))
 
 (easy-routes:defroute login ("/api/login" :method :post) ()
   "User login"

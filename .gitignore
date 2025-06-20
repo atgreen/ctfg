@@ -4,3 +4,6 @@ ocicl
 events.db*
 tailwindss
 ctfg
+/playwright-report/
+/tests/*.ts
+/ctfg-linux-x86_64
