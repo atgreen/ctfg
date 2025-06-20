@@ -24,6 +24,11 @@ jobs:
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           ocicl install
 
+      - name: Install libfixposix
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libfixposix-dev
+
       - name: Build
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"

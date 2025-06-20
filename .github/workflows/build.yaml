@@ -41,7 +41,20 @@ jobs:
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           ocicl install
 
+      - name: Install libfixposix
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libfixposix-dev
+
       - name: Build
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           make
+          mv ctfg ctfg-linux-x86_64
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          path: ./ctfg-linux-x86_64
+          name: ctfg-linux-x86_64
