@@ -1,0 +1,63 @@
+[
+        {
+            "id": 2,
+            "title": "SQL Injection Login",
+            "category": "Web",
+            "difficulty": "Easy",
+            "points": 150,
+            "description": "Bypass the login mechanism using SQL injection techniques.",
+            "content": "Login page source code: \n    echo \"Login successful! Flag: \" . $flag; \n} else { \n    echo \"Invalid credentials\"; \n}" ,
+            "flag": "foo"
+	      },
+        {
+            "id": 4,
+            "title": "Directory Traversal",
+            "category": "Web",
+            "difficulty": "Medium",
+            "points": 200,
+            "description": "Use directory traversal to access sensitive files.",
+            "content": "File viewer application: \nhttp://ctf.example.com/viewer.php?file=welcome.txt\nThe application allows users to view files.\nTry to access the flag file located at /etc/flag.txt\n\nSample URL: http://ctf.example.com/viewer.php?file=../../../etc/flag.txt",
+            "flag": "foo",
+            "requirements": [2]
+        },
+        {
+            "id": 1,
+            "title": "Basic Buffer Overflow",
+            "category": "Binary Exploitation",
+            "difficulty": "Easy",
+            "points": 100,
+            "description": "Your first step into binary exploitation. Find the vulnerability in this simple C program.",
+            "content": "#include <stdio.h>\n#include <string.h>\n\n\nvoid vulnerable_function(char *input) {\n    char buffer[64];\n    strcpy(buffer, input);\n    printf(\"You entered: %s\\n\", buffer);\n}\n\nint main() {\n    char input[256];\n    printf(\"Enter your input: \");\n    gets(input);\n    vulnerable_function(input);\n    return 0;\n}\n\nFind the flag by exploiting the buffer overflow vulnerability.",
+            "flag": "foo"
+        },
+        {
+            "id": 6,
+            "title": "Stack Canary Bypass",
+            "category": "Binary Exploitation",
+            "difficulty": "Hard",
+            "points": 400,
+            "description": "Bypass stack canaries to exploit this binary.",
+            "content": "Advanced buffer overflow with stack canaries enabled.\n\nBinary: ./stack_canary_challenge\nASLR: Disabled\nNX: Enabled\nStack Canaries: Enabled\n\nThe binary has a format string vulnerability that can be used to leak the canary value.\nUse this information to bypass the stack protection.\n\nnc ctf.example.com 1337",
+            "flag": "foo"
+        },
+        {
+            "id": 3,
+            "title": "Caesar Cipher",
+            "category": "Cryptography",
+            "difficulty": "Easy",
+            "points": 75,
+            "description": "Decode this simple Caesar cipher to reveal the flag.",
+            "content": "Encrypted message:\nFWI{fdhvdu_flskhu_vkliw_wkuhh}\n\nThis message has been encrypted using a Caesar cipher.\nFind the correct shift value to decode the flag.\n\nHint: The flag format is CTF{...}",
+            "flag": "foo"
+        },
+        {
+            "id": 5,
+            "title": "XOR Encryption",
+            "category": "Cryptography",
+            "difficulty": "Medium",
+            "points": 250,
+            "description": "Break this XOR encryption to get the flag.",
+            "content": "Encrypted hex: 1c0a1e0b1f0c1a0f1e0b1a0f1e0c1a0b1f0a1e0f1a0c1e0b1f0a1e0f\n\nThe flag has been XOR encrypted with a single byte key.\nThe flag follows the format CTF{...}\n\nTry all possible single byte keys (0-255) to decrypt the message.",
+            "flag": "foo"
+        }
+]
