@@ -32,7 +32,7 @@ jobs:
       - name: Setup SBCL and ocicl
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          brew install sbcl ocicl
+          brew install sbcl ocicl gcc@11
           ocicl setup >> ~/.sbclrc
           patchelf --set-interpreter /lib64/ld-linux-x86-64.so.2 --set-rpath /lib64 /home/linuxbrew/.linuxbrew/Cellar/sbcl/*/libexec/bin/sbcl
 
