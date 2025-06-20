@@ -1,7 +1,6 @@
 *~
 .#*
 ocicl
-flagger
-/events.db
+events.db*
 tailwindss
 ctfg
