@@ -74,6 +74,13 @@ jobs:
           path: playwright-report/
           retention-days: 30
 
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: home_full
+          path: home_full.png
+          retention-days: 30
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:

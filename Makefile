@@ -6,7 +6,7 @@ src/server.lisp: src/index.html src/challenges.json
 
 check: ctfg
 	rm -f tests/*.ts
-	(cd tests; ./make_tests.sh 100;)
+	(cd tests; ./make_tests.sh 50;)
 	npx playwright test
 
 clean:

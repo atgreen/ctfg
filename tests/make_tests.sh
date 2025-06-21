@@ -51,6 +51,8 @@ tail -n +2 "$CREDENTIALS_FILE" | while IFS=, read -r username_raw password_raw |
   cat > "$FILENAME" << EOF
 import { test, expect } from '@playwright/test';
 
+const CARD_SELECTOR   = 'div.cursor-pointer';      // the card <div>
+
 test('ctfg log in', async ({ page }) => {
 
   const username = '${username_js_safe}';
@@ -79,6 +81,30 @@ test('ctfg log in', async ({ page }) => {
   await expect(
     page.getByRole('heading', { name: /cryptography/i })
   ).toBeVisible();
+
+  const cards = page.locator(CARD_SELECTOR);
+  const total = await cards.count();
+
+  for (let i = 0; i < total; i++) {
+    const card = cards.nth(i);
+
+    await card.scrollIntoViewIfNeeded();
+    await card.click();
+
+    await page.getByPlaceholder('CTF{...}').fill('foo');
+    await page.getByRole('button', { name: /^submit$/i }).click();
+
+    await expect(page.getByText('Challenge Solved!', { exact: true }))
+      .toBeVisible();
+
+   await page.locator('#back-btn').click();
+  }
+
+  await page.getByRole('button', { name: 'Scoreboard' }).click();
+
+  await page.waitForTimeout(4000);
+
+  await page.screenshot({ path: 'home-full.png', fullPage: true });
 });
 EOF
 
