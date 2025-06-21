@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ctfg</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -16,12 +16,18 @@
                     }
                 }
             }
-        }
+        };
     </script>
     <style>
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         .pattern-bg {
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
@@ -30,14 +36,31 @@
 </head>
 <body class="bg-slate-900 text-white">
     <!-- Login Page -->
-    <div id="login-page" class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+    <div
+        id="login-page"
+        class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4"
+    >
         <div class="absolute inset-0 pattern-bg opacity-20"></div>
 
-        <div class="w-full max-w-md bg-slate-800/50 border border-slate-700 backdrop-blur-sm rounded-lg shadow-sm relative z-10">
+        <div
+            class="w-full max-w-md bg-slate-800/50 border border-slate-700 backdrop-blur-sm rounded-lg shadow-sm relative z-10"
+        >
             <div class="flex flex-col space-y-1.5 p-6 text-center">
-                <div class="mx-auto w-16 h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center mb-4">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                <div
+                    class="mx-auto w-16 h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center mb-4"
+                >
+                    <svg
+                        class="w-8 h-8 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                        ></path>
                     </svg>
                 </div>
                 <h3 class="text-2xl font-semibold leading-none tracking-tight text-white">ctfg</h3>
@@ -74,8 +97,8 @@
         </div>
     </div>
 
-    <!-- Navigation -->
-    <nav id="navigation" class="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700 p-4 hidden">
+    <!-- Fixed Navigation -->
+    <nav id="navigation" class="fixed top-0 left-0 right-0 z-50 bg-slate-800/50 backdrop-blur-sm border-b border-slate-700 p-4 hidden">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-2">
                 <div class="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
@@ -109,39 +132,62 @@
                     <span id="user-points" class="text-green-400 font-semibold">0pts</span>
                 </div>
 
-                <button id="logout-btn" class="text-slate-300 hover:text-white hover:bg-slate-700 px-3 py-2 rounded-md">
-                    Logout
-                </button>
+                <button id="logout-btn" class="text-slate-300 hover:text-white hover:bg-slate-700 px-3 py-2 rounded-md">Logout</button>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content Area -->
-    <main id="main-content" class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 hidden">
+    <!-- Banner under fixed nav -->
+    <header id="banner" class="w-full mt-20 flex justify-center hidden">
+        <!-- Replace the src with your real banner asset -->
+        <img src="/images/banner.png" alt="Competition banner"
+             class="h-48 md:h-64 lg:h-72 w-auto object-contain mx-auto" />
+    </header>
+    <!-- Main Content Area (add top padding to account for fixed nav + banner) -->
+    <main
+        id="main-content"
+        class="pt-8 min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 hidden"
+    >
         <!-- Challenge List View -->
         <div id="challenge-list" class="container mx-auto p-6">
             <div class="mb-8">
-                <h1 class="text-4xl font-bold text-white mb-2">Challenges</h1>
+                <h1 id="view-title" class="text-4xl font-bold text-white mb-2">
+                    Challenges
+                </h1>
                 <p class="text-slate-400">Choose a challenge and prove your skills</p>
             </div>
 
-            <div id="challenges-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+                id="challenges-grid"
+                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
                 <!-- Challenges will be populated here -->
             </div>
         </div>
 
         <!-- Challenge Detail View -->
         <div id="challenge-detail" class="container mx-auto p-6 hidden">
-            <button id="back-btn" class="mb-6 flex items-center gap-2 text-slate-300 hover:text-white">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            <button
+                id="back-btn"
+                class="mb-6 flex items-center gap-2 text-slate-300 hover:text-white"
+            >
+                <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 19l-7-7 7-7"
+                    ></path>
                 </svg>
                 Back to Challenges
             </button>
 
-            <div id="challenge-content">
-                <!-- Challenge details will be populated here -->
-            </div>
+            <div id="challenge-content"><!-- Challenge details here --></div>
         </div>
 
         <!-- Scoreboard View -->
@@ -152,11 +198,15 @@
             </div>
 
             <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
-              <h3 class="text-lg font-semibold text-white mb-2">Live points over time (top 10)</h3>
-              <div class="relative w-full h-96 md:h-96 lg:h-80 xl:h-72">
-                <canvas id="score-chart"
-                        class="absolute inset-0 w-full h-full"></canvas>
-              </div>
+                <h3 class="text-lg font-semibold text-white mb-2">
+                    Live points over time (top 10)
+                </h3>
+                <div class="relative w-full h-96 md:h-96 lg:h-80 xl:h-72">
+                    <canvas
+                        id="score-chart"
+                        class="absolute inset-0 w-full h-full"
+                    ></canvas>
+                </div>
             </div>
 
             <div class="bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden">
@@ -166,52 +216,64 @@
                             <th class="px-6 py-4 text-left text-slate-300">Rank</th>
                             <th class="px-6 py-4 text-left text-slate-300">Player</th>
                             <th class="px-6 py-4 text-right text-slate-300">Score</th>
-                            <th class="px-6 py-4 text-right text-slate-300">Challenges Solved</th>
+                            <th class="px-6 py-4 text-right text-slate-300">
+                                Challenges Solved
+                            </th>
                         </tr>
                     </thead>
-                    <tbody id="scoreboard-body">
-                        <!-- Scoreboard data will be populated here -->
-                    </tbody>
+                    <tbody id="scoreboard-body"><!-- Data here --></tbody>
                 </table>
             </div>
         </div>
 
-
         <!-- First-Login: choose display name -->
-        <div id="name-modal"
-             class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden">
-          <div class="bg-slate-800/70 border border-slate-600 rounded-lg p-6 w-full max-w-md">
-            <h2 class="text-2xl font-bold text-white mb-2 text-center">Pick your display name</h2>
-            <p class="text-slate-400 text-center mb-6">
-              This name will appear on the scoreboard.
-            </p>
+        <div
+            id="name-modal"
+            class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden"
+        >
+            <div
+                class="bg-slate-800/70 border border-slate-600 rounded-lg p-6 w-full max-w-md"
+            >
+                <h2 class="text-2xl font-bold text-white mb-2 text-center">
+                    Pick your display name
+                </h2>
+                <p class="text-slate-400 text-center mb-6">
+                    This name will appear on the scoreboard.
+                </p>
 
-            <form id="name-form" class="space-y-4">
-              <input type="text" id="display-name" maxlength="24" autofocus
-                     class="flex h-10 w-full rounded-md border border-slate-600
-                            bg-slate-700/50 px-3 py-2 text-base text-white
-                            placeholder:text-slate-400 focus:border-green-400
-                            focus:outline-none focus:ring-2 focus:ring-green-400"
-                     placeholder="e.g. CryptoCats" required>
+                <form id="name-form" class="space-y-4">
+                    <input
+                        type="text"
+                        id="display-name"
+                        maxlength="24"
+                        autofocus
+                        class="flex h-10 w-full rounded-md border border-slate-600 bg-slate-700/50 px-3 py-2 text-base text-white placeholder:text-slate-400 focus:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-400"
+                        placeholder="e.g. CryptoCats"
+                        required
+                    />
 
-              <button type="submit"
-                      class="w-full bg-gradient-to-r from-green-500 to-blue-500
-                             hover:from-green-600 hover:to-blue-600 text-white
-                             font-semibold py-2 px-4 rounded-lg transition-all
-                             duration-200 transform hover:scale-105">
-                Save & Continue
-              </button>
-            </form>
-          </div>
+                    <button
+                        type="submit"
+                        class="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
+                    >
+                        Save & Continue
+                    </button>
+                </form>
+            </div>
         </div>
-
     </main>
 
     <style>
-      @keyframes slide-in {
-          from {transform: translateY(-0.75rem); opacity: 0;}
-          to   {transform: translateY(0);         opacity: 1;}
-      }
+        @keyframes slide-in {
+            from {
+                transform: translateY(-0.75rem);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
