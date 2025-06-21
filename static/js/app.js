@@ -495,7 +495,7 @@ function generateChallengeHTML(ch, isSolved) {
         <div class="border-t border-slate-700 pt-6">
         <h2 class="text-xl font-semibold text-white mb-4">Submit Flag</h2>
         <form id="flag-form-${ch.id}" class="flex gap-3">
-        <input type="text" id="flag-input-${ch.id}" placeholder="CTF{...}"
+        <input type="text" id="flag-input-${ch.id}" placeholder="Enter FLAG text here"
     class="flex-1 h-10 rounded-md border border-slate-600 bg-slate-700/50 px-3 py-2 text-white placeholder:text-slate-400 focus:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-400" />
         <button type="submit"
     class="px-6 py-2 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold rounded-lg transition-all">

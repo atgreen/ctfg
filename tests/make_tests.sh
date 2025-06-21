@@ -91,7 +91,7 @@ test('ctfg log in', async ({ page }) => {
     await card.scrollIntoViewIfNeeded();
     await card.click();
 
-    await page.getByPlaceholder('CTF{...}').fill('foo');
+    await page.getByPlaceholder('Enter FLAG text here').fill('foo');
     await page.getByRole('button', { name: /^submit$/i }).click();
 
     await expect(page.getByText('Challenge Solved!', { exact: true }))
