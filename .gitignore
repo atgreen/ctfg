@@ -7,3 +7,5 @@ ctfg
 /playwright-report/
 /tests/*.ts
 /ctfg-linux-x86_64
+/home-full.png
+/test-results/
