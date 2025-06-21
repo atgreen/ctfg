@@ -17,6 +17,7 @@ let challenges           = [];   // flat array convenience view
 /*  DOM CACHES                                                        */
 /* ------------------------------------------------------------------ */
 const loginPage      = document.getElementById('login-page');
+const banner         = document.getElementById('banner');
 const navigation     = document.getElementById('navigation');
 const mainContent    = document.getElementById('main-content');
 const challengeList  = document.getElementById('challenge-list');
@@ -77,11 +78,6 @@ function showError(message, ms = 5000) {
 /* ------------------------------------------------------------------ */
 function finishLogin ({ username, displayname, needs_name }) {
 
-    console.log("zzzzzzzzzzzzzzzzzz");
-    console.log(username);
-    console.log(displayname);
-    console.log(needs_name);
-
     currentUser = displayname || username;
     window.currentUser = username;                  // keep it globally if you like
     document.getElementById('user-name').textContent =
@@ -96,7 +92,10 @@ function finishLogin ({ username, displayname, needs_name }) {
             .addEventListener('submit', handleNameSubmit, { once: true });
     }
 
+    console.log('banner element:', banner);
+
     loginPage.classList.add('hidden');
+    banner.classList.remove('hidden');
     navigation.classList.remove('hidden');
     mainContent.classList.remove('hidden');
 
@@ -110,9 +109,6 @@ function finishLogin ({ username, displayname, needs_name }) {
 
     ws.addEventListener('message', e => {
         const msg = JSON.parse(e.data);
-
-        console.log(msg);
-        console.log("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
 
         // 1. If the message is for me, record the solve
         if (msg.displayname === currentUser) {
@@ -147,6 +143,7 @@ function finishLogin ({ username, displayname, needs_name }) {
 
 function showLogin() {
     loginPage.classList.remove('hidden');
+    banner.classList.add('hidden');
     navigation.classList.add('hidden');
     mainContent.classList.add('hidden');
     /* optional: clear form fields & focus username input */
@@ -175,20 +172,6 @@ async function handleLogin(e) {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const { displayname, needs_name } = await res.json();
-
-        console.log ("-------------------------");
-        console.log (needs_name);
-
-        /* ------------ store auth info ------------
-           localStorage.setItem('jwt', token);              // or rely on an HttpOnly
-           currentUser = display_name || username;
-           document.getElementById('user-name').textContent = currentUser;
-
-           ------------ switch the UI ------------
-           loginPage.classList.add('hidden');
-           navigation.classList.remove('hidden');
-           mainContent.classList.remove('hidden');
-           showView('challenges'); */
 
         finishLogin({ username, displayname, needs_name });
 
