@@ -44,20 +44,23 @@
   "Executed right before HANDLE-STATIC-FILE streams FILE.
    We ignore the arguments and just tell the browser not to cache."
   (declare (ignore file content-type))
-  (hunchentoot:no-cache))
+  (when *developer-mode*
+    (hunchentoot:no-cache)))
 
 (defparameter +static-dispatch-table+
   (list
    (hunchentoot:create-folder-dispatcher-and-handler
     "/images/" (fad:pathname-as-directory
-                (merge-pathnames "static/images/" (app-root))))
+                (merge-pathnames "static/images/" (app-root)))
+    "application/octet-stream" #'dev/no-cache-callback)
    (hunchentoot:create-folder-dispatcher-and-handler
     "/js/" (fad:pathname-as-directory
-            (merge-pathnames "static/js/" (app-root))))
+            (merge-pathnames "static/js/" (app-root)))
+    "application/javascript" #'dev/no-cache-callback)
    (hunchentoot:create-folder-dispatcher-and-handler
     "/css/" (fad:pathname-as-directory
              (merge-pathnames "static/css/" (app-root)))
-    #'dev/no-cache-callback)))
+    "text/css" #'dev/no-cache-callback)))
 
 (defparameter +index.html+ #.(uiop:read-file-string "src/index.html"))
 (defparameter +challenges.json+ #.(uiop:read-file-string "src/challenges.json"))
