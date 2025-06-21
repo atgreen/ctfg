@@ -102,9 +102,9 @@ test('ctfg log in', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Scoreboard' }).click();
 
-  await page.waitForTimeout(4000);
+  await page.waitForTimeout(5000);
 
-  await page.screenshot({ path: 'home-full.png', fullPage: true });
+  await page.screenshot({ path: 'home-full-${player_count}.png', fullPage: true });
 });
 EOF
 

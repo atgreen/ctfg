@@ -78,7 +78,7 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           name: home-full
-          path: home-full.png
+          path: home-full-*.png
           retention-days: 30
 
       - name: Upload artifact
