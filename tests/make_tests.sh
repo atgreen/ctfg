@@ -104,7 +104,7 @@ test('ctfg log in', async ({ page }) => {
 
   await page.waitForTimeout(5000);
 
-  await page.screenshot({ path: 'home-full-${player_count}.png', fullPage: true });
+  await page.screenshot({ path: 'scoreboard-${player_count}.png', fullPage: true });
 });
 EOF
 
