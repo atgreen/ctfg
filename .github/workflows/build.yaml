@@ -77,8 +77,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: home_full
-          path: home_full.png
+          name: home-full
+          path: home-full.png
           retention-days: 30
 
       - name: Upload artifact
