@@ -47,7 +47,7 @@
             "difficulty": "Easy",
             "points": 75,
             "description": "Decode this simple Caesar cipher to reveal the flag.",
-            "content": "Encrypted message:\nFWI{fdhvdu_flskhu_vkliw_wkuhh}\n\nThis message has been encrypted using a Caesar cipher.\nFind the correct shift value to decode the flag.\n\nHint: The flag format is CTF{...}",
+            "content": "Encrypted message:\nFWI{fdhvdu_flskhu_vkliw_wkuhh}\n\nThis message has been encrypted using a Caesar cipher.\nFind the correct shift value to decode the flag.",
             "flag": "foo"
         },
         {
@@ -57,7 +57,7 @@
             "difficulty": "Medium",
             "points": 250,
             "description": "Break this XOR encryption to get the flag.",
-            "content": "Encrypted hex: 1c0a1e0b1f0c1a0f1e0b1a0f1e0c1a0b1f0a1e0f1a0c1e0b1f0a1e0f\n\nThe flag has been XOR encrypted with a single byte key.\nThe flag follows the format CTF{...}\n\nTry all possible single byte keys (0-255) to decrypt the message.",
+            "content": "Encrypted hex: 1c0a1e0b1f0c1a0f1e0b1a0f1e0c1a0b1f0a1e0f1a0c1e0b1f0a1e0f\n\nThe flag has been XOR encrypted with a single byte key.\nTry all possible single byte keys (0-255) to decrypt the message.",
             "flag": "foo"
         }
 ]
