@@ -210,7 +210,6 @@
 (ws:register-global-resource "/scorestream"
                              (make-instance 'scorestream-resource)
                              #'ws::any-origin)
-;;                             (ws:origin-prefix "http://127.0.0.1" "http://localhost" "null"))
 
 (defvar *solves-table* (make-hash-table))
 
