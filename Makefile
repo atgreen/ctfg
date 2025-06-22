@@ -10,4 +10,4 @@ check: ctfg
 	npx playwright test
 
 clean:
-	rm -rf *~ ctfg events.db* tests/*.ts
+	rm -rf *~ ctfg events.db* scoreboard*.png tests/*.ts

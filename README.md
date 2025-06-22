@@ -4,10 +4,23 @@ This is a simple Capture-The-Flag game engine.
 
 ## Building and Running
 
+You will need to install a few dependencies first.  If you are running homebrew,
+run...
 ```sh
-make
-ctfg --help
+brew install make sbcl ocicl gcc@11
 ```
+
+Otherwise, install `sbcl` from your OS distribution, and then `ocicl` from source at https://github.com/ocicl/ocicl.
+
+Once `ocicl` is available, run `ocicl install` to download the Common
+Lisp dependencies.
+
+And then...
+
+* To build `ctfg`: `make`
+* To test `ctfg`: `make check`
+* To run `ctfg`: `ctfg --help`
+
 
 ## Configuring your Game
 
