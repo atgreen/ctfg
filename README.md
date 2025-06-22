@@ -38,7 +38,7 @@ And then...
             "content": "Login page source code: \n    echo \"Login successful! Flag: \" . $flag; \n} else { \n    echo \"Invalid credentials\"; \n}" ,
             "flag": "foo",
             "requirements": [2, 3]
-	      },
+        },
 ```
 
   Each challenge needs a unique `id`.  All of the other fields are self-explanatory.  The `requirements` field is optional. It should be a list of challenges that must be solved before this challenge appears on the board.
