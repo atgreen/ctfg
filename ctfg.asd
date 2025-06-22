@@ -1,4 +1,4 @@
-;;; flagger.asd
+;;; ctfg.asd
 ;;;
 ;;; SPDX-License-Identifier: MIT
 ;;;
@@ -11,7 +11,7 @@
   :version     "0.1.0"
   :depends-on  (:version-string :clingon :hunchentoot :easy-routes :log4cl
                 :markup :slynk :cl-json :cl-csv :clws
-                :cl-dbi :dbd-sqlite3)
+                :cl-dbi :dbd-sqlite3 :rwlock)
   :serial      t
   :components  ((:file "src/package")
                 (:file "src/challenges")

@@ -133,9 +133,12 @@
                       (challenge-points challenge))))
     (log:info msg)
     (push (challenge-id challenge) (gethash (user-id user) *solves-table*))
-    (dolist (client *websocket-client*)
-      (log:info "sending to " client)
-      (ws:write-to-client-text client msg))))
+    (let ((clients nil))
+      (rwlock:with-read-lock-held *websocket-client-lock*
+        (setf clients (copy-list *websocket-clients*)))
+      (dolist (client clients)
+        (log:info "sending to " client)
+        (ws:write-to-client-text client msg)))))
 
 (easy-routes:defroute set-name ("/api/set-name" :method :post) ()
   "Set your display name"
@@ -227,11 +230,13 @@
         (push (event-challenge-id event) (gethash (event-user-id event) *solves-table*))
         (ws:write-to-client-text client msg)))))
 
-(defvar *websocket-client* (list))
+(defvar *websocket-clients* (list))
+(defvar *websocket-client-lock* (rwlock:make-rwlock))
 
 (defmethod ws:resource-client-connected ((res scorestream-resource) client)
   (log:info "got connection on scorestream server from ~s : ~s~%" (ws:client-host client) (ws:client-port client))
-  (push client *websocket-client*)
+  (rwlock:with-write-lock-held *websocket-client-lock*
+    (push client *websocket-clients*))
   (send-events client)
   t)
 
