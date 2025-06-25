@@ -8,6 +8,7 @@ let currentUser        = null;
 let userPoints         = 0;
 let currentView        = 'challenges';
 const solvedChallenges = new Set();
+const revealedHints    = new Set();
 
 /* Will be filled by loadChallenges() */
 let challengesByCategory = {};
@@ -446,6 +447,69 @@ function getDifficultyColor(diff) {
 /* ------------------------------------------------------------------ */
 let openChallengeId = null;
 
+/* ─── helpers ────────────────────────────────────────────────────── */
+function hintBlockHTML (chID, hint, owned, active) {
+  if (owned) {
+    /* already bought → show text */
+    return `
+      <div class="my-2 p-4 border border-slate-700 rounded-lg">
+        <p class="text-slate-300 text-sm">${hint.text}</p>
+      </div>`;
+  }
+
+  if (active) {
+    /* first not-yet-owned → show blue “Reveal” button */
+    return `
+      <div class="my-2 p-4 border border-slate-700 rounded-lg flex justify-between items-center">
+        <span class="text-slate-300 text-sm">
+          Hint (<span class="text-yellow-400 font-semibold">${hint.cost} pts</span>)
+        </span>
+        <button
+          class="reveal-hint-btn bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded"
+          data-ch="${chID}" data-hint="${hint.id}" data-cost="${hint.cost}">
+          Reveal
+        </button>
+      </div>`;
+  }
+
+  /* locked → grey placeholder */
+  return `
+    <div class="my-2 p-4 border border-slate-700 rounded-lg opacity-30 cursor-not-allowed">
+      <span class="italic text-slate-400">Locked – reveal earlier hints first</span>
+    </div>`;
+}
+
+async function handleRevealHint(e) {
+  const btn     = e.currentTarget;
+  const chID    = Number(btn.dataset.ch);
+  const hintID  = Number(btn.dataset.hint);
+  const cost    = Number(btn.dataset.cost);
+
+  try {
+    const res = await fetch('/api/hint', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: chID, hint_id: hintID })
+    });
+
+    if (res.status === 401) { showError('Session expired'); return showLogin(); }
+    const data = await res.json();
+    if (data.result !== 'ok') throw new Error(data.message || 'Error');
+
+    /* success → mark + update points, then re-render */
+    revealedHints.add(hintID);
+    userPoints = data.points;
+    document.getElementById('user-points').textContent = `${userPoints} pts`;
+    showChallenge(chID);                 // redraw with the hint text visible
+
+  } catch (err) {
+    console.error(err);
+    showError(err.message || 'Could not reveal hint');
+  }
+}
+
+
 function showChallenge(challengeId) {
     openChallengeId = challengeId;
     const challenge = challenges.find(c => c.id === challengeId);
@@ -457,6 +521,9 @@ function showChallenge(challengeId) {
     challengeDetail.classList.remove('hidden');
 
     document.getElementById('challenge-content').innerHTML = generateChallengeHTML(challenge, isSolved);
+
+    document.querySelectorAll('.reveal-hint-btn').forEach(btn =>
+        btn.addEventListener('click', handleRevealHint));
 
     if (!isSolved) {
         document.getElementById(`flag-form-${challengeId}`)
@@ -536,6 +603,28 @@ function errorHtml(msg) {
     </div>`;
 }
 
+function generateHintHTML(chID, hint) {
+  const owned = revealedHints.has(hint.id);
+
+  return `
+    <div class="my-2 p-4 border border-slate-700 rounded-lg">
+      ${owned
+        ? `<p class="text-slate-300 text-sm">${hint.text}</p>`
+        : `
+          <div class="flex justify-between items-center">
+            <span class="text-slate-300 text-sm">
+              Hint &nbsp;(<span class="text-yellow-400 font-semibold">${hint.cost} pts</span>)
+            </span>
+            <button
+              class="reveal-hint-btn bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded"
+              data-ch="${chID}" data-hint="${hint.id}" data-cost="${hint.cost}">
+              Reveal
+            </button>
+          </div>`
+      }
+    </div>`;
+}
+
 function generateChallengeHTML(ch, isSolved) {
     return `
     <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-8">
@@ -556,6 +645,23 @@ function generateChallengeHTML(ch, isSolved) {
       <div class="mb-6">
         <h2 class="text-xl font-semibold text-white mb-3">Description</h2>
         <p class="text-slate-300">${ch.description}</p>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="text-xl font-semibold text-white mb-3">Hints</h2>
+        ${
+          ch.hints?.length
+            ? (() => {
+                let unlockedGiven   = false;   // “first unrevealed” flag
+                return ch.hints.map(h => {
+                  const owned  = revealedHints.has(h.id);
+                  const active = !owned && !unlockedGiven;
+                  if (active) unlockedGiven = true;        // next ones stay locked
+                  return hintBlockHTML(ch.id, h, owned, active);
+                }).join('');
+              })()
+            : '<p class="text-slate-400">No hints for this challenge.</p>'
+        }
       </div>
 
       <div class="mb-8">

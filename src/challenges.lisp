@@ -9,7 +9,7 @@
 (defvar *all-challenges* nil)
 
 (defstruct challenge
-  id title category difficulty points description content flag requirements)
+  id title category difficulty points description content flag hints requirements)
 
 (defun read-challenges (challenges.json)
   (let ((clist (list)))
@@ -24,6 +24,7 @@
                :description (cdr (assoc :description challenge))
                :content     (cdr (assoc :content challenge))
                :flag        (cdr (assoc :flag challenge))
+               :hints       (cdr (assoc :hints challenge))
                :requirements (cdr (assoc :requirements challenge)))
               clist)))
     (log:info "Read ~A challenges." (length clist))

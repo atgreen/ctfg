@@ -7,7 +7,11 @@
             "points": 150,
             "description": "Bypass the login mechanism using SQL injection techniques.",
             "content": "Login page source code: \n    echo \"Login successful! Flag: \" . $flag; \n} else { \n    echo \"Invalid credentials\"; \n}" ,
-            "flag": "foo"
+            "flag": "foo",
+            "hints": [
+              { "id": 1, "text": "Have you tried reversing the alphabet?", "cost": 10 },
+              { "id": 2, "text": "Look at byte 0x0d.",                    "cost": 15 }
+            ]
 	      },
         {
             "id": 4,

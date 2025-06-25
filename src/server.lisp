@@ -216,6 +216,7 @@
                                          (cons "difficulty" (challenge-difficulty challenge))
                                          (cons "points" (challenge-points challenge))
                                          (cons "description" (challenge-description challenge))
+                                         (cons "hints" (challenge-hints challenge))
                                          (cons "content" (challenge-content challenge))))
                                  challenges)))
           (cl-json:encode-json-to-string json-data))))))
