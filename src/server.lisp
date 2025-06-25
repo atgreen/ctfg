@@ -218,9 +218,7 @@
                                          (cons "description" (challenge-description challenge))
                                          (cons "content" (challenge-content challenge))))
                                  challenges)))
-          (let ((s (cl-json:encode-json-to-string json-data)))
-            ;; (format t "~&~A~%" s)
-            s))))))
+          (cl-json:encode-json-to-string json-data))))))
 
 (easy-routes:defroute index ("/" :method :get) ()
   "Main index page"
