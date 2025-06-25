@@ -10,14 +10,15 @@
   :license     "MIT"
   :version     "0.1.0"
   :depends-on  (:version-string :clingon :hunchentoot :easy-routes :log4cl
-                :markup :slynk :cl-json :cl-csv :clws
-                :cl-dbi :dbd-sqlite3 :rwlock)
+                :markup :slynk :cl-json :cl-csv :clws :sqlite
+                :cl-dbi :dbd-sqlite3 :rwlock :luckless :sentry-client)
   :serial      t
   :components  ((:file "src/package")
                 (:file "src/challenges")
                 (:file "src/db")
                 (:file "src/user")
                 (:file "src/event")
+                (:file "src/clients")
                 (:file "src/server")
                 (:file "src/main"))
   :build-operation "program-op"

@@ -9,6 +9,26 @@
 (version-string:define-version-parameter +version+ :ctfg)
 
 (defvar *db* nil)
+(defvar *sentry-dsn* nil)
+
+(defun capture-exception (e)
+  (when *sentry-dsn*
+    (sentry-client:capture-exception e)))
+
+(defun save-solve (key value)
+  (loop
+    for current-caslist := (lh:gethash key *solves-table*)
+    do (cond
+         (current-caslist
+          ;; If a caslist already exists, try to push to it
+          (ll:push value current-caslist)
+          (return t)) ; Push successful
+         (t
+          ;; If no caslist exists, try to add a new one
+          (let ((new-caslist (ll:caslist value)))
+            (when (lh:put-if-absent *solves-table* key new-caslist)
+              (return t)))) ; Successfully added new caslist
+          )))
 
 ;; ----------------------------------------------------------------------------
 ;; Machinery for managing the execution of the server.
@@ -17,10 +37,10 @@
 (defvar *acceptor* nil)
 
 (defun respond-unauthorized ()
-  (setf (content-type*) "application/json"
-        (return-code*)  401)
-  (finish-output)
-  (write-string "{\"error\":\"unauthorized\"}" *reply*))
+  (setf (hunchentoot:content-type*) "application/json"
+        (hunchentoot:return-code*)  401)
+  (hunchentoot:no-cache)
+  "{\"error\":\"unauthorized\"}")
 
 ;;; ------------------------------------------------------------
 ;;; Macro: WITH-AUTHENTICATED-USER
@@ -89,6 +109,11 @@
         (setf (gethash (car row) *credentials*) (cadr row))))
     (log:info "Read ~A credentials from credentials.csv" (hash-table-count *credentials*))))
 
+(easy-routes:defroute threads ("/debug/threads" :method :get) ()
+  (format nil "Threads: ~{~A~%~}"
+          (mapcar #'bt:thread-name
+                  (bt:all-threads))))
+
 (easy-routes:defroute login ("/api/login" :method :post) ()
   "User login"
   (let* ((body (json-body))
@@ -125,20 +150,19 @@
 
 (defun award-points (user challenge)
   (log:info "award points")
-  (let* ((ts (record-flag *db* user challenge))
-         (msg (format nil "{ \"displayname\": ~S, \"ts\": ~A, \"challenge\": ~S, \"points\": ~A }"
-                      (user-displayname user)
-                      (floor ts 1000)
-                      (challenge-title challenge)
-                      (challenge-points challenge))))
-    (log:info msg)
-    (push (challenge-id challenge) (gethash (user-id user) *solves-table*))
-    (let ((clients nil))
-      (rwlock:with-read-lock-held *websocket-client-lock*
-        (setf clients (copy-list *websocket-clients*)))
-      (dolist (client clients)
-        (log:info "sending to " client)
-        (ws:write-to-client-text client msg)))))
+  (multiple-value-bind (ts event-id)
+      (record-flag *db* user challenge)
+    (let ((msg (format nil "[{ \"id\": ~A, \"displayname\": ~S, \"ts\": ~A, \"challenge\": ~S, \"points\": ~A }]"
+                       event-id
+                       (user-displayname user)
+                       (floor ts 1000)
+                       (challenge-title challenge)
+                       (challenge-points challenge))))
+      (log:info msg)
+      (save-solve (user-id user) (challenge-id challenge))
+      (dolist (client (get-client-list))
+        (rwlock:with-write-lock-held (client-lock client)
+          (ws:write-to-client-text (client-socket client) msg))))))
 
 (easy-routes:defroute set-name ("/api/set-name" :method :post) ()
   "Set your display name"
@@ -151,17 +175,16 @@
 
 (easy-routes:defroute submit ("/api/submit" :method :post) ()
   "Submit a flag"
-  (log:info "SUBMIT!")
   (with-authenticated-user (user)
-    (log:info "submitting")
     (let* ((body   (json-body))
            (cid    (cdr (assoc :id body)))
            (guess  (string-trim '(#\Space #\Tab #\Newline) (cdr (assoc :flag body))))
            (chal   (find cid *all-challenges* :key #'challenge-id))
            (solved (user-solved-p user cid)))
-      (log:info chal)
-      (log:info guess)
-      (log:info (challenge-flag chal))
+      (log:info "~A submitting for challenge ~A: ~A"
+                (user-displayname user)
+                cid
+                guess)
       (cond
         ((null chal)
          (respond-json '(:error "unknown_id") :code 400))
@@ -177,13 +200,13 @@
          (log:info "Incorrect!")
          (respond-json '((:result . "incorrect"))))))))
 
-
 (easy-routes:defroute challenges ("/api/challenges" :method :get) ()
   "Challenges"
   (let ((user (hunchentoot:session-value :user)))
     (log:info "Computing challenges for user: " (user-username user))
     (setf (hunchentoot:content-type*) "application/json")
-    (let ((solves (gethash (user-id user) *solves-table*)))
+    (let* ((ll (lh:gethash (user-id user) *solves-table*))
+           (solves (if ll (ll:to-list ll) nil)))
       (log:info "Solves for user ~A: ~A" (user-displayname user) solves)
       (let ((challenges (available-challenges solves)))
         (let ((json-data (mapcar (lambda (challenge)
@@ -211,44 +234,58 @@
                              (make-instance 'scorestream-resource)
                              #'ws::any-origin)
 
-(defvar *solves-table* (make-hash-table))
+(defvar *solves-table* (lh:make-castable))
 
 (defun send-events (client)
   (let ((events (collect-events-since *db* 0)))
-    (dolist (event events)
-      (let* ((name-pair (get-user-name-pair (event-user-id event)))
-             (event-username (car name-pair))
-             (event-displayname (cdr name-pair))
-             (dummy (log:info name-pair))
-             (msg (format nil "{ \"displayname\": ~S, \"ts\": ~A, \"challenge_id\": ~A, \"challenge\": ~S, \"points\": ~A }"
-                          event-displayname
-                          (floor (event-ts event) 1000)
-                          (event-challenge-id event)
-                          (challenge-title (find (event-challenge-id event) *all-challenges* :key #'challenge-id))
-                          (event-points event))))
-        (push (event-challenge-id event) (gethash (event-user-id event) *solves-table*))
-        (ws:write-to-client-text client msg)))))
-
-(defvar *websocket-clients* (list))
-(defvar *websocket-client-lock* (rwlock:make-rwlock))
+    (bt:make-thread
+     (lambda ()
+       (let ((json-events
+              (loop for event in events
+                    collect (format nil "{ \"id\": ~A, \"displayname\": ~S, \"ts\": ~A, \"challenge_id\": ~A, \"challenge\": ~S, \"points\": ~A }"
+                                   (event-id event)
+                                   (cdr (get-user-name-pair (event-user-id event)))
+                                   (floor (event-ts event) 1000)
+                                   (event-challenge-id event)
+                                   (challenge-title (find (event-challenge-id event) *all-challenges* :key #'challenge-id))
+                                   (event-points event)))))
+         (log:info json-events)
+         (handler-case
+             (progn
+               (rwlock:with-write-lock-held (client-lock client)
+                 (ws:write-to-client-text
+                  (client-socket client)
+                  (format nil "[~{~a~^,~}]" json-events))) ; Single array message
+               (log:info "events sent"))
+           (error (e)
+             (log:error "Error sending events: ~a" e)
+             (capture-exception e))))))))
 
 (defmethod ws:resource-client-connected ((res scorestream-resource) client)
-  (log:info "got connection on scorestream server from ~s : ~s~%" (ws:client-host client) (ws:client-port client))
-  (rwlock:with-write-lock-held *websocket-client-lock*
-    (push client *websocket-clients*))
-  (send-events client)
-  t)
+  (log:info "Client connected to scorestream server from ~s : ~s" (ws:client-host client) (ws:client-port client))
+  (log:info client)
+  (handler-case
+      (let ((client (make-client :socket client :lock (rwlock:make-rwlock))))
+        (add-client client)
+        (send-events client))
+    (error (e)
+      (log:error "Error on websocket client connect: ~A" e)
+      (capture-exception e))))
 
 (defmethod ws:resource-client-disconnected ((resource scorestream-resource) client)
-  (format t "Client disconnected from resource ~A: ~A~%" resource client))
+  (log:info "Client disconnected from resource ~A: ~A" resource client)
+  (handler-case
+      (remove-client client)
+    (error (e)
+         (log:error "Error on websocket client disconnect: ~A" e)
+      (capture-exception e))))
 
-(defmethod ws:resource-received-text ((res scorestream-resource) client message)
-  (format t "got frame ~s from client ~s" message client)
-  (ws:write-to-client-text client message))
-
-(defmethod ws:resource-received-binary((res scorestream-resource) client message)
-  (format t "got binary frame ~s from client ~s" (length message) client)
-  (ws:write-to-client-binary client message))
+(defmethod hunchentoot:maybe-invoke-debugger :after (condition)
+    (when hunchentoot:*catch-errors-p*
+      ;; There's an error in trivial-backtrace:map-backtrace in SBCL
+      ;; if we don't set sb-debug:*stack-top-hint* to NIL
+        (let ((sb-debug:*stack-top-hint* nil))
+          (capture-exception condition))))
 
 (defun start-server (port)
   "Start the web application with easy-routes."
@@ -256,6 +293,11 @@
   (setf hunchentoot:*show-lisp-errors-p* t)
   (setf hunchentoot:*show-lisp-backtraces-p* t)
   (setf hunchentoot:*session-max-time* most-positive-fixnum)
+
+  (setf *sentry-dsn* (uiop:getenv "SENTRY_DNS"))
+  (when *sentry-dsn*
+    (log:info "Initializing sentry client.")
+    (sentry-client:initialize-sentry-client *sentry-dsn*))
 
   (setf *db* (make-instance 'db/sqlite :filename "events.db"))
 
@@ -270,16 +312,31 @@
 
   (let ((events (collect-events-since *db* 0)))
     (dolist (event events)
-      (push (event-challenge-id event) (gethash (event-user-id event) *solves-table*))))
+      (save-solve (event-user-id event) (event-challenge-id event))))
 
-  (bordeaux-threads:make-thread (lambda ()
-                                  (ws:run-server 12345))
-                                :name "websockets server")
+  (setf ws:*log-level* nil)
+  (setf ws:*debug-on-server-errors* nil)
+  (setf ws:*debug-on-resource-errors* nil)
+  (setf ws::*max-write-backlog* (* 500 30)) ; 500 players, 30 challenges
 
-  (bordeaux-threads:make-thread (lambda ()
-                                  (ws:run-resource-listener
-                                   (ws:find-global-resource "/scorestream")))
-                                :name "resource listener for /scorestream")
+  (bordeaux-threads:make-thread
+   (lambda ()
+     (handler-case
+         (ws:run-server 12345)
+       (error (e)
+         (log:error "WebSocket server crashed: ~A" e)
+         (capture-exception e))))
+   :name "websockets server")
+
+  (bordeaux-threads:make-thread
+   (lambda ()
+     (handler-case
+         (ws:run-resource-listener
+          (ws:find-global-resource "/scorestream"))
+       (error (e)
+         (log:error "Resource listener crashed: ~A" e)
+         (capture-exception e))))
+   :name "resource listener for /scorestream")
 
   ;; Create and start the easy-routes acceptor
   (setf *acceptor* (make-instance 'my-acceptor :port port))

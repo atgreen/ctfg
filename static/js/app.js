@@ -76,6 +76,114 @@ function showError(message, ms = 5000) {
 /* ------------------------------------------------------------------ */
 /*  LOGIN / LOGOUT                                                    */
 /* ------------------------------------------------------------------ */
+
+/* -------------------- websocket helper -------------------- */
+const WS_URL       = 'ws://localhost:12345/scorestream';
+const BACKOFF_MIN  = 1_000;     // 1 s
+const BACKOFF_MAX  = 30_000;    // 30 s
+
+let reconnectDelay = BACKOFF_MIN;
+
+/* ------------------------------------------------------------------ */
+/*  WEBSOCKET HELPERS                                                 */
+/* ------------------------------------------------------------------ */
+
+/* ────────── 1 ▸ low-level data mutator ────────── */
+function applyScoreDelta (msg) {
+  const { ts:timestamp, displayname:name, points:delta } = msg;
+  if (timestamp == null || name == null || delta == null) return;
+
+  /*  A. running totals  */
+  const newTotal = (scoreboard.get(name) || 0) + delta;
+  scoreboard.set(name, newTotal);
+
+  /*  B. timeline        */
+  const tl = timelines.get(name) ?? [];
+  tl.push({ x: timestamp, y: newTotal, challenge: msg.challenge });
+  tl.sort((a, b) => a.x - b.x);          // keep in order
+  timelines.set(name, tl);
+}
+
+/* ────────── 2 ▸ expensive repaint, called ONCE ────────── */
+function flushChart () {
+  /* rebuild datasets, same logic as before … */
+  const topUsers = [...scoreboard.entries()]
+        .sort((a,b) => b[1]-a[1]).slice(0, TOP_N).map(([u]) => u);
+
+  scoreChart.data.datasets = topUsers.map((u, i) => ({
+    label: u,
+    data : timelines.get(u),
+    borderColor    : scoreChart.data.datasets.find(d=>d.label===u)?.borderColor
+                   ?? palette[i % palette.length],
+    backgroundColor: palette[i % palette.length],
+    pointRadius    : 3,
+    tension        : .3,
+    borderWidth    : 2
+  }));
+
+  scoreChart.update('none');
+  refreshScoreboard();
+}
+
+/* ────────── 3 ▸ message handler split ────────── */
+function handleScoreEvent (msg, deferFlush = false) {
+  if (seenEventIDs.has(msg.id)) return;
+  seenEventIDs.add(msg.id);
+
+  /* player-specific bits (solved, points display) stay as they were … */
+  if (msg.displayname === currentUser) {
+    solvedChallenges.add(msg.challenge_id);
+    if (currentView === 'challenges')       renderChallenges();
+    else if (!challengeDetail.classList.contains('hidden')
+             && openChallengeId === msg.challenge_id)     showChallenge(msg.challenge_id);
+    userPoints = (scoreboard.get(currentUser) || 0) + msg.points;
+    document.getElementById('user-points').textContent = `${userPoints} pts`;
+  }
+
+  applyScoreDelta(msg);          // always cheap
+  if (!deferFlush) flushChart(); // expensive only if we ask for it
+}
+
+/* --- 2.  Connect & normalise payload to an array ------------------ */
+function connectWS () {
+    if (!currentUser) return;
+
+    ws = new WebSocket(WS_URL);
+
+    ws.addEventListener('open', () => {
+        console.log('socket open');
+        reconnectDelay = BACKOFF_MIN;
+    });
+
+    ws.addEventListener('message', e => {
+        let payload;
+        try      { payload = JSON.parse(e.data); }
+        catch(err){ console.error('Bad WS JSON', err); return; }
+
+        if (Array.isArray(payload)) {
+            /* initial dump or server batch ─ mutate quickly … */
+            payload.forEach(m => handleScoreEvent(m, /*deferFlush=*/true));
+            /* …then one single repaint */
+            flushChart();
+        } else {
+            /* real-time single event */
+            handleScoreEvent(payload);
+        }
+    });
+
+    ws.addEventListener('close', e => {
+        console.log('WS closed', {code: e.code, reason: e.reason, wasClean: e.wasClean});
+        const delay = reconnectDelay + Math.random() * 500;
+        setTimeout(connectWS, delay);
+        reconnectDelay = Math.min(reconnectDelay * 2, BACKOFF_MAX);
+    });
+
+    ws.addEventListener('error', err => {
+        console.error('socket error', err);
+        ws.close();
+    });
+}
+
 function finishLogin ({ username, displayname, needs_name }) {
 
     currentUser = displayname || username;
@@ -103,42 +211,7 @@ function finishLogin ({ username, displayname, needs_name }) {
 
     showView('challenges');
 
-    ws = new WebSocket('ws://localhost:12345/scorestream');
-
-    ws.addEventListener('open', () => console.log('socket open'));
-
-    ws.addEventListener('message', e => {
-        const msg = JSON.parse(e.data);
-
-        // 1. If the message is for me, record the solve
-        if (msg.displayname === currentUser) {
-            solvedChallenges.add(msg.challenge_id);
-
-            // ▸ update the list or the detail panel that might be open
-            if (currentView === 'challenges') {
-                renderChallenges();                 // redraw grid → checkmark appears
-            } else if (
-                !challengeDetail.classList.contains('hidden') &&
-                    openChallengeId == msg.challenge_id   // see note below
-            ) {
-                showChallenge(msg.challenge_id);    // redraw detail view
-            }
-
-            // ▸ keep the points read-out in the navbar current
-            console.log("POINTS");
-            console.log(userPoints);
-            userPoints = (scoreboard.get(currentUser) || 0) + msg.points;
-            console.log(userPoints);
-            console.log(currentUser);
-            document.getElementById('user-points').textContent = `${userPoints} pts`;
-        }
-
-        // 2. Always update the chart/scoreboard
-        updateChart(msg);
-    });
-
-    ws.addEventListener('close', () => console.log('socket closed'));
-
+    connectWS();
 }
 
 function showLogin() {
@@ -203,6 +276,7 @@ async function handleLogout () {
   openChallengeId = null;
 
   solvedChallenges.clear();
+  seenEventIDs.clear();
   challengesByCategory = {};
   challenges           = [];
 
@@ -590,6 +664,7 @@ const palette = [
 /* --------------------- local caches ------------------------ */
 const timelines = new Map();          // username → [{x, y}, …]
 const scoreboard = new Map();         // username → latest points
+const seenEventIDs = new Set();
 let scoreChart;                       // Chart.js instance
 
 function initChart () {
@@ -598,7 +673,7 @@ function initChart () {
         type: 'line',
         data: { datasets: [] },
         options: {
-            animation: false,
+            animation: true,
             responsive: true,
             maintainAspectRatio: false,
             plugins: { legend: { labels: { color: '#e2e8f0' } },
@@ -641,6 +716,8 @@ function updateChart (msg) {
     const name      = msg.displayname;
     const delta     = msg.points;      // this message’s *increment*
 
+    console.log ('updateChart', msg);
+
     if (timestamp == null || name == null || delta == null) {
         console.warn('Malformed score message', msg);
         return;
@@ -658,6 +735,11 @@ function updateChart (msg) {
         timelines.set(name, tl);
     }
     tl.push({ x: timestamp, y: newTotal, challenge: msg.challenge });
+
+    /* Keep the timeline sorted in case events come in out of order. This
+       can happen if we are getting real-time messages while the initial
+       dump is also arriving.  */
+    tl.sort((a, b) => a.x - b.x);
 
     /* ---------- 4. rebuild top-N datasets --------------------------- */
     const topUsers = [...scoreboard.entries()]
@@ -681,23 +763,26 @@ function updateChart (msg) {
     });
 
     scoreChart.update('none');      // instant, no animation
-    refreshScoreboard(topUsers);
+    refreshScoreboard();
 }
 
-function refreshScoreboard (topUsers) {
+function refreshScoreboard () {
     const tbody = document.getElementById('scoreboard-body');
     tbody.innerHTML = '';                       // clear
 
-    topUsers.forEach((name, idx) => {
+    const rows = [...scoreboard.entries()]
+          .sort((a, b) => b[1] - a[1]);
+
+    rows.forEach(([name, score], idx) => {
         const tr = document.createElement('tr');
         tr.className = idx % 2 ? 'bg-slate-800/20' : '';   // zebra
 
         tr.innerHTML = `
       <td class="px-6 py-2 text-slate-300">${idx + 1}</td>
       <td class="px-6 py-2 text-slate-200">${name}</td>
-      <td class="px-6 py-4 text-right text-green-400 font-semibold">${scoreboard.get(name)}</td>
+      <td class="px-6 py-4 text-right text-green-400 font-semibold">${score}</td>
       <td class="px-6 py-2 text-right text-slate-100">
-        ${timelines.get(name).length}
+        ${timelines.get(name).length ?? 0}
       </td>
     `;
         tbody.appendChild(tr);

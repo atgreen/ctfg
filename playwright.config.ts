@@ -11,8 +11,10 @@ export default defineConfig({
          trace: 'on-first-retry' },
 
   webServer: {
-    command: 'rm -rf events.db* && ./ctfg',
+    command: 'rm -rf events.db* && ./ctfg -d',
     url:     'http://localhost:8080',
+    stdout:  'pipe',
+    stderr:  'pipe',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000
   },

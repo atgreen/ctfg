@@ -7,4 +7,4 @@
 (in-package :ctfg)
 
 (defstruct event
-  ts user-id challenge-id event-type points hint-number)
+  id ts user-id challenge-id event-type points hint-number)
