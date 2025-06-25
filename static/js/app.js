@@ -642,6 +642,9 @@ async function loadChallenges() {
             challengesByCategory = data;
         }
 
+        Object.values(challengesByCategory).forEach(list =>
+            list.sort((a, b) => Number(a.id) - Number(b.id)));
+
         challenges = Object.values(challengesByCategory).flat();
 
         console.log(challenges);
