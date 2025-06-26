@@ -152,7 +152,7 @@
   (log:info "award points")
   (multiple-value-bind (ts event-id)
       (record-flag *db* user challenge)
-    (let ((msg (format nil "[{ \"id\": ~A, \"displayname\": ~S, \"ts\": ~A, \"challenge\": ~S, \"points\": ~A }]"
+    (let ((msg (format nil "[{ \"id\": ~A, \"type\": \"score\", \"displayname\": ~S, \"ts\": ~A, \"challenge\": ~S, \"points\": ~A }]"
                        event-id
                        (user-displayname user)
                        (floor ts 1000)
@@ -172,6 +172,25 @@
       (log:info "Setting displayname for player ~A to ~A: " (user-username user) name)
       (set-displayname *db* user name)
       "")))
+
+(easy-routes:defroute hint ("/api/hint" :method :post) ()
+  "Request a hint."
+  (log:info "HINT!")
+  (with-authenticated-user (user)
+    (let* ((body   (json-body))
+           (cid    (cdr (assoc :id body)))
+           (hid    (cdr (assoc :hint--id body)))
+           (chal   (find cid *all-challenges* :key #'challenge-id)))
+      (let ((hint (find hid (challenge-hints chal) :key (lambda (h) (cdr (assoc :ID h))))))
+        (log:info hint)
+        (let ((msg (format nil "[{ \"id\": 1001, \"type\": \"hint\", \"text\": ~S }]"
+                           (cdr (assoc :text hint)))))
+          (log:info msg)
+          (dolist (client (get-client-list))
+            (rwlock:with-write-lock-held (client-lock client)
+              (ws:write-to-client-text (client-socket client) msg))))))
+    (respond-json
+     `((:result . "ok") (:message . "hint purchase")))))
 
 (easy-routes:defroute submit ("/api/submit" :method :post) ()
   "Submit a flag"
@@ -202,24 +221,26 @@
 
 (easy-routes:defroute challenges ("/api/challenges" :method :get) ()
   "Challenges"
-  (let ((user (hunchentoot:session-value :user)))
-    (log:info "Computing challenges for user: " (user-username user))
-    (setf (hunchentoot:content-type*) "application/json")
-    (let* ((ll (lh:gethash (user-id user) *solves-table*))
-           (solves (if ll (ll:to-list ll) nil)))
-      (log:info "Solves for user ~A: ~A" (user-displayname user) solves)
-      (let ((challenges (available-challenges solves)))
-        (let ((json-data (mapcar (lambda (challenge)
-                                   (list (cons "id" (challenge-id challenge))
-                                         (cons "title" (challenge-title challenge))
-                                         (cons "category" (challenge-category challenge))
-                                         (cons "difficulty" (challenge-difficulty challenge))
-                                         (cons "points" (challenge-points challenge))
-                                         (cons "description" (challenge-description challenge))
-                                         (cons "hints" (challenge-hints challenge))
-                                         (cons "content" (challenge-content challenge))))
-                                 challenges)))
-          (cl-json:encode-json-to-string json-data))))))
+  (with-authenticated-user (user)
+    (let ((user (hunchentoot:session-value :user))
+          (events (collect-events-since *db* 0)))
+      (log:info "Computing challenges for user: " (user-username user))
+      (setf (hunchentoot:content-type*) "application/json")
+      (let* ((ll (lh:gethash (user-id user) *solves-table*))
+             (solves (if ll (ll:to-list ll) nil)))
+        (log:info "Solves for user ~A: ~A" (user-displayname user) solves)
+        (let ((challenges (available-challenges solves)))
+          (let ((json-data (mapcar (lambda (challenge)
+                                     (list (cons "id" (challenge-id challenge))
+                                           (cons "title" (challenge-title challenge))
+                                           (cons "category" (challenge-category challenge))
+                                           (cons "difficulty" (challenge-difficulty challenge))
+                                           (cons "points" (challenge-points challenge))
+                                           (cons "description" (challenge-description challenge))
+                                           (cons "hints" (challenge-hints challenge))
+                                           (cons "content" (challenge-content challenge))))
+                                   challenges)))
+            (cl-json:encode-json-to-string json-data)))))))
 
 (easy-routes:defroute index ("/" :method :get) ()
   "Main index page"
@@ -241,7 +262,7 @@
      (lambda ()
        (let ((json-events
               (loop for event in events
-                    collect (format nil "{ \"id\": ~A, \"displayname\": ~S, \"ts\": ~A, \"challenge_id\": ~A, \"challenge\": ~S, \"points\": ~A }"
+                    collect (format nil "{ \"id\": ~A, \"type\": \"score\", \"displayname\": ~S, \"ts\": ~A, \"challenge_id\": ~A, \"challenge\": ~S, \"points\": ~A }"
                                    (event-id event)
                                    (cdr (get-user-name-pair (event-user-id event)))
                                    (floor (event-ts event) 1000)

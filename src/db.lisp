@@ -130,6 +130,28 @@ mirroring the behaviour of dbi:connect-cached."
       (let ((row-id (sqlite:last-insert-rowid conn)))
         (values ts row-id)))))
 
+(defun record-hint (db user challenge)
+  "Insert a HINT event and return two values:
+   • the event timestamp in microseconds
+   • the autoincremented ID of the new row"
+  (let ((ts (now-micros)))
+    (with-open-connection (conn db)
+      ;; 1 ─ write the row
+      (sqlite:execute-non-query
+       conn
+       "INSERT INTO events
+          (ts, user_id, challenge_id, event_type, hint_number, points)
+        VALUES (?, ?, ?, ?, ?, ?)"
+       ts
+       (user-id user)
+       (challenge-id challenge)
+       2                                   ; HINT
+       (challenge-points challenge))
+
+      ;; 2 ─ same connection → fetch its last row-id
+      (let ((row-id (sqlite:last-insert-rowid conn)))
+        (values ts row-id)))))
+
 ;;;; --------------------------------------------------------------------------
 ;;;;  Read helpers
 ;;;; --------------------------------------------------------------------------

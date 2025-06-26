@@ -29,10 +29,12 @@ const scoreboardElm  = document.getElementById('scoreboard');
 /*  EVENT LISTENERS                                                   */
 /* ------------------------------------------------------------------ */
 document.getElementById('login-form')   .addEventListener('submit', handleLogin);
-document.getElementById('challenges-btn').addEventListener('click', () => showView('challenges'));
-document.getElementById('scoreboard-btn').addEventListener('click', () => showView('scoreboard'));
+document.getElementById('challenges-btn').addEventListener('click', () => {
+    showView('challenges', true);
+});
+document.getElementById('scoreboard-btn').addEventListener('click', () => showView('scoreboard', true));
 document.getElementById('logout-btn')   .addEventListener('click', handleLogout);
-document.getElementById('back-btn')     .addEventListener('click', () => showView('challenges'));
+document.getElementById('back-btn')     .addEventListener('click', () => showView('challenges', true));
 
 
 /* ------------------------------------------------------------------ */
@@ -91,58 +93,76 @@ let reconnectDelay = BACKOFF_MIN;
 
 /* ────────── 1 ▸ low-level data mutator ────────── */
 function applyScoreDelta (msg) {
-  const { ts:timestamp, displayname:name, points:delta } = msg;
-  if (timestamp == null || name == null || delta == null) return;
+    const { ts:timestamp, displayname:name, points:delta } = msg;
+    if (timestamp == null || name == null || delta == null) return;
 
-  /*  A. running totals  */
-  const newTotal = (scoreboard.get(name) || 0) + delta;
-  scoreboard.set(name, newTotal);
+    /*  A. running totals  */
+    const newTotal = (scoreboard.get(name) || 0) + delta;
+    scoreboard.set(name, newTotal);
 
-  /*  B. timeline        */
-  const tl = timelines.get(name) ?? [];
-  tl.push({ x: timestamp, y: newTotal, challenge: msg.challenge });
-  tl.sort((a, b) => a.x - b.x);          // keep in order
-  timelines.set(name, tl);
+    /*  B. timeline        */
+    const tl = timelines.get(name) ?? [];
+    tl.push({ x: timestamp, y: newTotal, challenge: msg.challenge });
+    tl.sort((a, b) => a.x - b.x);          // keep in order
+    timelines.set(name, tl);
 }
 
 /* ────────── 2 ▸ expensive repaint, called ONCE ────────── */
 function flushChart () {
-  /* rebuild datasets, same logic as before … */
-  const topUsers = [...scoreboard.entries()]
-        .sort((a,b) => b[1]-a[1]).slice(0, TOP_N).map(([u]) => u);
+    /* rebuild datasets, same logic as before … */
+    const topUsers = [...scoreboard.entries()]
+          .sort((a,b) => b[1]-a[1]).slice(0, TOP_N).map(([u]) => u);
 
-  scoreChart.data.datasets = topUsers.map((u, i) => ({
-    label: u,
-    data : timelines.get(u),
-    borderColor    : scoreChart.data.datasets.find(d=>d.label===u)?.borderColor
-                   ?? palette[i % palette.length],
-    backgroundColor: palette[i % palette.length],
-    pointRadius    : 3,
-    tension        : .3,
-    borderWidth    : 2
-  }));
+    scoreChart.data.datasets = topUsers.map((u, i) => ({
+        label: u,
+        data : timelines.get(u),
+        borderColor    : scoreChart.data.datasets.find(d=>d.label===u)?.borderColor
+            ?? palette[i % palette.length],
+        backgroundColor: palette[i % palette.length],
+        pointRadius    : 3,
+        tension        : .3,
+        borderWidth    : 2
+    }));
 
-  scoreChart.update('none');
-  refreshScoreboard();
+    scoreChart.update('none');
+    refreshScoreboard();
 }
 
 /* ────────── 3 ▸ message handler split ────────── */
 function handleScoreEvent (msg, deferFlush = false) {
-  if (seenEventIDs.has(msg.id)) return;
-  seenEventIDs.add(msg.id);
+    if (seenEventIDs.has(msg.id)) return;
+    seenEventIDs.add(msg.id);
 
-  /* player-specific bits (solved, points display) stay as they were … */
-  if (msg.displayname === currentUser) {
-    solvedChallenges.add(msg.challenge_id);
-    if (currentView === 'challenges')       renderChallenges();
-    else if (!challengeDetail.classList.contains('hidden')
-             && openChallengeId === msg.challenge_id)     showChallenge(msg.challenge_id);
-    userPoints = (scoreboard.get(currentUser) || 0) + msg.points;
-    document.getElementById('user-points').textContent = `${userPoints} pts`;
-  }
+    /* player-specific bits (solved, points display) stay as they were … */
+    if (msg.displayname === currentUser) {
+        solvedChallenges.add(msg.challenge_id);
+        if (currentView === 'challenges')       renderChallenges();
+        else if (!challengeDetail.classList.contains('hidden')
+                 && openChallengeId === msg.challenge_id)
+            showChallenge(msg.challenge_id);
+        userPoints = (scoreboard.get(currentUser) || 0) + msg.points;
+        document.getElementById('user-points').textContent = `${userPoints} pts`;
+    }
 
-  applyScoreDelta(msg);          // always cheap
-  if (!deferFlush) flushChart(); // expensive only if we ask for it
+    applyScoreDelta(msg);          // always cheap
+    if (!deferFlush) flushChart(); // expensive only if we ask for it
+}
+
+function dispatchEvent (msg, defer=false) {
+    switch (msg.type) {
+    case 'hint':
+        handleScoreEvent(msg, defer);               // cost already negative
+        if (msg.displayname === currentUser) {      // ★ NEW
+            /* our own hint purchase → refresh data once */
+            loadChallenges().then(() => {
+                if (openChallengeId === msg.challenge_id)
+                    showChallenge(openChallengeId);
+            });
+        }
+        break;
+    default:
+        handleScoreEvent(msg, defer);
+    }
 }
 
 /* --- 2.  Connect & normalise payload to an array ------------------ */
@@ -167,8 +187,7 @@ function connectWS () {
             /* …then one single repaint */
             flushChart();
         } else {
-            /* real-time single event */
-            handleScoreEvent(payload);
+            dispatchEvent(payload);
         }
     });
 
@@ -183,6 +202,21 @@ function connectWS () {
         console.error('socket error', err);
         ws.close();
     });
+}
+
+function bootFromLocationHash(ujson) {
+    const h = location.hash.slice(1);          // drop the “#”
+
+    if (h === 'scoreboard') {
+        finishLogin(ujson);
+        showView('scoreboard');                  // no push
+    } else if (h.startsWith('challenge-')) {
+        const id = Number(h.split('-')[1]);
+        finishLogin(ujson);
+        showChallenge(id);                       // no push
+    } else {
+        finishLogin(ujson);                    // grid by default
+    }
 }
 
 function finishLogin ({ username, displayname, needs_name }) {
@@ -210,7 +244,8 @@ function finishLogin ({ username, displayname, needs_name }) {
 
     loadChallenges();
 
-    showView('challenges');
+    showView('challenges');   // render grid
+    history.replaceState({ view:'challenges' }, '', '#challenges');
 
     connectWS();
 }
@@ -247,7 +282,7 @@ async function handleLogin(e) {
 
         const { displayname, needs_name } = await res.json();
 
-        finishLogin({ username, displayname, needs_name });
+        bootFromLocationHash({ username, displayname, needs_name });
 
 
     } catch (err) {
@@ -257,58 +292,59 @@ async function handleLogin(e) {
 }
 
 async function handleLogout () {
-  /* 1 ─ ask server to kill the session */
-  try {
-    await fetch('/api/logout', {
-      method     : 'POST',
-      credentials: 'include'
-    });
-  } catch (err) {
-    console.warn('Logout call failed (offline?)', err);
-  }
+    /* 1 ─ ask server to kill the session */
+    try {
+        await fetch('/api/logout', {
+            method     : 'POST',
+            credentials: 'include'
+        });
+    } catch (err) {
+        console.warn('Logout call failed (offline?)', err);
+    }
 
-  /* 2 ─ close websocket (if open) */
-  if (ws && ws.readyState === WebSocket.OPEN) ws.close();
-  ws = null;
+    /* 2 ─ close websocket (if open) */
+    if (ws && ws.readyState === WebSocket.OPEN) ws.close();
+    ws = null;
 
-  /* 3 ─ wipe *all* in-memory state */
-  currentUser  = null;
-  userPoints   = 0;
-  openChallengeId = null;
+    /* 3 ─ wipe *all* in-memory state */
+    currentUser  = null;
+    userPoints   = 0;
+    openChallengeId = null;
 
-  solvedChallenges.clear();
-  seenEventIDs.clear();
-  challengesByCategory = {};
-  challenges           = [];
+    solvedChallenges.clear();
+    revealedHints.clear();
+    seenEventIDs.clear();
+    challengesByCategory = {};
+    challenges           = [];
 
-  timelines.clear();
-  scoreboard.clear();
+    timelines.clear();
+    scoreboard.clear();
 
-  /* 4 ─ reset Chart.js datasets */
-  if (scoreChart) {
-    scoreChart.data.datasets = [];
-    scoreChart.update('none');
-  }
+    /* 4 ─ reset Chart.js datasets */
+    if (scoreChart) {
+        scoreChart.data.datasets = [];
+        scoreChart.update('none');
+    }
 
-  /* 5 ─ clear dynamic UI fragments */
-  document.getElementById('user-name').textContent   = '';
-  document.getElementById('user-points').textContent = '0 pts';
-  document.getElementById('challenges-grid').innerHTML = '';
-  document.getElementById('scoreboard-body').innerHTML = '';
+    /* 5 ─ clear dynamic UI fragments */
+    document.getElementById('user-name').textContent   = '';
+    document.getElementById('user-points').textContent = '0 pts';
+    document.getElementById('challenges-grid').innerHTML = '';
+    document.getElementById('scoreboard-body').innerHTML = '';
 
-  /* hide any modal that might still be open */
-  hideNameModal?.();
+    /* hide any modal that might still be open */
+    hideNameModal?.();
 
-  /* 6 ─ show login screen & blank form */
-  showLogin();
-  document.getElementById('username').value = '';
-  document.getElementById('password').value = '';
+    /* 6 ─ show login screen & blank form */
+    showLogin();
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
 }
 
 /* ------------------------------------------------------------------ */
 /*  VIEW MANAGEMENT                                                   */
 /* ------------------------------------------------------------------ */
-function showView(view) {
+function showView(view, push = false) {
     currentView = view;
 
     /* nav button styling */
@@ -332,6 +368,11 @@ function showView(view) {
         document.getElementById('scoreboard-btn').classList.add   ('active', 'bg-gradient-to-r', 'from-green-500', 'to-blue-500', 'text-white');
         scoreboardElm.classList.remove('hidden');
         renderScoreboard();
+    }
+
+    /* ── history ────────────────────────────────────────────── */
+    if (push) {
+        history.pushState({ view }, '', `#${view}`);
     }
 }
 
@@ -371,28 +412,35 @@ function renderChallenges() {
         const categoryGrid = document.createElement('div');
         categoryGrid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
 
+        // inside renderChallenges() … 
         categoryItems.forEach(challenge => {
             const isSolved = solvedChallenges.has(challenge.id);
 
-            const card = document.createElement('div');
-            card.className = 'bg-slate-800/50 border border-slate-700 rounded-lg p-6 hover:border-green-400 transition-colors cursor-pointer transform hover:scale-105 duration-200';
-            card.innerHTML = `
-        <div class="flex items-start justify-between mb-4">
-          <div>
-            <h3 class="text-xl font-semibold text-white mb-2">${challenge.title}</h3>
-          </div>
-          ${isSolved ? '<div class="text-green-400"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></div>' : ''}
-        </div>
-        <p class="text-slate-300 text-sm mb-4">${challenge.description}</p>
-        <div class="flex items-center justify-between">
-          <span class="text-${getDifficultyColor(challenge.difficulty)}-400 text-sm font-medium">
-            ${challenge.difficulty}
-          </span>
-          <span class="text-green-400 font-semibold">${challenge.points} pts</span>
-        </div>
-      `;
+            /* --- 1. decide colours ------------------------------------------------ */
+            const base      = 'rounded-lg p-6 transition-colors cursor-pointer transform hover:scale-105 duration-200';
+            const solvedClr = 'bg-green-800/40 border-green-500 hover:border-green-400';
+            const unsolved  = 'bg-slate-800/50 border-slate-700 hover:border-green-400';
 
-            card.addEventListener('click', () => showChallenge(challenge.id));
+            /* --- 2. create card ---------------------------------------------------- */
+            const card = document.createElement('div');
+            card.className = `${base} ${isSolved ? solvedClr : unsolved}`;
+
+            card.innerHTML = `
+    <div class="flex items-start justify-between mb-4">
+      <div>
+        <h3 class="text-xl font-semibold text-white mb-2">${challenge.title}</h3>
+      </div>
+          ${isSolved ? '<div class="text-green-400"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></div>' : ''}
+    </div>
+    <div class="flex items-center justify-between">
+      <span class="text-${getDifficultyColor(challenge.difficulty)}-400 text-sm font-medium">
+        ${challenge.difficulty}
+      </span>
+      <span class="text-green-400 font-semibold">${challenge.points} pts</span>
+    </div>
+  `;
+
+            card.addEventListener('click', () => showChallenge(challenge.id, true));
             categoryGrid.appendChild(card);
         });
 
@@ -448,69 +496,73 @@ function getDifficultyColor(diff) {
 let openChallengeId = null;
 
 /* ─── helpers ────────────────────────────────────────────────────── */
+/* ★ NEW – put near other HTML helpers */
 function hintBlockHTML (chID, hint, owned, active) {
-  if (owned) {
-    /* already bought → show text */
-    return `
+    if (owned) {
+        /* text is present because `/api/challenges` included it */
+        return `
       <div class="my-2 p-4 border border-slate-700 rounded-lg">
         <p class="text-slate-300 text-sm">${hint.text}</p>
       </div>`;
-  }
+    }
 
-  if (active) {
-    /* first not-yet-owned → show blue “Reveal” button */
-    return `
+    if (active) {
+        return `
       <div class="my-2 p-4 border border-slate-700 rounded-lg flex justify-between items-center">
         <span class="text-slate-300 text-sm">
           Hint (<span class="text-yellow-400 font-semibold">${hint.cost} pts</span>)
         </span>
         <button
           class="reveal-hint-btn bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded"
-          data-ch="${chID}" data-hint="${hint.id}" data-cost="${hint.cost}">
+          data-ch="${chID}" data-hint="${hint.id}">
           Reveal
         </button>
       </div>`;
-  }
+    }
 
-  /* locked → grey placeholder */
-  return `
+    /* locked */
+    return `
     <div class="my-2 p-4 border border-slate-700 rounded-lg opacity-30 cursor-not-allowed">
-      <span class="italic text-slate-400">Locked – reveal earlier hints first</span>
+      <em class="text-slate-400">Locked – reveal earlier hints first</em>
     </div>`;
 }
 
-async function handleRevealHint(e) {
-  const btn     = e.currentTarget;
-  const chID    = Number(btn.dataset.ch);
-  const hintID  = Number(btn.dataset.hint);
-  const cost    = Number(btn.dataset.cost);
+async function handleRevealHint (e) {
+    const btn    = e.currentTarget;
+    const chID   = Number(btn.dataset.ch);
+    const hintID = Number(btn.dataset.hint);
 
-  try {
-    const res = await fetch('/api/hint', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: chID, hint_id: hintID })
-    });
+    btn.disabled = true;            // prevents double-clicks
+    btn.textContent = '…';
 
-    if (res.status === 401) { showError('Session expired'); return showLogin(); }
-    const data = await res.json();
-    if (data.result !== 'ok') throw new Error(data.message || 'Error');
+    try {
+        const res = await fetch('/api/hint', {
+            method      : 'POST',
+            credentials : 'include',
+            headers     : { 'Content-Type': 'application/json' },
+            body        : JSON.stringify({ id: chID, hint_id: hintID })
+        });
 
-    /* success → mark + update points, then re-render */
-    revealedHints.add(hintID);
-    userPoints = data.points;
-    document.getElementById('user-points').textContent = `${userPoints} pts`;
-    showChallenge(chID);                 // redraw with the hint text visible
+        if (res.status === 401) { showError('Session expired'); return showLogin(); }
+        const { result, message } = await res.json();
+        if (result !== 'ok') throw new Error(message || 'Not enough points');
 
-  } catch (err) {
-    console.error(err);
-    showError(err.message || 'Could not reveal hint');
-  }
+        await loadChallenges();             // ★ NEW
+        showChallenge(chID);                // re-render with hint text
+    } catch (err) {
+        console.error(err);
+        showError(err.message || 'Could not reveal hint');
+        btn.disabled = false;          // allow retry
+        btn.textContent = 'Reveal';
+    }
 }
 
+function showChallenge(challengeId, push = false) {
+    if (push) {
+        history.pushState({ view: 'challenge', id: challengeId },
+                          '', `#challenge-${challengeId}`);
+    }
 
-function showChallenge(challengeId) {
     openChallengeId = challengeId;
     const challenge = challenges.find(c => c.id === challengeId);
     if (!challenge) return;
@@ -604,23 +656,23 @@ function errorHtml(msg) {
 }
 
 function generateHintHTML(chID, hint) {
-  const owned = revealedHints.has(hint.id);
+    const owned = revealedHints.has(hint.id);
 
-  return `
+    return `
     <div class="my-2 p-4 border border-slate-700 rounded-lg">
       ${owned
         ? `<p class="text-slate-300 text-sm">${hint.text}</p>`
         : `
-          <div class="flex justify-between items-center">
-            <span class="text-slate-300 text-sm">
-              Hint &nbsp;(<span class="text-yellow-400 font-semibold">${hint.cost} pts</span>)
-            </span>
-            <button
-              class="reveal-hint-btn bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded"
-              data-ch="${chID}" data-hint="${hint.id}" data-cost="${hint.cost}">
-              Reveal
-            </button>
-          </div>`
+        <div class="flex justify-between items-center">
+        <span class="text-slate-300 text-sm">
+        Hint &nbsp;(<span class="text-yellow-400 font-semibold">${hint.cost} pts</span>)
+    </span>
+        <button
+    class="reveal-hint-btn bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded"
+    data-ch="${chID}" data-hint="${hint.id}" data-cost="${hint.cost}">
+        Reveal
+    </button>
+        </div>`
       }
     </div>`;
 }
@@ -647,22 +699,23 @@ function generateChallengeHTML(ch, isSolved) {
         <p class="text-slate-300">${ch.description}</p>
       </div>
 
-      <div class="mb-6">
-        <h2 class="text-xl font-semibold text-white mb-3">Hints</h2>
-        ${
-          ch.hints?.length
-            ? (() => {
-                let unlockedGiven   = false;   // “first unrevealed” flag
-                return ch.hints.map(h => {
-                  const owned  = revealedHints.has(h.id);
-                  const active = !owned && !unlockedGiven;
-                  if (active) unlockedGiven = true;        // next ones stay locked
-                  return hintBlockHTML(ch.id, h, owned, active);
-                }).join('');
-              })()
-            : '<p class="text-slate-400">No hints for this challenge.</p>'
-        }
-      </div>
+
+     <div class="mb-6">
+       <h2 class="text-xl font-semibold text-white mb-3">Hints</h2>
+       ${
+         ch.hints?.length
+           ? (() => {
+               let unlockedGiven = false;
+               return ch.hints.map(h => {
+                 const owned  = revealedHints.has(h.id);
+                 const active = !owned && !unlockedGiven;
+                 if (active) unlockedGiven = true;
+                 return hintBlockHTML(ch.id, h, owned, active);
+               }).join('');
+             })()
+           : '<p class="text-slate-400">No hints for this challenge.</p>'
+       }
+     </div>
 
       <div class="mb-8">
         <h2 class="text-xl font-semibold text-white mb-3">Challenge</h2>
@@ -752,6 +805,14 @@ async function loadChallenges() {
             list.sort((a, b) => Number(a.id) - Number(b.id)));
 
         challenges = Object.values(challengesByCategory).flat();
+
+        revealedHints.clear();
+        challenges.forEach(ch =>
+            ch.hints?.forEach(h => {
+                /* Convention: server includes `text` (or `revealed:true`)      */
+                /* only when the player has bought the hint                     */
+                if (h.text) revealedHints.add(h.id);
+            }));
 
         console.log(challenges);
 
@@ -947,6 +1008,26 @@ async function handleNameSubmit (e) {
         showError('Couldn’t save name. Try again.');
     }
 }
+
+window.addEventListener('popstate', e => {
+    const st = e.state || { view:'challenges' };
+
+    if      (st.view === 'challenge')   showChallenge(st.id); // no push
+    else if (st.view === 'scoreboard')  showView('scoreboard');
+    else                                showView('challenges');
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    // If hash looks like "#challenge-42" show that challenge right away
+    const hash = location.hash.slice(1);           // drop "#"
+    const m = hash.match(/^challenge-(\d+)$/);
+    if (m) {
+        finishLogin(/* …fetch user session first… */);
+        showChallenge(Number(m[1]), false);          // no push
+    } else {
+        finishLogin(/* … */);                        // shows the grid
+    }
+});
 
 /* ────────── name-modal helpers ────────── */
 function showNameModal ()   { document.getElementById('name-modal').classList.remove('hidden'); }
