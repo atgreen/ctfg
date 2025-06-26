@@ -1,0 +1,5 @@
+---
+player_clusters:
+ - cluster.example.com
+
+control_cluster: cluster.example.com
