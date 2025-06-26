@@ -11,7 +11,8 @@
   :version     "0.1.0"
   :depends-on  (:version-string :clingon :hunchentoot :easy-routes :log4cl
                 :markup :slynk :cl-json :cl-csv :clws :sqlite
-                :cl-dbi :dbd-sqlite3 :rwlock :luckless :sentry-client)
+                :cl-dbi :dbd-sqlite3 :rwlock :luckless :sentry-client
+                :cl-dotenv :cl-yaml)
   :serial      t
   :components  ((:file "src/package")
                 (:file "src/challenges")
