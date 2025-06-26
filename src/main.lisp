@@ -25,7 +25,7 @@
      :description "A web application"
      :authors (list "Anthony Green")
      :license "MIT"
-     :usage ""
+     :usage "[challenges json file]"
      :options (list p s d)
      :handler (lambda (cmd)
                 (let* ((positional-args (clingon:command-arguments cmd))
