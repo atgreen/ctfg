@@ -11,6 +11,8 @@
 (defvar *developer-mode* nil)
 
 (defparameter *challenges-path* nil)
+(defparameter *control-cluster* nil)
+(defparameter *player-clusters* nil)
 
 (defun make-app ()
   (let ((p (clingon:make-option :integer :short-name #\p :long-name "port" :key :port
@@ -18,7 +20,7 @@
         (s (clingon:make-option :integer :short-name #\s :long-name "slynk-port" :key :slynk-port
                                          :description "slynk-port" :initial-value nil))
         (d (clingon:make-option :flag :short-name #\d :long-name "developer-mode" :key :developer-mode
-                                      :description "disable caching" :initial-value nil)))
+                                      :description "enable developer mode" :initial-value nil)))
     (clingon:make-command
      :name    "ctfg"
      :version +version+
@@ -46,8 +48,51 @@
      :examples '(("Run web service on port 9090:"
                   . "ctfg -p 9090")))))
 
+(defmacro fatal-error (&rest rest)
+  `(progn
+     (log:error ,@rest)
+     (uiop:quit 1)))
+
+(define-condition malformed-game-clusters-yaml (error)
+  ())
+
 (defun main ()
   "The main entrypoint."
+
+  ;; Load environment variables if .env exists.
+  (let ((.env-pathname (merge-pathnames ".env")))
+    (handler-case
+        (.env:load-env .env-pathname)
+      (file-error (_)
+        (declare (ignore _)))
+      (.env:malformed-entry (_)
+        (declare (ignore _))
+        (fatal-error "Malformed entry in ~S" .env-pathname))
+      (.env:duplicated-entry (_)
+        (declare (ignore _))
+        (fatal-error "Duplicated entry in ~S" .env-pathname))))
+
+  (handler-case
+      (let ((inventory (cl-yaml:parse (uiop:read-file-string "game-clusters.yaml")
+                                      :multi-document-p t)))
+        (maphash (lambda (key value)
+                   (cond
+                     ((string= "control_cluster" key)
+                      (setf *control-cluster* value)
+                      (log:info "Control Cluster = ~A" value))
+                     ((string= "player_clusters" key)
+                      (setf *player-clusters* value)
+                      (log:info "Player Clusters = ~A" value))
+                     (t
+                      (error 'malformed-game-clusters-yaml))))
+                 (cadr inventory))
+        (unless (and *control-cluster* *player-clusters*)
+          (error 'malformed-game-clusters-yaml)))
+    (malformed-game-clusters-yaml (_)
+      (fatal-error "Malformed game-clusters.yaml"))
+    (file-error (_)
+      (fatal-error "Can't read game-clusters.yaml")))
+
   (handler-case
       (clingon:run (make-app))
     (error (e)

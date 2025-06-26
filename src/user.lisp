@@ -34,8 +34,6 @@
     (when (and u dn)
       (return-from get-user-name-pair (cons u dn))))
 
-  (log:info "GET-USER-NAME-PAIR FROM DB")
-
   (with-open-connection (conn *db*)
     (destructuring-bind (username displayname)
         (%fetch-one conn

@@ -699,30 +699,24 @@ function generateChallengeHTML(ch, isSolved) {
         <p class="text-slate-300">${ch.description}</p>
       </div>
 
-
-     <div class="mb-6">
-       <h2 class="text-xl font-semibold text-white mb-3">Hints</h2>
-       ${
-         ch.hints?.length
-           ? (() => {
-               let unlockedGiven = false;
-               return ch.hints.map(h => {
-                 const owned  = revealedHints.has(h.id);
-                 const active = !owned && !unlockedGiven;
-                 if (active) unlockedGiven = true;
-                 return hintBlockHTML(ch.id, h, owned, active);
-               }).join('');
-             })()
-           : '<p class="text-slate-400">No hints for this challenge.</p>'
-       }
-     </div>
-
-      <div class="mb-8">
-        <h2 class="text-xl font-semibold text-white mb-3">Challenge</h2>
-        <div class="bg-slate-900/50 border border-slate-600 rounded-lg p-4">
-          <pre class="text-slate-300 text-sm whitespace-pre-wrap">${ch.content}</pre>
-        </div>
-      </div>
+      ${
+        ch.hints?.length
+          ? `<div class="mb-6">
+               <h2 class="text-xl font-semibold text-white mb-3">Hints</h2>
+               ${
+                 (() => {
+                   let unlockedGiven = false;
+                   return ch.hints.map(h => {
+                     const owned  = revealedHints.has(h.id);
+                     const active = !owned && !unlockedGiven;
+                     if (active) unlockedGiven = true;
+                     return hintBlockHTML(ch.id, h, owned, active);
+                   }).join('');
+                 })()
+               }
+             </div>`
+          : ''                   // ← nothing rendered if there are no hints
+      }
 
       ${!isSolved ? `
         <div class="border-t border-slate-700 pt-6">

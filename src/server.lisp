@@ -15,6 +15,19 @@
   (when *sentry-dsn*
     (sentry-client:capture-exception e)))
 
+(defparameter *challenges-path* nil)
+
+(defun load-challenges ()
+  "Read challenges.json from disk, respecting *developer-mode*.
+   In production we call this only once at start-up; in developer
+   mode we may call it on every page/API request."
+  (let* ((default-file "challenges.json")
+         (json-file (or *challenges-path* default-file)))
+    (when (or *developer-mode*             ; always reload in dev
+              (null *all-challenges*))     ; first load in prod
+      (log:debug "Reloading challenges from ~A" json-file)
+      (read-challenges (uiop:read-file-string json-file)))))
+
 (defun save-solve (key value)
   (loop
     for current-caslist := (lh:gethash key *solves-table*)
@@ -67,23 +80,7 @@
   (when *developer-mode*
     (hunchentoot:no-cache)))
 
-(defparameter +static-dispatch-table+
-  (list
-   (hunchentoot:create-folder-dispatcher-and-handler
-    "/images/" (fad:pathname-as-directory
-                (merge-pathnames "static/images/" (app-root)))
-    "application/octet-stream" #'dev/no-cache-callback)
-   (hunchentoot:create-folder-dispatcher-and-handler
-    "/js/" (fad:pathname-as-directory
-            (merge-pathnames "static/js/" (app-root)))
-    "application/javascript" #'dev/no-cache-callback)
-   (hunchentoot:create-folder-dispatcher-and-handler
-    "/css/" (fad:pathname-as-directory
-             (merge-pathnames "static/css/" (app-root)))
-    "text/css" #'dev/no-cache-callback)))
-
 (defparameter +index.html+ #.(uiop:read-file-string "src/index.html"))
-(defparameter *challenges-path* nil)
 
 ;;; Convenience --------------------------------------------------------------
 (defun json-body ()
@@ -219,8 +216,29 @@
          (log:info "Incorrect!")
          (respond-json '((:result . "incorrect"))))))))
 
+(defun process-description (user description)
+  (setf description
+        (cl-ppcre:regex-replace-all "@CONTROL_CLUSTER@" description *control-cluster*))
+  (setf description
+        (cl-ppcre:regex-replace-all "@USERNAME@" description (user-username user)))
+  (setf description
+        (cl-ppcre:regex-replace-all "@USERID@" description (format nil "~A" (user-id user))))
+  (setf description
+        (let ((index (rem (user-id user) (length *player-clusters*))))
+          (cl-ppcre:regex-replace-all "@PLAYER_CLUSTER@"
+                                      description
+                                      (nth index *player-clusters*))))
+  description)
+
+;(defvar *control-cluster* "cc")
+;(defvar *player-clusters* '("aa" "bb" "dd"))
+
+;(process-description (make-user :username "player1" :id 3) "Hello @PLAYER_CLUSTER@")
+;(nth (rem 4 3) '("aa" "bb" "dd"))
+
 (easy-routes:defroute challenges ("/api/challenges" :method :get) ()
   "Challenges"
+  (when *developer-mode* (load-challenges))
   (with-authenticated-user (user)
     (let ((user (hunchentoot:session-value :user))
           (events (collect-events-since *db* 0)))
@@ -236,14 +254,23 @@
                                            (cons "category" (challenge-category challenge))
                                            (cons "difficulty" (challenge-difficulty challenge))
                                            (cons "points" (challenge-points challenge))
-                                           (cons "description" (challenge-description challenge))
+                                           (cons "description"
+                                                 (process-description
+                                                  user
+                                                  (challenge-description challenge)))
                                            (cons "hints" (challenge-hints challenge))
                                            (cons "content" (challenge-content challenge))))
                                    challenges)))
             (cl-json:encode-json-to-string json-data)))))))
 
+(cl-ppcre:regex-replace-all
+ "@PLAYER_CLUSTER@" "sdgsdgd@PLAYER_CLUSTER@dfgdfgdf" "XXX")
+
+
+
 (easy-routes:defroute index ("/" :method :get) ()
   "Main index page"
+  (when *developer-mode* (load-challenges))
   (setf (hunchentoot:content-type*) "text/html")
   +index.html+)
 
@@ -314,15 +341,12 @@
   (setf hunchentoot:*show-lisp-backtraces-p* t)
   (setf hunchentoot:*session-max-time* most-positive-fixnum)
 
-  (setf *sentry-dsn* (uiop:getenv "SENTRY_DNS"))
+  (setf *sentry-dsn* (uiop:getenv "SENTRY_DENS"))
   (when *sentry-dsn*
     (log:info "Initializing sentry client.")
     (sentry-client:initialize-sentry-client *sentry-dsn*))
 
-  (let* ((default-file "challenges.json")
-         (json-file    (or *challenges-path* default-file)))
-    (log:info "Loading challenges from ~A" json-file)
-    (read-challenges (uiop:read-file-string json-file)))
+  (load-challenges)
 
   (setf *db* (make-instance 'db/sqlite :filename "events.db"))
 
@@ -330,7 +354,20 @@
   (log:info "Starting server version ~A on port ~A" +version+ port)
 
   ;; Set up static file handlers in the global dispatch table
-  (setf hunchentoot:*dispatch-table* +static-dispatch-table+)
+  (setf hunchentoot:*dispatch-table*
+        (list
+         (hunchentoot:create-folder-dispatcher-and-handler
+          "/images/" (fad:pathname-as-directory
+                      (merge-pathnames "static/images/" (app-root)))
+          nil #'dev/no-cache-callback)
+         (hunchentoot:create-folder-dispatcher-and-handler
+          "/js/" (fad:pathname-as-directory
+                  (merge-pathnames "static/js/" (app-root)))
+          "application/javascript" #'dev/no-cache-callback)
+         (hunchentoot:create-folder-dispatcher-and-handler
+          "/css/" (fad:pathname-as-directory
+                   (merge-pathnames "static/css/" (app-root)))
+          "text/css" #'dev/no-cache-callback)))
 
   (read-credentials)
 
