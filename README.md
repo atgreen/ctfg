@@ -50,6 +50,11 @@ developing content.
 
 3. Replace `static/images/banner.png` with your own content.
 
+4. Edit `game-clusters.yaml` to point at the cluster hosting this app,
+   as well as the list of player clusters (all possibly the same).
+   Users are assigned to the different player clusters in a
+   round-robin format as they join.
+
 
 ## Author and License
 
