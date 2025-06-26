@@ -21,6 +21,11 @@ And then...
 * To test `ctfg`: `make check`
 * To run `ctfg`: `ctfg --help`
 
+The `--developer-mode` option disables caching of static content, and
+reloads the challenges.json every time the Challenge page is
+rendered.  This allows you view your changes in real time as you are
+developing content.
+
 
 ## Configuring your Game
 
