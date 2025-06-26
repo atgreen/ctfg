@@ -83,7 +83,7 @@
     "text/css" #'dev/no-cache-callback)))
 
 (defparameter +index.html+ #.(uiop:read-file-string "src/index.html"))
-(defparameter +challenges.json+ #.(uiop:read-file-string "src/challenges.json"))
+(defparameter *challenges-path* nil)
 
 ;;; Convenience --------------------------------------------------------------
 (defun json-body ()
@@ -319,6 +319,11 @@
     (log:info "Initializing sentry client.")
     (sentry-client:initialize-sentry-client *sentry-dsn*))
 
+  (let* ((default-file "challenges.json")
+         (json-file    (or *challenges-path* default-file)))
+    (log:info "Loading challenges from ~A" json-file)
+    (read-challenges (uiop:read-file-string json-file)))
+
   (setf *db* (make-instance 'db/sqlite :filename "events.db"))
 
   (log:info "Static content directory: ~Astatic" (uiop:getcwd))
@@ -328,7 +333,6 @@
   (setf hunchentoot:*dispatch-table* +static-dispatch-table+)
 
   (read-credentials)
-  (read-challenges +challenges.json+)
 
   (let ((events (collect-events-since *db* 0)))
     (dolist (event events)

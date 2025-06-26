@@ -10,6 +10,8 @@
 ;; disabling caching of static content in the browser.
 (defvar *developer-mode* nil)
 
+(defparameter *challenges-path* nil)
+
 (defun make-app ()
   (let ((p (clingon:make-option :integer :short-name #\p :long-name "port" :key :port
                                          :description "port" :initial-value 8080))
@@ -26,8 +28,11 @@
      :usage ""
      :options (list p s d)
      :handler (lambda (cmd)
-                (let ((port (clingon:getopt cmd :port))
-                      (slynk-port (clingon:getopt cmd :slynk-port)))
+                (let* ((positional-args (clingon:command-arguments cmd))
+                       (json-path (first positional-args))
+                       (port (clingon:getopt cmd :port))
+                       (slynk-port (clingon:getopt cmd :slynk-port)))
+                  (setf *challenges-path* json-path)
                   (bt:with-lock-held (*server-lock*)
                     (setf *developer-mode* (clingon:getopt cmd :developer-mode))
                     ;; Create the slynk server.  Allow connections from anywhere.
