@@ -1,7 +1,7 @@
 ctfg: src/*.lisp *.asd
 	sbcl --eval "(asdf:make :ctfg)" --quit
 
-src/server.lisp: src/index.html src/challenges.json
+src/server.lisp: src/index.html
 	touch src/server.lisp
 
 check: ctfg
