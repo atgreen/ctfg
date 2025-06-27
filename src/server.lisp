@@ -230,12 +230,6 @@
                                       (nth index *player-clusters*))))
   description)
 
-;(defvar *control-cluster* "cc")
-;(defvar *player-clusters* '("aa" "bb" "dd"))
-
-;(process-description (make-user :username "player1" :id 3) "Hello @PLAYER_CLUSTER@")
-;(nth (rem 4 3) '("aa" "bb" "dd"))
-
 (easy-routes:defroute challenges ("/api/challenges" :method :get) ()
   "Challenges"
   (when *developer-mode* (load-challenges))
@@ -348,7 +342,7 @@
 
   (load-challenges)
 
-  (setf *db* (make-instance 'db/sqlite :filename "events.db"))
+  (setf *db* (make-instance 'db/sqlite :filename (merge-pathnames "events.db" *dbdir*)))
 
   (log:info "Static content directory: ~Astatic" (uiop:getcwd))
   (log:info "Starting server version ~A on port ~A" +version+ port)
