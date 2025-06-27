@@ -10,6 +10,8 @@ let currentView        = 'challenges';
 const solvedChallenges = new Set();
 const revealedHints    = new Set();
 
+let pingTimer;
+
 /* Will be filled by loadChallenges() */
 let challengesByCategory = {};
 let challenges           = [];   // flat array convenience view
@@ -192,6 +194,7 @@ function connectWS (websocket_url) {
 
     ws.addEventListener('close', e => {
         console.log('WS closed', {code: e.code, reason: e.reason, wasClean: e.wasClean});
+        clearInterval(pingTimer);
         const delay = reconnectDelay + Math.random() * 500;
         setTimeout(() => connectWS(websocket_url), delay);
         reconnectDelay = Math.min(reconnectDelay * 2, BACKOFF_MAX);
@@ -201,6 +204,14 @@ function connectWS (websocket_url) {
         console.error('socket error', err);
         ws.close();
     });
+
+    /* Send pings every 45s to keep connection alive. */
+    clearInterval(pingTimer);
+    pingTimer = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'ping' }));
+      }
+    }, 45_000);  // 45 s = 45 000 ms
 }
 
 function bootFromLocationHash(ujson) {

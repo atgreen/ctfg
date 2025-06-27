@@ -316,12 +316,19 @@
       (log:error "Error on websocket client connect: ~A" e)
       (capture-exception e))))
 
+(defmethod ws:resource-received-text ((res scorestream-resource) client message)
+  ;; The only messages we receive from the client are pings designed
+  ;; to keep network devices between the client and server from timing
+  ;; out the connection.  We can ignore these.
+  (when *developer-mode*
+    (log:debug "Received ~S from ~S." message client)))
+
 (defmethod ws:resource-client-disconnected ((resource scorestream-resource) client)
   (log:info "Client disconnected from resource ~A: ~A" resource client)
   (handler-case
       (remove-client client)
     (error (e)
-         (log:error "Error on websocket client disconnect: ~A" e)
+      (log:error "Error on websocket client disconnect: ~A" e)
       (capture-exception e))))
 
 (defmethod hunchentoot:maybe-invoke-debugger :after (condition)
