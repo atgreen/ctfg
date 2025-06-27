@@ -81,7 +81,6 @@ function showError(message, ms = 5000) {
 /* ------------------------------------------------------------------ */
 
 /* -------------------- websocket helper -------------------- */
-const WS_URL       = 'ws://localhost:12345/scorestream';
 const BACKOFF_MIN  = 1_000;     // 1 s
 const BACKOFF_MAX  = 30_000;    // 30 s
 
@@ -166,10 +165,10 @@ function dispatchEvent (msg, defer=false) {
 }
 
 /* --- 2.  Connect & normalise payload to an array ------------------ */
-function connectWS () {
+function connectWS (websocket_url) {
     if (!currentUser) return;
 
-    ws = new WebSocket(WS_URL);
+    ws = new WebSocket(websocket_url);
 
     ws.addEventListener('open', () => {
         console.log('socket open');
@@ -194,7 +193,7 @@ function connectWS () {
     ws.addEventListener('close', e => {
         console.log('WS closed', {code: e.code, reason: e.reason, wasClean: e.wasClean});
         const delay = reconnectDelay + Math.random() * 500;
-        setTimeout(connectWS, delay);
+        setTimeout(() => connectWS(websocket_url), delay);
         reconnectDelay = Math.min(reconnectDelay * 2, BACKOFF_MAX);
     });
 
@@ -219,7 +218,7 @@ function bootFromLocationHash(ujson) {
     }
 }
 
-function finishLogin ({ username, displayname, needs_name }) {
+function finishLogin ({ username, displayname, needs_name, websocket_url }) {
 
     currentUser = displayname || username;
     window.currentUser = username;                  // keep it globally if you like
@@ -247,7 +246,7 @@ function finishLogin ({ username, displayname, needs_name }) {
     showView('challenges');   // render grid
     history.replaceState({ view:'challenges' }, '', '#challenges');
 
-    connectWS();
+    connectWS(websocket_url);
 }
 
 function showLogin() {
@@ -262,7 +261,7 @@ async function handleLogin(e) {
     e.preventDefault();
 
     const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;   // NEW
+    const password = document.getElementById('password').value;
 
     if (!username || !password) return;
 
@@ -280,10 +279,9 @@ async function handleLogin(e) {
         }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        const { displayname, needs_name } = await res.json();
+        const { displayname, needs_name, websocket_url } = await res.json();
 
-        bootFromLocationHash({ username, displayname, needs_name });
-
+        bootFromLocationHash({ username, displayname, needs_name, websocket_url });
 
     } catch (err) {
         console.error(err);

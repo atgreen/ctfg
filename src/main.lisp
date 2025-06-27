@@ -14,14 +14,17 @@
 (defparameter *control-cluster* nil)
 (defparameter *player-clusters* nil)
 (defparameter *dbdir* nil)
+(defparameter *websocket-url* nil)
 
 (defun make-app ()
   (let ((p (clingon:make-option :integer :short-name #\p :long-name "port" :key :port
                                          :description "port" :initial-value 8080))
         (s (clingon:make-option :integer :short-name #\s :long-name "slynk-port" :key :slynk-port
                                          :description "slynk-port" :initial-value nil))
-        (b (clingon:make-option :string :long-name "dbdir" :key :dbdir
+        (b (clingon:make-option :string :short-name #\b :long-name "dbdir" :key :dbdir
                                         :description "database directory" :initial-value "."))
+        (w (clingon:make-option :string :short-name #\w :long-name "websocket-url" :key :websocket-url
+                                        :description "websocket-url" :initial-value "ws://localhost:12345/scorestream"))
         (d (clingon:make-option :flag :short-name #\d :long-name "developer-mode" :key :developer-mode
                                       :description "enable developer mode" :initial-value nil)))
     (clingon:make-command
@@ -31,15 +34,17 @@
      :authors (list "Anthony Green")
      :license "MIT"
      :usage "[challenges json file]"
-     :options (list p s b d)
+     :options (list p s b w d)
      :handler (lambda (cmd)
                 (let* ((positional-args (clingon:command-arguments cmd))
                        (json-path (first positional-args))
                        (port (clingon:getopt cmd :port))
                        (dbdir (clingon:getopt cmd :dbdir))
+                       (websocket-url (clingon:getopt cmd :websocket-url))
                        (slynk-port (clingon:getopt cmd :slynk-port)))
                   (setf *challenges-path* json-path)
                   (setf *dbdir* (concatenate 'string dbdir "/"))
+                  (setf *websocket-url* websocket-url)
                   (bt:with-lock-held (*server-lock*)
                     (setf *developer-mode* (clingon:getopt cmd :developer-mode))
                     ;; Create the slynk server.  Allow connections from anywhere.

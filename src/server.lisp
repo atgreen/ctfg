@@ -11,6 +11,8 @@
 (defvar *db* nil)
 (defvar *sentry-dsn* nil)
 
+(defparameter *websocket-url* nil)
+
 (defun capture-exception (e)
   (when *sentry-dsn*
     (sentry-client:capture-exception e)))
@@ -124,7 +126,7 @@
           (setf (hunchentoot:session-value :user) user)
           (let ((needs-name (null (user-displayname user))))
             (respond-json
-             `((:displayname . ,(user-displayname user)) (:needs_name . ,needs-name))))))
+             `((:displayname . ,(user-displayname user)) (:needs_name . ,needs-name) (:websocket_url . ,*websocket-url*))))))
         (respond-json '((:error "invalid_credentials")) :code 401))))
 
 (easy-routes:defroute logout ("/api/logout" :method :post) ()
@@ -139,7 +141,8 @@
     (if user
         (respond-json `((:username . ,(user-username user))
                         (:displayname . ,(user-displayname user))
-                        (:needs_name . ,(null (user-displayname user)))))
+                        (:needs_name . ,(null (user-displayname user)))
+                        (:websocket_url . ,*websocket-url*)))
         (respond-json '((:error . "no session")) :code 401))))
 
 (defun user-solved-p (user cid)
