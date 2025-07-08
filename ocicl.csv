@@ -8,8 +8,6 @@ babel-streams, ghcr.io/ocicl/babel@sha256:b505136744213e6b953913780a4b647da40e83
 babel-tests, ghcr.io/ocicl/babel@sha256:b505136744213e6b953913780a4b647da40e83818a10f41004846863b5037810, babel-20240606-23c1440/babel-tests.asd
 bobbin, ghcr.io/ocicl/bobbin@sha256:7368d88e9f1d8a94b9bddf5e1887e384ef738235570142dd1cfe98c90077cc13, bobbin-20240503-b454e82/bobbin.asd
 bordeaux-threads, ghcr.io/ocicl/bordeaux-threads@sha256:bbb32afe3987e102149cc019f4f7366a05f7a37d1503f5f86a27745e671c320a, bordeaux-threads-0.9.4/bordeaux-threads.asd
-bt-semaphore, ghcr.io/ocicl/bt-semaphore@sha256:60e212f93b44b30dbb36f8d66a42b2b380d9ab0e7e226b74a258197f7f5d0eec, bt-semaphore-20240503-46b4bf3/bt-semaphore.asd
-bt-semaphore-test, ghcr.io/ocicl/bt-semaphore@sha256:60e212f93b44b30dbb36f8d66a42b2b380d9ab0e7e226b74a258197f7f5d0eec, bt-semaphore-20240503-46b4bf3/bt-semaphore-test.asd
 cffi, ghcr.io/ocicl/cffi@sha256:386698d4f568be8c321ca8f54247a8bf69222819c116c011d6ae53d80772f611, cffi-20250311-48eaef6/cffi.asd
 cffi-examples, ghcr.io/ocicl/cffi@sha256:386698d4f568be8c321ca8f54247a8bf69222819c116c011d6ae53d80772f611, cffi-20250311-48eaef6/cffi-examples.asd
 cffi-grovel, ghcr.io/ocicl/cffi@sha256:386698d4f568be8c321ca8f54247a8bf69222819c116c011d6ae53d80772f611, cffi-20250311-48eaef6/cffi-grovel.asd
@@ -115,7 +113,6 @@ quri, ghcr.io/ocicl/quri@sha256:e2559f91600e4895e115b42dde88fcaac3677f051335d734
 quri-test, ghcr.io/ocicl/quri@sha256:e2559f91600e4895e115b42dde88fcaac3677f051335d73431888dcf7af99f95, quri-0.7.0/quri-test.asd
 rfc2388, ghcr.io/ocicl/rfc2388@sha256:4190f6eb36b3b2f53def6eff56b44e76edf4086ada2feb6d88bb671a40fc9f70, rfc2388-20240503-591bcf7/rfc2388.asd
 routes, ghcr.io/ocicl/routes@sha256:e64fe3e85f8c0f19ada40f6cbda843f63ee73c705d5c243a2b8730b6308d664e, cl-routes-20240503-1b79e85/routes.asd
-rwlock, ghcr.io/ocicl/rwlock@sha256:308f24c8c35cfb3d943856e508e126caf2ccbf43edaa8d9fcd99f475b880b415, cl-rwlock-20250622-83e8be1/rwlock.asd
 salza2, ghcr.io/ocicl/salza2@sha256:0f9d930524b469e1442372a6e12b26742d9e6a1144e6a455006943190d1ea71e, salza2-2.1/salza2.asd
 sentry-client, ghcr.io/ocicl/sentry-client@sha256:070b6ef2daac6386c607a9cacf3ec05283f1aa0b0d0e36151ddb3e9223bc38f2, cl-sentry-client-20240503-fa64d62/sentry-client.asd
 sentry-client.async, ghcr.io/ocicl/sentry-client@sha256:070b6ef2daac6386c607a9cacf3ec05283f1aa0b0d0e36151ddb3e9223bc38f2, cl-sentry-client-20240503-fa64d62/sentry-client.async.asd

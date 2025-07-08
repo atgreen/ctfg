@@ -161,7 +161,7 @@
       (log:info msg)
       (save-solve (user-id user) (challenge-id challenge))
       (dolist (client (get-client-list))
-        (rwlock:with-write-lock-held (client-lock client)
+        (with-write-lock-held ((client-lock client))
           (ws:write-to-client-text (client-socket client) msg))))))
 
 (easy-routes:defroute set-name ("/api/set-name" :method :post) ()
@@ -187,7 +187,7 @@
                            (cdr (assoc :text hint)))))
           (log:info msg)
           (dolist (client (get-client-list))
-            (rwlock:with-write-lock-held (client-lock client)
+            (with-write-lock-held ((client-lock client))
               (ws:write-to-client-text (client-socket client) msg))))))
     (respond-json
      `((:result . "ok") (:message . "hint purchase")))))
@@ -296,7 +296,7 @@
          (log:info json-events)
          (handler-case
              (progn
-               (rwlock:with-write-lock-held (client-lock client)
+               (with-write-lock-held ((client-lock client))
                  (ws:write-to-client-text
                   (client-socket client)
                   (format nil "[~{~a~^,~}]" json-events))) ; Single array message
@@ -309,7 +309,7 @@
   (log:info "Client connected to scorestream server from ~s : ~s" (ws:client-host client) (ws:client-port client))
   (log:info client)
   (handler-case
-      (let ((client (make-client :socket client :lock (rwlock:make-rwlock))))
+      (let ((client (make-client :socket client :lock (make-rwlock))))
         (add-client client)
         (send-events client))
     (error (e)
