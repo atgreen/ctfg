@@ -209,7 +209,7 @@
          (respond-json '(:error "unknown_id") :code 400))
         (solved
          (respond-json `(:result "already" :total ,(user-total-points user))))
-        ((string= guess (challenge-flag chal))
+        ((eq 1 (ppcre:count-matches (challenge-flag chal) guess))
          (log:info "Correct!")
          (award-points user chal)
          (respond-json `((:result . "correct")

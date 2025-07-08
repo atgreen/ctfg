@@ -8,10 +8,10 @@
   :description "A simple Capture-The-Flag engine"
   :author      "Anthony Green"
   :license     "MIT"
-  :version     "0.1.4"
+  :version     "0.1.5"
   :depends-on  (:version-string :clingon :hunchentoot :easy-routes :log4cl
                 :markup :slynk :cl-json :cl-csv :clws :sqlite
-                :cl-dbi :dbd-sqlite3 :luckless :sentry-client
+                :cl-dbi :dbd-sqlite3 :luckless :sentry-client :cl-ppcre
                 :cl-dotenv :cl-yaml :bordeaux-threads)
   :serial      t
   :components  ((:file "src/package")
