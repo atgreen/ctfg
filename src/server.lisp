@@ -260,11 +260,6 @@
                                    challenges)))
             (cl-json:encode-json-to-string json-data)))))))
 
-(cl-ppcre:regex-replace-all
- "@PLAYER_CLUSTER@" "sdgsdgd@PLAYER_CLUSTER@dfgdfgdf" "XXX")
-
-
-
 (easy-routes:defroute index ("/" :method :get) ()
   "Main index page"
   (when *developer-mode* (load-challenges))
