@@ -156,22 +156,20 @@ mirroring the behaviour of dbi:connect-cached."
 ;;;;  Read helpers
 ;;;; --------------------------------------------------------------------------
 
-(defun collect-events-since (db ts)
-  "Return a list of EVENT objects whose timestamp is greater than TS."
+(defun collect-events (db)
+  "Return a list of EVENT objects."
   (with-open-connection (conn db)
     (loop
-      for (id ts* uid cid etype hint pts)
+      for (id ts uid cid etype hint pts)
         in (sqlite:execute-to-list
             conn
             "SELECT id, ts, user_id, challenge_id,
                     event_type, hint_number, points
                FROM events
-              WHERE ts > ?
-              ORDER BY ts"
-            ts)                          ;:contentReference[oaicite:3]{index=3}
+              ORDER BY ts")
       collect (make-event
                :id           id
-               :ts           ts*
+               :ts           ts
                :user-id      uid
                :challenge-id cid
                :event-type   etype

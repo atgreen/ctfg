@@ -238,7 +238,7 @@
   (when *developer-mode* (load-challenges))
   (with-authenticated-user (user)
     (let ((user (hunchentoot:session-value :user))
-          (events (collect-events-since *db* 0)))
+          (events (collect-events *db*)))
       (log:info "Computing challenges for user: " (user-username user))
       (setf (hunchentoot:content-type*) "application/json")
       (let* ((ll (lh:gethash (user-id user) *solves-table*))
@@ -276,7 +276,7 @@
 (defvar *solves-table* (lh:make-castable))
 
 (defun send-events (client)
-  (let ((events (collect-events-since *db* 0)))
+  (let ((events (collect-events-since *db*)))
     (bt:make-thread
      (lambda ()
        (let ((json-events
@@ -370,7 +370,7 @@
 
   (read-credentials)
 
-  (let ((events (collect-events-since *db* 0)))
+  (let ((events (collect-events-since *db*)))
     (dolist (event events)
       (save-solve (event-user-id event) (event-challenge-id event))))
 
