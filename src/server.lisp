@@ -276,7 +276,7 @@
 (defvar *solves-table* (lh:make-castable))
 
 (defun send-events (client)
-  (let ((events (collect-events-since *db*)))
+  (let ((events (collect-events *db*)))
     (bt:make-thread
      (lambda ()
        (let ((json-events
@@ -370,7 +370,7 @@
 
   (read-credentials)
 
-  (let ((events (collect-events-since *db*)))
+  (let ((events (collect-events *db*)))
     (dolist (event events)
       (save-solve (event-user-id event) (event-challenge-id event))))
 
