@@ -13,6 +13,8 @@
 
 (defparameter *websocket-url* nil)
 
+(defvar *solves-table* (lh:make-castable))
+
 (defun capture-exception (e)
   (when *sentry-dsn*
     (sentry-client:capture-exception e)))
@@ -42,8 +44,8 @@
           ;; If no caslist exists, try to add a new one
           (let ((new-caslist (ll:caslist value)))
             (when (lh:put-if-absent *solves-table* key new-caslist)
-              (return t)))) ; Successfully added new caslist
-          )))
+              (return t))))))) ; Successfully added new caslist
+
 
 ;; ----------------------------------------------------------------------------
 ;; Machinery for managing the execution of the server.
@@ -123,10 +125,10 @@
           ;; create or reuse session
           (hunchentoot:start-session)
           (let ((user (ensure-user *db* username)))
-          (setf (hunchentoot:session-value :user) user)
-          (let ((needs-name (null (user-displayname user))))
-            (respond-json
-             `((:displayname . ,(user-displayname user)) (:needs_name . ,needs-name) (:websocket_url . ,*websocket-url*))))))
+           (setf (hunchentoot:session-value :user) user)
+           (let ((needs-name (null (user-displayname user))))
+             (respond-json
+              `((:displayname . ,(user-displayname user)) (:needs_name . ,needs-name) (:websocket_url . ,*websocket-url*))))))
         (respond-json '((:error "invalid_credentials")) :code 401))))
 
 (easy-routes:defroute logout ("/api/logout" :method :post) ()
@@ -145,8 +147,12 @@
                         (:websocket_url . ,*websocket-url*)))
         (respond-json '((:error . "no session")) :code 401))))
 
-(defun user-solved-p (user cid)
-  nil)
+(defun user-solved-p (user-id challenge-id)
+  "Checks if a user has already solved a given challenge.
+   Returns non-NIL (the tail of the list starting from the found element) if solved, NIL otherwise."
+  (let ((solves-list (lh:gethash user-id *solves-table*)))
+    (when solves-list
+      (ll:member challenge-id solves-list :test #'equal))))
 
 (defun award-points (user challenge)
   (log:info "award points")
@@ -207,9 +213,9 @@
             (decf (user-total-points user) cost)
             ;; broadcast score delta
             (let ((msg (format nil
-                    "{ \"id\":~A, \"type\":\"hint\", \"displayname\":~S,\
+                        "{ \"id\":~A, \"type\":\"hint\", \"displayname\":~S,\
 \"ts\":~A, \"challenge_id\":~A, \"hint_id\":~A, \"points\":-~A }"
-                    eid (user-displayname user) (floor ts 1000) cid hid cost)))
+                        eid (user-displayname user) (floor ts 1000) cid hid cost)))
               (dolist (client (get-client-list))
                 (with-write-lock-held ((client-lock client))
                   (ws:write-to-client-text (client-socket client) msg))))
@@ -309,8 +315,6 @@
 (ws:register-global-resource "/scorestream"
                              (make-instance 'scorestream-resource)
                              #'ws::any-origin)
-
-(defvar *solves-table* (lh:make-castable))
 
 (defun send-events (client)
   (let ((events (collect-events *db*)))
