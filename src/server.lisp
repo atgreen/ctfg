@@ -180,20 +180,26 @@
            (cid  (cdr (assoc :id body)))
            (hid  (cdr (assoc :hint--id body))))
       (unless (and cid hid)
+        (log:info "Hint missing parameters for " user)
         (return-from hint
           (respond-json '((:error "missing_parameters")) :code 400)))
       (let ((chal (find cid *all-challenges* :key #'challenge-id)))
         (unless chal
+          (log:info "Hint for unknown challange from " user)
           (return-from hint (respond-json '((:error "unknown_challenge")) :code 400)))
         ;; sequential lock
         (unless (= hid (next-hint-id (user-id user) cid))
+          (log:info "Hint locked for " user)
           (return-from hint (respond-json '((:error "locked")) :code 403)))
         ;; cost & text from challenge meta
         (let* ((hint (find hid (challenge-hints chal)
                            :key (lambda (h) (cdr (assoc :id h)))))
                (cost (cdr (assoc :cost hint))))
           ;; (optional) check they have enough points
+          (log:info (user-total-points user))
+          (log:info cost)
           (when (< (user-total-points user) cost)
+            (log:info "Insufficient points for " user)
             (return-from hint (respond-json '((:error "insufficient_points")) :code 402)))
           ;; store negative-delta event
           (multiple-value-bind (ts eid)

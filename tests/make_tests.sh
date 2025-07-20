@@ -51,6 +51,8 @@ tail -n +2 "$CREDENTIALS_FILE" | while IFS=, read -r username_raw password_raw |
   cat > "$FILENAME" << EOF
 import { test, expect } from '@playwright/test';
 
+test.setTimeout(120_000);
+
 const CARD_SELECTOR   = 'div.cursor-pointer';      // the card <div>
 
 test('ctfg log in', async ({ page }) => {

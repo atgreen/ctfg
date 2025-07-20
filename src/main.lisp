@@ -30,10 +30,10 @@
     (clingon:make-command
      :name    "ctfg"
      :version +version+
-     :description "A web application"
+     :description "A Capture-The-Flag Game Engine"
      :authors (list "Anthony Green")
      :license "MIT"
-     :usage "[challenges json file]"
+     :usage ""
      :options (list p s b w d)
      :handler (lambda (cmd)
                 (let* ((positional-args (clingon:command-arguments cmd))
@@ -88,11 +88,9 @@
         (maphash (lambda (key value)
                    (cond
                      ((string= "control_cluster" key)
-                      (setf *control-cluster* value)
-                      (log:info "Control Cluster = ~A" value))
+                      (setf *control-cluster* value))
                      ((string= "player_clusters" key)
-                      (setf *player-clusters* value)
-                      (log:info "Player Clusters = ~A" value))
+                      (setf *player-clusters* value))
                      (t
                       (error 'malformed-game-clusters-yaml))))
                  (cadr inventory))

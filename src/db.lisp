@@ -18,7 +18,7 @@
 Busy-timeout is expressed in milliseconds."
   (or (gethash path *sqlite-handles*)
       (setf (gethash path *sqlite-handles*)
-            (sqlite:connect path :busy-timeout busy-timeout)))         ;:contentReference[oaicite:0]{index=0}
+            (sqlite:connect path :busy-timeout busy-timeout)))
   ;; no “cached-disconnect” – the handles live for the whole process
   )
 
@@ -82,7 +82,7 @@ mirroring the behaviour of dbi:connect-cached."
     ;; Pragmas
     (dolist (sql '("PRAGMA busy_timeout = 30000;"
                    "PRAGMA journal_mode = WAL;"))
-      (sqlite:execute-non-query dbc sql))))                                   ;:contentReference[oaicite:1]{index=1}
+      (sqlite:execute-non-query dbc sql))))
 
 (defmethod initialize-instance :after ((db db-backend) &key)
   (log:info "INITIALIZING DB")
@@ -132,6 +132,8 @@ mirroring the behaviour of dbi:connect-cached."
 (defun record-hint (db user challenge hint-number cost)
   "Store a HINT purchase (negative points).
 Returns two values: timestamp µs and new event-id."
+  (log:info "Recording hint: user: ~A, challenge: ~A, hint-number: ~A, row-id: ~A"
+            user challenge hint-number cost)
   (let ((ts (now-micros)))
     (with-open-connection (conn db)
       (sqlite:execute-non-query
