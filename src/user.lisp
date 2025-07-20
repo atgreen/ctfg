@@ -74,19 +74,30 @@
     (error "ensure-user: only db/sqlite is supported in the cl-sqlite build."))
 
   (with-open-connection (conn db)
-    ;; 1. try the insert (no-op if the username already exists)
     (%execute conn
               "INSERT OR IGNORE INTO users (username) VALUES (?);"
               username)
 
-    ;; 2. read back the row
     (destructuring-bind (id displayname)
         (%fetch-one conn
                     "SELECT id, displayname
                        FROM users
                       WHERE username = ?"
                     username)
-      (make-user :id id
-                 :username username
-                 :displayname displayname
-                 :total-points 0))))
+
+      (destructuring-bind (id displayname)
+          (%fetch-one conn
+                      "SELECT id, displayname
+                   FROM users
+                  WHERE username = ?" username)
+
+        (let* ((pts (or (car (%fetch-one conn
+                                         "SELECT COALESCE(SUM(points),0)
+                           FROM events
+                          WHERE user_id = ?" id))
+                        0)))
+
+          (make-user :id id
+                     :username username
+                     :displayname displayname
+                     :total-points pts))))))

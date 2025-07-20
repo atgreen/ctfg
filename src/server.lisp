@@ -162,7 +162,8 @@
       (save-solve (user-id user) (challenge-id challenge))
       (dolist (client (get-client-list))
         (with-write-lock-held ((client-lock client))
-          (ws:write-to-client-text (client-socket client) msg))))))
+          (ws:write-to-client-text (client-socket client) msg)))
+      (incf (user-total-points user) (challenge-points challenge)))))
 
 (easy-routes:defroute set-name ("/api/set-name" :method :post) ()
   "Set your display name"
@@ -174,23 +175,39 @@
       "")))
 
 (easy-routes:defroute hint ("/api/hint" :method :post) ()
-  "Request a hint."
-  (log:info "HINT!")
   (with-authenticated-user (user)
-    (let* ((body   (json-body))
-           (cid    (cdr (assoc :id body)))
-           (hid    (cdr (assoc :hint--id body)))
-           (chal   (find cid *all-challenges* :key #'challenge-id)))
-      (let ((hint (find hid (challenge-hints chal) :key (lambda (h) (cdr (assoc :ID h))))))
-        (log:info hint)
-        (let ((msg (format nil "[{ \"id\": 1001, \"type\": \"hint\", \"text\": ~S }]"
-                           (cdr (assoc :text hint)))))
-          (log:info msg)
-          (dolist (client (get-client-list))
-            (with-write-lock-held ((client-lock client))
-              (ws:write-to-client-text (client-socket client) msg))))))
-    (respond-json
-     `((:result . "ok") (:message . "hint purchase")))))
+    (let* ((body (json-body))
+           (cid  (cdr (assoc :id body)))
+           (hid  (cdr (assoc :hint--id body))))
+      (unless (and cid hid)
+        (return-from hint
+          (respond-json '((:error "missing_parameters")) :code 400)))
+      (let ((chal (find cid *all-challenges* :key #'challenge-id)))
+        (unless chal
+          (return-from hint (respond-json '((:error "unknown_challenge")) :code 400)))
+        ;; sequential lock
+        (unless (= hid (next-hint-id (user-id user) cid))
+          (return-from hint (respond-json '((:error "locked")) :code 403)))
+        ;; cost & text from challenge meta
+        (let* ((hint (find hid (challenge-hints chal)
+                           :key (lambda (h) (cdr (assoc :id h)))))
+               (cost (cdr (assoc :cost hint))))
+          ;; (optional) check they have enough points
+          (when (< (user-total-points user) cost)
+            (return-from hint (respond-json '((:error "insufficient_points")) :code 402)))
+          ;; store negative-delta event
+          (multiple-value-bind (ts eid)
+              (record-hint *db* user chal hid cost)
+            (decf (user-total-points user) cost)
+            ;; broadcast score delta
+            (let ((msg (format nil
+                    "{ \"id\":~A, \"type\":\"hint\", \"displayname\":~S,\
+\"ts\":~A, \"challenge_id\":~A, \"hint_id\":~A, \"points\":-~A }"
+                    eid (user-displayname user) (floor ts 1000) cid hid cost)))
+              (dolist (client (get-client-list))
+                (with-write-lock-held ((client-lock client))
+                  (ws:write-to-client-text (client-socket client) msg))))
+            (respond-json '((:result . "ok")))))))))
 
 (easy-routes:defroute submit ("/api/submit" :method :post) ()
   "Submit a flag"
@@ -255,7 +272,21 @@
                                                  (process-description
                                                   user
                                                   (challenge-description challenge)))
-                                           (cons "hints" (challenge-hints challenge))
+                                           (cons "hints"
+                                                 (mapcar
+                                                  (lambda (h)                              ; one hint plist
+                                                    (let* ((hid   (cdr (assoc :id   h)))
+                                                           (cost  (cdr (assoc :cost h)))
+                                                           (owned (hint-purchased-p        ; NEW helper, see below
+                                                                   (user-id user)
+                                                                   (challenge-id challenge)
+                                                                   hid)))
+                                                      ;; Build a *new* plist to send to the browser
+                                                      `((id   . ,hid)
+                                                        (cost . ,cost)
+                                                        ,@(when owned                     ; include text **only if** bought
+                                                            `((text . ,(cdr (assoc :text h))))))))
+                                                  (challenge-hints challenge)))
                                            (cons "content" (challenge-content challenge))))
                                    challenges)))
             (cl-json:encode-json-to-string json-data)))))))

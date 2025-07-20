@@ -119,38 +119,64 @@ mirroring the behaviour of dbi:connect-cached."
        conn
        "INSERT INTO events
           (ts, user_id, challenge_id, event_type, points)
-        VALUES (?, ?, ?, ?, ?)"
+        VALUES (?, ?, ?, 1, ?)"              ; 1 = SUBMIT
        ts
        (user-id user)
        (challenge-id challenge)
-       1                                   ; SUBMIT
        (challenge-points challenge))
 
       ;; 2 ─ same connection → fetch its last row-id
       (let ((row-id (sqlite:last-insert-rowid conn)))
         (values ts row-id)))))
 
-(defun record-hint (db user challenge)
-  "Insert a HINT event and return two values:
-   • the event timestamp in microseconds
-   • the autoincremented ID of the new row"
+(defun record-hint (db user challenge hint-number cost)
+  "Store a HINT purchase (negative points).
+Returns two values: timestamp µs and new event-id."
   (let ((ts (now-micros)))
     (with-open-connection (conn db)
-      ;; 1 ─ write the row
       (sqlite:execute-non-query
        conn
        "INSERT INTO events
           (ts, user_id, challenge_id, event_type, hint_number, points)
-        VALUES (?, ?, ?, ?, ?, ?)"
+        VALUES (?, ?, ?, 2, ?, ?)"            ; 2 = HINT
        ts
        (user-id user)
        (challenge-id challenge)
-       2                                   ; HINT
-       (challenge-points challenge))
+       hint-number
+       (- cost))                              ; ⇐ negative delta
+      (values ts (sqlite:last-insert-rowid conn)))))
 
-      ;; 2 ─ same connection → fetch its last row-id
-      (let ((row-id (sqlite:last-insert-rowid conn)))
-        (values ts row-id)))))
+;;;; ------------------------------------------------------------------
+;;;;  Hint helpers – SQLite version using %FETCH-ONE
+;;;; ------------------------------------------------------------------
+
+(defun hint-purchased-p (uid cid hid)
+  "Return T if the player already bought this hint."
+  (with-open-connection (c *db*)
+    (let ((row (%fetch-one c
+               "SELECT 1
+                  FROM events
+                 WHERE user_id      = ?
+                   AND challenge_id = ?
+                   AND hint_number  = ?
+                   AND event_type   = 2   -- 2 = HINT
+                 LIMIT 1"
+               uid cid hid)))
+      (and row t)))                         ; NIL → not purchased, list → T
+  )
+
+(defun next-hint-id (uid cid)
+  "Return the *id* of the next hint the player may buy."
+  (with-open-connection (c *db*)
+    (let* ((row (%fetch-one c
+                 "SELECT MAX(hint_number)
+                    FROM events
+                   WHERE user_id      = ?
+                     AND challenge_id = ?
+                     AND event_type   = 2"
+                 uid cid))
+           (max-id (or (car row) 0)))
+      (1+ max-id))))
 
 ;;;; --------------------------------------------------------------------------
 ;;;;  Read helpers
