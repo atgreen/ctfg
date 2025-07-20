@@ -135,16 +135,18 @@ function handleScoreEvent (msg, deferFlush = false) {
     seenEventIDs.add(msg.id);
 
     /* player-specific bits (solved, points display) stay as they were … */
-    if (msg.displayname === currentUser) {
-        solvedChallenges.add(msg.challenge_id);
-        if (currentView === 'challenges')       renderChallenges();
-        else if (!challengeDetail.classList.contains('hidden')
-                 && openChallengeId === msg.challenge_id)
-            showChallenge(msg.challenge_id);
-        userPoints = (scoreboard.get(currentUser) || 0) + msg.points;
-        document.getElementById('user-points').textContent = `${userPoints} pts`;
+    if (msg.type != 'hint') {
+        if (msg.displayname === currentUser) {
+            solvedChallenges.add(msg.challenge_id);
+            if (currentView === 'challenges')       renderChallenges();
+            else if (!challengeDetail.classList.contains('hidden')
+                     && openChallengeId === msg.challenge_id)
+                showChallenge(msg.challenge_id);
+        }
     }
 
+    userPoints = (scoreboard.get(currentUser) || 0) + msg.points;
+    document.getElementById('user-points').textContent = `${userPoints} pts`;
     applyScoreDelta(msg);          // always cheap
     if (!deferFlush) flushChart(); // expensive only if we ask for it
 }
@@ -152,7 +154,7 @@ function handleScoreEvent (msg, deferFlush = false) {
 function dispatchEvent (msg, defer=false) {
     switch (msg.type) {
     case 'hint':
-        handleScoreEvent(msg, defer);               // cost already negative
+        handleScoreEvent(msg, defer);
         if (msg.displayname === currentUser) {      // ★ NEW
             /* our own hint purchase → refresh data once */
             loadChallenges().then(() => {
@@ -507,6 +509,12 @@ let openChallengeId = null;
 /* ─── helpers ────────────────────────────────────────────────────── */
 /* ★ NEW – put near other HTML helpers */
 function hintBlockHTML (chID, hint, owned, active) {
+
+    console.log(chID);
+    console.log(hint);
+    console.log(owned);
+    console.log(active);
+
     if (owned) {
         /* text is present because `/api/challenges` included it */
         return `
@@ -665,7 +673,7 @@ function errorHtml(msg) {
 }
 
 function generateHintHTML(chID, hint) {
-    const owned = revealedHints.has(hint.id);
+    const owned = revealedHints.has(`${chID}:${hint.id}`);
 
     return `
     <div class="my-2 p-4 border border-slate-700 rounded-lg">
@@ -715,8 +723,10 @@ function generateChallengeHTML(ch, isSolved) {
                ${
                  (() => {
                    let unlockedGiven = false;
-                   return ch.hints.map(h => {
-                     const owned  = revealedHints.has(h.id);
+                     return ch.hints.map(h => {
+                         console.log("-------------------------");
+                         console.log(h);
+                     const owned  = revealedHints.has(`${ch.id}:${h.id}`);
                      const active = !owned && !unlockedGiven;
                      if (active) unlockedGiven = true;
                      return hintBlockHTML(ch.id, h, owned, active);
@@ -812,9 +822,10 @@ async function loadChallenges() {
         revealedHints.clear();
         challenges.forEach(ch =>
             ch.hints?.forEach(h => {
+                console.log(h);
                 /* Convention: server includes `text` (or `revealed:true`)      */
                 /* only when the player has bought the hint                     */
-                if (h.text) revealedHints.add(h.id);
+                if (h.text) revealedHints.add(`${ch.id}:${h.id}`);
             }));
 
         console.log(challenges);

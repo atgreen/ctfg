@@ -282,10 +282,10 @@
                                                                    (challenge-id challenge)
                                                                    hid)))
                                                       ;; Build a *new* plist to send to the browser
-                                                      `((id   . ,hid)
-                                                        (cost . ,cost)
+                                                      `(("id"   . ,hid)
+                                                        ("cost" . ,cost)
                                                         ,@(when owned                     ; include text **only if** bought
-                                                            `((text . ,(cdr (assoc :text h))))))))
+                                                            `(("text" . ,(cdr (assoc :text h))))))))
                                                   (challenge-hints challenge)))
                                            (cons "content" (challenge-content challenge))))
                                    challenges)))

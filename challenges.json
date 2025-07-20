@@ -1,67 +1,216 @@
 [
-        {
-            "id": 2,
-            "title": "SQL Injection Login",
-            "category": "Web",
-            "difficulty": "Easy",
-            "points": 150,
-            "description": "Bypass the login mechanism using SQL injection techniques.",
-            "content": "Login page source code: \n    echo \"Login successful! Flag: \" . $flag; \n} else { \n    echo \"Invalid credentials\"; \n}" ,
-            "flag": "foo",
-            "hints": [
-              { "id": 1, "text": "Have you tried reversing the alphabet?", "cost": 10 },
-              { "id": 2, "text": "Look at byte 0x0d.",                    "cost": 15 }
-            ]
-	      },
-        {
-            "id": 4,
-            "title": "Directory Traversal",
-            "category": "Web",
-            "difficulty": "Medium",
-            "points": 200,
-            "description": "Use directory traversal to access sensitive files.",
-            "content": "File viewer application: \nhttp://ctf.example.com/viewer.php?file=welcome.txt\nThe application allows users to view files.\nTry to access the flag file located at /etc/flag.txt\n\nSample URL: http://ctf.example.com/viewer.php?file=../../../etc/flag.txt",
-            "flag": "foo",
-            "requirements": [2]
-        },
-        {
-            "id": 1,
-            "title": "Basic Buffer Overflow",
-            "category": "Binary Exploitation",
-            "difficulty": "Easy",
-            "points": 100,
-            "description": "Your first step into binary exploitation. Find the vulnerability in this simple C program.",
-            "content": "#include <stdio.h>\n#include <string.h>\n\n\nvoid vulnerable_function(char *input) {\n    char buffer[64];\n    strcpy(buffer, input);\n    printf(\"You entered: %s\\n\", buffer);\n}\n\nint main() {\n    char input[256];\n    printf(\"Enter your input: \");\n    gets(input);\n    vulnerable_function(input);\n    return 0;\n}\n\nFind the flag by exploiting the buffer overflow vulnerability.",
-            "flag": "foo"
-        },
-        {
-            "id": 6,
-            "title": "Stack Canary Bypass",
-            "category": "Binary Exploitation",
-            "difficulty": "Hard",
-            "points": 400,
-            "description": "Bypass stack canaries to exploit this binary.",
-            "content": "Advanced buffer overflow with stack canaries enabled.\n\nBinary: ./stack_canary_challenge\nASLR: Disabled\nNX: Enabled\nStack Canaries: Enabled\n\nThe binary has a format string vulnerability that can be used to leak the canary value.\nUse this information to bypass the stack protection.\n\nnc ctf.example.com 1337",
-            "flag": "foo"
-        },
-        {
-            "id": 3,
-            "title": "Caesar Cipher",
-            "category": "Cryptography",
-            "difficulty": "Easy",
-            "points": 75,
-            "description": "Decode this simple Caesar cipher to reveal the flag.",
-            "content": "Encrypted message:\nFWI{fdhvdu_flskhu_vkliw_wkuhh}\n\nThis message has been encrypted using a Caesar cipher.\nFind the correct shift value to decode the flag.",
-            "flag": "foo"
-        },
-        {
-            "id": 5,
-            "title": "XOR Encryption",
-            "category": "Cryptography",
-            "difficulty": "Medium",
-            "points": 250,
-            "description": "Break this XOR encryption to get the flag.",
-            "content": "Encrypted hex: 1c0a1e0b1f0c1a0f1e0b1a0f1e0c1a0b1f0a1e0f1a0c1e0b1f0a1e0f\n\nThe flag has been XOR encrypted with a single byte key.\nTry all possible single byte keys (0-255) to decrypt the message.",
-            "flag": "foo"
-        }
+  {
+    "id": 1,
+    "title": "The Crime Scene",
+    "category": "Basic Operations",
+    "difficulty": "Easy",
+    "points": 100,
+    "description": "Detective, you arrive at Professor Euler's lab to find chaos! There are <b>15 books scattered</b>, <b>8 papers torn</b>, and <b>3 coffee cups spilled</b>. To access the security footage, enter the total number of disturbed items.",
+    "flag": "^26$",
+    "hints": [
+      { "id": 1, "text": "Count all the disturbed items in the lab.", "cost": 5 },
+      { "id": 2, "text": "Add: books + papers + cups", "cost": 10 }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Decoding the Timestamp",
+    "category": "Order of Operations",
+    "difficulty": "Easy",
+    "points": 120,
+    "description": "The security system shows a coded timestamp: <b>4&nbsp;×&nbsp;(7&nbsp;+&nbsp;3)&nbsp;−&nbsp;2<sup>3</sup></b>. Decode this to find what hour (in 24h format) the break-in occurred.",
+    "flag": "^32$",
+    "hints": [
+      { "id": 1, "text": "Remember BEDMAS order: Brackets first, then exponents.", "cost": 10 },
+      { "id": 2, "text": "7 + 3 = 10, then 2³ = 8", "cost": 15 }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "The Suspect's Age",
+    "category": "Algebra",
+    "difficulty": "Medium",
+    "points": 150,
+    "description": "A witness says: \"The suspect's age plus 12 equals three times their age minus 8.\" Solve for the suspect's age: <b>x&nbsp;+&nbsp;12&nbsp;=&nbsp;3x&nbsp;−&nbsp;8</b>",
+    "flag": "^10$",
+    "requirements": [1],
+    "hints": [
+      { "id": 1, "text": "Move all x terms to one side and constants to the other.", "cost": 15 },
+      { "id": 2, "text": "Subtract x from both sides: 12 = 2x - 8", "cost": 20 },
+      { "id": 3, "text": "Add 8 to both sides: 20 = 2x", "cost": 25 }
+    ]
+  },
+  {
+    "id": 4,
+    "title": "The Getaway Route",
+    "category": "Coordinate Geometry",
+    "difficulty": "Medium",
+    "points": 180,
+    "description": "Security cameras tracked the suspect from the museum <b>(2, 5)</b> to the parking lot <b>(8, 17)</b>. Calculate the slope of their escape route.",
+    "flag": "^2$",
+    "requirements": [3],
+    "hints": [
+      { "id": 1, "text": "Slope formula: m = (y₂ - y₁)/(x₂ - x₁)", "cost": 15 },
+      { "id": 2, "text": "Substitute: (17 - 5)/(8 - 2)", "cost": 20 }
+    ]
+  },
+  {
+    "id": 5,
+    "title": "The Hidden Safe",
+    "category": "Quadratic Equations",
+    "difficulty": "Medium",
+    "points": 200,
+    "description": "Professor Euler hid his most important research in a safe. The combination is the <b>positive</b> solution to <b>x<sup>2</sup>&nbsp;−&nbsp;7x&nbsp;+&nbsp;12&nbsp;=&nbsp;0</b>.",
+    "flag": "^4$",
+    "requirements": [3],
+    "hints": [
+      { "id": 1, "text": "Try factoring: look for two numbers that multiply to 12 and add to -7.", "cost": 15 },
+      { "id": 2, "text": "The factors are -3 and -4: (x - 3)(x - 4) = 0", "cost": 25 },
+      { "id": 3, "text": "So x = 3 or x = 4. The problem asks for the positive solution.", "cost": 30 }
+    ]
+  },
+  {
+    "id": 6,
+    "title": "The Triangular Clue",
+    "category": "Geometry",
+    "difficulty": "Easy",
+    "points": 130,
+    "description": "Hidden in the lab, you find a triangular piece of paper with two angles marked: <b>42°</b> and <b>63°</b>. The third angle contains the next clue!",
+    "flag": "^75$",
+    "hints": [
+      { "id": 1, "text": "All angles in a triangle sum to 180°.", "cost": 10 }
+    ]
+  },
+  {
+    "id": 7,
+    "title": "The Footprint Area",
+    "category": "Area Calculation",
+    "difficulty": "Medium",
+    "points": 220,
+    "description": "CSI found a muddy footprint! It's trapezoidal with parallel sides of <b>12 cm</b> and <b>8 cm</b>, and height <b>15 cm</b>. Calculate the area to match it with suspect shoe sizes.",
+    "flag": "^150$",
+    "requirements": [6],
+    "hints": [
+      { "id": 1, "text": "Trapezoid area formula: A = ½(b₁ + b₂)h", "cost": 15 },
+      { "id": 2, "text": "A = ½(12 + 8) × 15", "cost": 20 }
+    ]
+  },
+  {
+    "id": 8,
+    "title": "The Probability of Guilt",
+    "category": "Probability",
+    "difficulty": "Medium",
+    "points": 200,
+    "description": "In the suspect database: <b>3 have criminal records</b>, <b>7 have alibis</b>, <b>5 are missing</b>. What's the probability of randomly selecting someone with a criminal record? Submit as a simplified fraction.",
+    "flag": "^1/5$",
+    "requirements": [2],
+    "hints": [
+      { "id": 1, "text": "Total suspects = 3 + 7 + 5", "cost": 10 },
+      { "id": 2, "text": "Probability = favorable outcomes ÷ total outcomes", "cost": 15 },
+      { "id": 3, "text": "3/15 can be simplified by dividing both by 3", "cost": 20 }
+    ]
+  },
+  {
+    "id": 9,
+    "title": "The Evidence Locker",
+    "category": "Statistics",
+    "difficulty": "Easy",
+    "points": 140,
+    "description": "Evidence weights (grams): <b>45, 23, 67, 34, 45, 78, 23</b>. Find the median weight to organize the evidence locker.",
+    "flag": "^45$",
+    "requirements": [8],
+    "hints": [
+      { "id": 1, "text": "First, arrange the numbers in order from smallest to largest.", "cost": 10 },
+      { "id": 2, "text": "The median is the middle value when arranged in order.", "cost": 15 }
+    ]
+  },
+  {
+    "id": 10,
+    "title": "The Ransom Money",
+    "category": "Financial Mathematics",
+    "difficulty": "Medium",
+    "points": 180,
+    "description": "The stolen research was worth <b>$2000</b>. If invested at <b>6% simple interest</b> for <b>4 years</b>, how much interest would it have earned? This might be the thief's motive!",
+    "flag": "^480$",
+    "requirements": [9],
+    "hints": [
+      { "id": 1, "text": "Simple interest formula: I = P × r × t", "cost": 15 },
+      { "id": 2, "text": "I = 2000 × 0.06 × 4", "cost": 20 }
+    ]
+  },
+  {
+    "id": 11,
+    "title": "The Compound Conspiracy",
+    "category": "Advanced Financial Math",
+    "difficulty": "Hard",
+    "points": 300,
+    "description": "The suspect's offshore account started with <b>$5000</b> and grew at <b>8% compounded annually</b> for <b>3 years</b>. Calculate the final amount to track their wealth.",
+    "flag": "^6298\\.56$",
+    "requirements": [10],
+    "hints": [
+      { "id": 1, "text": "Compound interest formula: A = P(1 + r)ᵗ", "cost": 20 },
+      { "id": 2, "text": "A = 5000(1 + 0.08)³", "cost": 25 },
+      { "id": 3, "text": "A = 5000(1.08)³ = 5000 × 1.259712", "cost": 30 }
+    ]
+  },
+  {
+    "id": 12,
+    "title": "The Secret Pattern",
+    "category": "Sequences",
+    "difficulty": "Medium",
+    "points": 200,
+    "description": "Professor Euler left a coded sequence: <b>7, 12, 17, 22, ...</b> What is the <b>8th term</b>? This arithmetic sequence holds the key to his research location!",
+    "flag": "^42$",
+    "requirements": [5],
+    "hints": [
+      { "id": 1, "text": "Find the common difference between consecutive terms.", "cost": 15 },
+      { "id": 2, "text": "The formula is: aₙ = a₁ + (n-1)d where d = 5", "cost": 20 },
+      { "id": 3, "text": "a₈ = 7 + (8-1) × 5", "cost": 25 }
+    ]
+  },
+  {
+    "id": 13,
+    "title": "The Final Distance",
+    "category": "Pythagorean Theorem",
+    "difficulty": "Medium",
+    "points": 250,
+    "description": "The Professor's secret lab is hidden underground! From the crime scene, go <b>9 meters north</b> and <b>12 meters east</b>. What's the direct distance to the entrance?",
+    "flag": "^15$",
+    "requirements": [6],
+    "hints": [
+      { "id": 1, "text": "This forms a right triangle. Use the Pythagorean theorem.", "cost": 15 },
+      { "id": 2, "text": "a² + b² = c² where a = 9, b = 12", "cost": 20 },
+      { "id": 3, "text": "9² + 12² = 81 + 144 = 225, so c = √225", "cost": 25 }
+    ]
+  },
+  {
+    "id": 14,
+    "title": "The Mastermind's Identity",
+    "category": "Logic & Reasoning",
+    "difficulty": "Hard",
+    "points": 350,
+    "description": "You've gathered all clues! The mastermind's secret number is: <b>(Age from clue 3) × (Missing angle from clue 6) ÷ (Slope from clue 4)</b>. Calculate their identification number!",
+    "flag": "^375$",
+    "requirements": [13],
+    "hints": [
+      { "id": 1, "text": "Use the answers from previous challenges: 10 × 75 ÷ 2", "cost": 20 },
+      { "id": 2, "text": "Follow order of operations: multiplication and division left to right", "cost": 25 },
+      { "id": 3, "text": "10 × 75 = 750, then 750 ÷ 2 = 375", "cost": 30 }
+    ]
+  },
+  {
+    "id": 15,
+    "title": "Case Closed",
+    "category": "Final Challenge",
+    "difficulty": "Hard",
+    "points": 400,
+    "description": "Congratulations, Detective! You've solved the case. The stolen formula was for calculating the volume of a cylinder. Professor Euler's prototype has radius <b>5 cm</b> and height <b>12 cm</b>. What's its volume? Express as <i>kπ</i> (e.g., <code>300π</code>).",
+    "flag": "^300π$",
+    "requirements": [14],
+    "hints": [
+      { "id": 1, "text": "Volume of cylinder formula: V = πr²h", "cost": 20 },
+      { "id": 2, "text": "V = π × 5² × 12", "cost": 25 },
+      { "id": 3, "text": "V = π × 25 × 12 = 300π", "cost": 30 }
+    ]
+  }
 ]
