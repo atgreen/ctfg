@@ -2,6 +2,9 @@
 
 This is a simple Capture-The-Flag game engine.
 
+![alt text](./example.png)
+
+
 ## Building and Running
 
 You will need to install a few dependencies first.  If you are running homebrew,
@@ -31,7 +34,7 @@ developing content.
 
 1. Player credentials should live in a file called `credentials.csv`.  It's a simple `username,password` csv file.
 
-2. Challenges are in `src/challenges.json`.  This should be a json array containing objects like this:
+2. Challenges are in `challenges.json`.  This should be a json array containing objects like this:
 ```
         {
             "id": 5,
