@@ -1,6 +1,6 @@
 # ctfg
 
-This is a simple Capture-The-Flag game engine.
+This is a simple Capture-The-Flag game engine.1
 
 ![alt text](./example.png)
 
@@ -24,10 +24,46 @@ And then...
 * To test `ctfg`: `make check`
 * To run `ctfg`: `ctfg --help`
 
+```
+NAME:
+  ctfg - A Capture-The-Flag Game Engine
+
+USAGE:
+  ctfg
+
+OPTIONS:
+      --help                   display usage information and exit
+      --version                display version and exit
+  -b, --dbdir <VALUE>          database directory [default: .]
+  -d, --developer-mode         enable developer mode
+  -p, --port <INT>             port [default: 8080]
+  -s, --slynk-port <INT>       slynk-port
+  -w, --websocket-url <VALUE>  websocket-url [default: ws://localhost:12345/scorestream]
+
+EXAMPLES:
+
+  Run web service on port 9090:
+
+    ctfg -p 9090
+
+AUTHORS:
+  Anthony Green
+
+LICENSE:
+  MIT
+```
+
 The `--developer-mode` option disables caching of static content, and
 reloads the challenges.json every time the Challenge page is
 rendered.  This allows you view your changes in real time as you are
 developing content.
+
+Client browsers must establish websocket connections back to the game
+engine on the `/scorestream` endpoint.  Use the `--websocket-url`
+option to tell those clients what the URL is.  For instance, if you
+are hosting ctfg on an OpenShift kubernetes cluster, you might create
+a TLS terminated route for your ctfg service and connect to it thusly:
+`-w wss://scorestream-ctfg.apps.ocp.example.com:443/scorestream`
 
 
 ## Configuring your Game
@@ -42,14 +78,16 @@ developing content.
             "category": "Web",
             "difficulty": "Easy",
             "points": 150,
-            "description": "Bypass the login mechanism using SQL injection techniques.",
-            "content": "Login page source code: \n    echo \"Login successful! Flag: \" . $flag; \n} else { \n    echo \"Invalid credentials\"; \n}" ,
-            "flag": "foo",
+            "description": "This is an HTML description of the challenge. Put whatever you want in here.",
+            "flag": "^regexp flag goes here$",
             "requirements": [2, 3]
         },
 ```
 
-  Each challenge needs a unique `id`.  All of the other fields are self-explanatory.  The `requirements` field is optional. It should be a list of challenges that must be solved before this challenge appears on the board.
+  Each challenge needs a unique `id`.  All of the other fields are
+  self-explanatory.  The `requirements` field is optional. It should
+  be a list of challenges that must be solved before this challenge
+  appears on the board.
 
 3. Replace `static/images/banner.png` with your own content.
 
