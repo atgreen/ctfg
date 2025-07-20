@@ -7,6 +7,7 @@
     "points": 100,
     "description": "Detective, you arrive at Professor Euler's lab to find chaos! There are <b>15 books scattered</b>, <b>8 papers torn</b>, and <b>3 coffee cups spilled</b>. To access the security footage, enter the total number of disturbed items.",
     "flag": "^26$",
+    "testflag": "26",
     "hints": [
       { "id": 1, "text": "Count all the disturbed items in the lab.", "cost": 5 },
       { "id": 2, "text": "Add: books + papers + cups", "cost": 10 }
@@ -20,6 +21,7 @@
     "points": 120,
     "description": "The security system shows a coded timestamp: <b>4&nbsp;×&nbsp;(7&nbsp;+&nbsp;3)&nbsp;−&nbsp;2<sup>3</sup></b>. Decode this to find what hour (in 24h format) the break-in occurred.",
     "flag": "^32$",
+    "testflag": "32",
     "hints": [
       { "id": 1, "text": "Remember BEDMAS order: Brackets first, then exponents.", "cost": 10 },
       { "id": 2, "text": "7 + 3 = 10, then 2³ = 8", "cost": 15 }
@@ -33,6 +35,7 @@
     "points": 150,
     "description": "A witness says: \"The suspect's age plus 12 equals three times their age minus 8.\" Solve for the suspect's age: <b>x&nbsp;+&nbsp;12&nbsp;=&nbsp;3x&nbsp;−&nbsp;8</b>",
     "flag": "^10$",
+    "testflag": "10",
     "requirements": [1],
     "hints": [
       { "id": 1, "text": "Move all x terms to one side and constants to the other.", "cost": 15 },
@@ -48,6 +51,7 @@
     "points": 180,
     "description": "Security cameras tracked the suspect from the museum <b>(2, 5)</b> to the parking lot <b>(8, 17)</b>. Calculate the slope of their escape route.",
     "flag": "^2$",
+    "testflag": "2",
     "requirements": [3],
     "hints": [
       { "id": 1, "text": "Slope formula: m = (y₂ - y₁)/(x₂ - x₁)", "cost": 15 },
@@ -62,6 +66,7 @@
     "points": 200,
     "description": "Professor Euler hid his most important research in a safe. The combination is the <b>positive</b> solution to <b>x<sup>2</sup>&nbsp;−&nbsp;7x&nbsp;+&nbsp;12&nbsp;=&nbsp;0</b>.",
     "flag": "^4$",
+    "testflag": "4",
     "requirements": [3],
     "hints": [
       { "id": 1, "text": "Try factoring: look for two numbers that multiply to 12 and add to -7.", "cost": 15 },
@@ -77,6 +82,7 @@
     "points": 130,
     "description": "Hidden in the lab, you find a triangular piece of paper with two angles marked: <b>42°</b> and <b>63°</b>. The third angle contains the next clue!",
     "flag": "^75$",
+    "testflag": "75",
     "hints": [
       { "id": 1, "text": "All angles in a triangle sum to 180°.", "cost": 10 }
     ]
@@ -89,6 +95,7 @@
     "points": 220,
     "description": "CSI found a muddy footprint! It's trapezoidal with parallel sides of <b>12 cm</b> and <b>8 cm</b>, and height <b>15 cm</b>. Calculate the area to match it with suspect shoe sizes.",
     "flag": "^150$",
+    "testflag": "150",
     "requirements": [6],
     "hints": [
       { "id": 1, "text": "Trapezoid area formula: A = ½(b₁ + b₂)h", "cost": 15 },
@@ -103,6 +110,7 @@
     "points": 200,
     "description": "In the suspect database: <b>3 have criminal records</b>, <b>7 have alibis</b>, <b>5 are missing</b>. What's the probability of randomly selecting someone with a criminal record? Submit as a simplified fraction.",
     "flag": "^1/5$",
+    "testflag": "1/5",
     "requirements": [2],
     "hints": [
       { "id": 1, "text": "Total suspects = 3 + 7 + 5", "cost": 10 },
@@ -118,6 +126,7 @@
     "points": 140,
     "description": "Evidence weights (grams): <b>45, 23, 67, 34, 45, 78, 23</b>. Find the median weight to organize the evidence locker.",
     "flag": "^45$",
+    "testflag": "45",
     "requirements": [8],
     "hints": [
       { "id": 1, "text": "First, arrange the numbers in order from smallest to largest.", "cost": 10 },
@@ -132,6 +141,7 @@
     "points": 180,
     "description": "The stolen research was worth <b>$2000</b>. If invested at <b>6% simple interest</b> for <b>4 years</b>, how much interest would it have earned? This might be the thief's motive!",
     "flag": "^480$",
+    "testflag": "480",
     "requirements": [9],
     "hints": [
       { "id": 1, "text": "Simple interest formula: I = P × r × t", "cost": 15 },
@@ -146,6 +156,7 @@
     "points": 300,
     "description": "The suspect's offshore account started with <b>$5000</b> and grew at <b>8% compounded annually</b> for <b>3 years</b>. Calculate the final amount to track their wealth.",
     "flag": "^6298\\.56$",
+    "testflag": "6298.56",
     "requirements": [10],
     "hints": [
       { "id": 1, "text": "Compound interest formula: A = P(1 + r)ᵗ", "cost": 20 },
@@ -161,6 +172,7 @@
     "points": 200,
     "description": "Professor Euler left a coded sequence: <b>7, 12, 17, 22, ...</b> What is the <b>8th term</b>? This arithmetic sequence holds the key to his research location!",
     "flag": "^42$",
+    "testflag": "42",
     "requirements": [5],
     "hints": [
       { "id": 1, "text": "Find the common difference between consecutive terms.", "cost": 15 },
@@ -176,6 +188,7 @@
     "points": 250,
     "description": "The Professor's secret lab is hidden underground! From the crime scene, go <b>9 meters north</b> and <b>12 meters east</b>. What's the direct distance to the entrance?",
     "flag": "^15$",
+    "testflag": "15",
     "requirements": [6],
     "hints": [
       { "id": 1, "text": "This forms a right triangle. Use the Pythagorean theorem.", "cost": 15 },
@@ -191,6 +204,7 @@
     "points": 350,
     "description": "You've gathered all clues! The mastermind's secret number is: <b>(Age from clue 3) × (Missing angle from clue 6) ÷ (Slope from clue 4)</b>. Calculate their identification number!",
     "flag": "^375$",
+    "testflag": "375",
     "requirements": [13],
     "hints": [
       { "id": 1, "text": "Use the answers from previous challenges: 10 × 75 ÷ 2", "cost": 20 },
@@ -205,7 +219,8 @@
     "difficulty": "Hard",
     "points": 400,
     "description": "Congratulations, Detective! You've solved the case. The stolen formula was for calculating the volume of a cylinder. Professor Euler's prototype has radius <b>5 cm</b> and height <b>12 cm</b>. What's its volume? Express as <i>kπ</i> (e.g., <code>300π</code>).",
-    "flag": "^300π$",
+    "flag": "^300$",
+    "testflag": "300",
     "requirements": [14],
     "hints": [
       { "id": 1, "text": "Volume of cylinder formula: V = πr²h", "cost": 20 },

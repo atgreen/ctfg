@@ -81,7 +81,7 @@ test('ctfg log in', async ({ page }) => {
 
   // Your client code shows the first challenge heading is “Cryptography”
   await expect(
-    page.getByRole('heading', { name: /cryptography/i })
+    page.getByRole('heading', { name: /Basic Operations/i })
   ).toBeVisible();
 
   const cards = page.locator(CARD_SELECTOR);
