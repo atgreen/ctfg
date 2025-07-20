@@ -1,6 +1,6 @@
 # ctfg
 
-This is a simple Capture-The-Flag game engine.1
+This is a simple Capture-The-Flag game engine.
 
 ![alt text](./example.png)
 
