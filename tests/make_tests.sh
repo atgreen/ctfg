@@ -50,10 +50,14 @@ tail -n +2 "$CREDENTIALS_FILE" | while IFS=, read -r username_raw password_raw |
 
   cat > "$FILENAME" << EOF
 import { test, expect } from '@playwright/test';
+import fs   from 'fs';
+import path from 'path';
 
 test.setTimeout(120_000);
 
-const CARD_SELECTOR   = 'div.cursor-pointer';      // the card <div>
+const CHALLENGES   = JSON.parse(
+  fs.readFileSync(path.join(__dirname, '../challenges.json'), 'utf-8')
+);
 
 test('ctfg log in', async ({ page }) => {
 
@@ -79,27 +83,17 @@ test('ctfg log in', async ({ page }) => {
    *  Post-login assertion
    * ------------------------------------------------------------------ */
 
-  // Your client code shows the first challenge heading is “Cryptography”
-  await expect(
-    page.getByRole('heading', { name: /Basic Operations/i })
-  ).toBeVisible();
-
-  const cards = page.locator(CARD_SELECTOR);
-  const total = await cards.count();
-
-  for (let i = 0; i < total; i++) {
-    const card = cards.nth(i);
-
-    await card.scrollIntoViewIfNeeded();
-    await card.click();
-
-    await page.getByPlaceholder('Enter FLAG text here').fill('foo');
-    await page.getByRole('button', { name: /^submit$/i }).click();
-
-    await expect(page.getByText('Challenge Solved!', { exact: true }))
-      .toBeVisible();
-
-   await page.locator('#back-btn').click();
+  for (const ch of CHALLENGES) {
+    if (!ch.testflag) continue;
+    const heading = page.getByRole('heading', { name: ch.title, exact: true });
+    await heading.scrollIntoViewIfNeeded();
+    await heading.locator('xpath=ancestor::div[contains(@class,"cursor-pointer")]').click();
+    await page.getByPlaceholder('Enter FLAG text here').fill(ch.testflag);
+    console.log(ch.title);
+    console.log(ch.testflag);
+    await page.getByRole('button', { name: /^submit\$/i }).click();
+    await expect(page.getByText('Challenge Solved!', { exact: true })).toBeVisible({ timeout: 15000 });
+    await page.locator('#back-btn').click();
   }
 
   await page.getByRole('button', { name: 'Scoreboard' }).click();
