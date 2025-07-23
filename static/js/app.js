@@ -507,7 +507,13 @@ function getDifficultyColor(diff) {
 let openChallengeId = null;
 
 /* ─── helpers ────────────────────────────────────────────────────── */
-/* ★ NEW – put near other HTML helpers */
+
+function lastUpdateTs (name) {
+  const tl = timelines.get(name);
+  return tl && tl.length ? tl[tl.length - 1].x          // last .x is latest
+                         : Number.POSITIVE_INFINITY;    // player has 0 pts
+}
+
 function hintBlockHTML (chID, hint, owned, active) {
 
     console.log(chID);
@@ -564,7 +570,7 @@ async function handleRevealHint (e) {
         const { result, message } = await res.json();
         if (result !== 'ok') throw new Error(message || 'Not enough points');
 
-        await loadChallenges();             // ★ NEW
+        await loadChallenges();
         showChallenge(chID);                // re-render with hint text
     } catch (err) {
         console.error(err);
@@ -773,7 +779,8 @@ function renderScoreboard () {
     const rows = [...scoreboard.entries()].map(([team, score]) => ({
         team,
         score,
-        solved : (timelines.get(team)?.length || 0)          // events – initial point
+        solved : (timelines.get(team)?.length || 0),          // events – initial point
+        ts     : lastUpdateTs(name)
     }));
 
     /* 2 ─ make sure the current player shows up even with 0 pts */
@@ -782,7 +789,10 @@ function renderScoreboard () {
     }
 
     /* 3 ─ rank & render */
-    rows.sort((a, b) => b.score - a.score)
+    rows.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score; // ① score desc
+        return a.ts - b.ts;                                // ② earlier first
+    })
         .forEach((e, i) => {
             const tr = document.createElement('tr');
             tr.className = `border-b border-slate-700 ${e.team === currentUser ? 'bg-green-900/20' : ''}`;
@@ -955,9 +965,14 @@ function refreshScoreboard () {
     tbody.innerHTML = '';                       // clear
 
     const rows = [...scoreboard.entries()]
-          .sort((a, b) => b[1] - a[1]);
+          .map(([name, score]) => ({ name, score, ts: lastUpdateTs(name) }))
+          .sort((a, b) => {
+              if (b.score !== a.score) return b.score - a.score;
+              return a.ts - b.ts;
+          });
 
-    rows.forEach(([name, score], idx) => {
+    rows.forEach((row, idx) => {
+        const { name, score } = row;
         const tr = document.createElement('tr');
         tr.className = idx % 2 ? 'bg-slate-800/20' : '';   // zebra
 
