@@ -12,7 +12,7 @@
   :depends-on  (:version-string :clingon :hunchentoot :easy-routes :log4cl
                 :markup :slynk :cl-json :cl-csv :clws :sqlite
                 :cl-dbi :dbd-sqlite3 :luckless :sentry-client :cl-ppcre
-                :cl-dotenv :cl-yaml :bordeaux-threads)
+                :cl-dotenv :cl-yaml :bordeaux-threads :archive :chipz)
   :serial      t
   :components  ((:file "src/package")
                 (:file "src/rwlock")

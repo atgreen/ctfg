@@ -1,8 +1,11 @@
-ctfg: src/*.lisp *.asd
+ctfg: src/*.lisp *.asd runtime-files.tgz
 	sbcl --eval "(asdf:make :ctfg)" --quit
 
-src/server.lisp: src/index.html
-	touch src/server.lisp
+runtime-files.tgz: css/ctfg.css js/app.js images/banner.png index.html
+	tar cvfz $@ css/ctfg.css js/app.js images/banner.png index.html
+
+src/main.lisp: runtime-files.tgz
+	touch $@
 
 check: ctfg
 	rm -f tests/*.ts

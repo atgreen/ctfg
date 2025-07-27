@@ -6,6 +6,12 @@
 
 (in-package #:ctfg)
 
+(defvar +runtime-files+
+  #.(with-open-file (stream "runtime-files.tgz" :element-type '(unsigned-byte 8))
+                    (let ((seq (make-array (file-length stream) :element-type '(unsigned-byte 8))))
+                      (read-sequence seq stream)
+                      seq)))
+
 ;; When *developer-mode* is t , enable developer features, such as
 ;; disabling caching of static content in the browser.
 (defvar *developer-mode* nil)
@@ -15,6 +21,14 @@
 (defparameter *player-clusters* nil)
 (defparameter *dbdir* nil)
 (defparameter *websocket-url* nil)
+
+(defmacro fatal-error (&rest rest)
+  `(progn
+     (log:error ,@rest)
+     (uiop:quit 1)))
+
+(define-condition malformed-game-clusters-yaml (error)
+  ())
 
 (defun make-app ()
   (let ((p (clingon:make-option :integer :short-name #\p :long-name "port" :key :port
@@ -35,7 +49,28 @@
      :license "MIT"
      :usage ""
      :options (list p s b w d)
+     :sub-commands (list (init/command))
      :handler (lambda (cmd)
+
+                (handler-case
+                    (let ((inventory (cl-yaml:parse (uiop:read-file-string "game-clusters.yaml")
+                                                    :multi-document-p t)))
+                      (maphash (lambda (key value)
+                                 (cond
+                                   ((string= "control_cluster" key)
+                                    (setf *control-cluster* value))
+                                   ((string= "player_clusters" key)
+                                    (setf *player-clusters* value))
+                                   (t
+                                    (error 'malformed-game-clusters-yaml))))
+                               (cadr inventory))
+                      (unless (and *control-cluster* *player-clusters*)
+                        (error 'malformed-game-clusters-yaml)))
+                  (malformed-game-clusters-yaml (_)
+                    (fatal-error "Malformed game-clusters.yaml"))
+                  (file-error (_)
+                    (fatal-error "Can't read game-clusters.yaml")))
+
                 (let* ((positional-args (clingon:command-arguments cmd))
                        (json-path (first positional-args))
                        (port (clingon:getopt cmd :port))
@@ -58,13 +93,27 @@
      :examples '(("Run web service on port 9090:"
                   . "ctfg -p 9090")))))
 
-(defmacro fatal-error (&rest rest)
-  `(progn
-     (log:error ,@rest)
-     (uiop:quit 1)))
+(defun init ()
+  "Initialize a ctfg game installation"
+  (archive::extract-files-from-archive
+   (archive:open-archive 'archive:tar-archive
+			                   (chipz:make-decompressing-stream
+                          'chipz:gzip
+							            (flexi-streams:make-in-memory-input-stream +runtime-files+))
+	                       :direction :input)))
 
-(define-condition malformed-game-clusters-yaml (error)
-  ())
+
+(defun init/handler (cmd)
+  "The handler for the `init' command"
+  (init))
+
+(defun init/command ()
+  "Initializes a ctfg game by creating new files."
+  (clingon:make-command
+   :name "init"
+   :description "create ctfg runtime files"
+   :usage ""
+   :handler #'init/handler))
 
 (defun main ()
   "The main entrypoint."
@@ -81,25 +130,6 @@
       (.env:duplicated-entry (_)
         (declare (ignore _))
         (fatal-error "Duplicated entry in ~S" .env-pathname))))
-
-  (handler-case
-      (let ((inventory (cl-yaml:parse (uiop:read-file-string "game-clusters.yaml")
-                                      :multi-document-p t)))
-        (maphash (lambda (key value)
-                   (cond
-                     ((string= "control_cluster" key)
-                      (setf *control-cluster* value))
-                     ((string= "player_clusters" key)
-                      (setf *player-clusters* value))
-                     (t
-                      (error 'malformed-game-clusters-yaml))))
-                 (cadr inventory))
-        (unless (and *control-cluster* *player-clusters*)
-          (error 'malformed-game-clusters-yaml)))
-    (malformed-game-clusters-yaml (_)
-      (fatal-error "Malformed game-clusters.yaml"))
-    (file-error (_)
-      (fatal-error "Can't read game-clusters.yaml")))
 
   (handler-case
       (clingon:run (make-app))

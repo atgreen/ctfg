@@ -84,7 +84,7 @@
   (when *developer-mode*
     (hunchentoot:no-cache)))
 
-(defparameter +index.html+ #.(uiop:read-file-string "src/index.html"))
+(defvar *index.html* nil)
 
 ;;; Convenience --------------------------------------------------------------
 (defun json-body ()
@@ -307,7 +307,9 @@
   "Main index page"
   (when *developer-mode* (load-challenges))
   (setf (hunchentoot:content-type*) "text/html")
-  +index.html+)
+  (when (or (null *index.html*) *developer-mode*)
+    (setf *index.html* (uiop:read-file-string "index.html")))
+  *index.html*)
 
 (defclass scorestream-resource (ws:ws-resource)
   ())
@@ -390,7 +392,7 @@
 
   (setf *db* (make-instance 'db/sqlite :filename (merge-pathnames "events.db" *dbdir*)))
 
-  (log:info "Static content directory: ~Astatic" (uiop:getcwd))
+  (log:info "Static content directory: ~A" (uiop:getcwd))
   (log:info "Starting server version ~A on port ~A" +version+ port)
 
   ;; Set up static file handlers in the global dispatch table
@@ -398,15 +400,15 @@
         (list
          (hunchentoot:create-folder-dispatcher-and-handler
           "/images/" (fad:pathname-as-directory
-                      (merge-pathnames "static/images/" (app-root)))
+                      (merge-pathnames "images/" (app-root)))
           nil #'dev/no-cache-callback)
          (hunchentoot:create-folder-dispatcher-and-handler
           "/js/" (fad:pathname-as-directory
-                  (merge-pathnames "static/js/" (app-root)))
+                  (merge-pathnames "js/" (app-root)))
           "application/javascript" #'dev/no-cache-callback)
          (hunchentoot:create-folder-dispatcher-and-handler
           "/css/" (fad:pathname-as-directory
-                   (merge-pathnames "static/css/" (app-root)))
+                   (merge-pathnames "css/" (app-root)))
           "text/css" #'dev/no-cache-callback)))
 
   (read-credentials)

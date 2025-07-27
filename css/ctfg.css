@@ -1,0 +1,25 @@
+.ctfg-background {
+  background-image: linear-gradient(
+    to bottom right,
+    #60a5fa,  /* blue-400 */
+    #2dd4bf,  /* teal-300 */
+    #fcd34d   /* amber-100 */
+  );
+}
+
+.ctfg-secondary-text {
+  color: #64748b;
+}
+
+.NOT-ctfg-background
+  background: linear-gradient(
+    to bottom right,
+    #0f172a,    /* slate-900 */
+    #581c87,    /* purple-900 */
+    #0f172a     /* slate-900 */
+  );
+}
+
+.NOT-ctfg-secondary-text {
+  color: #94a3b8;
+}

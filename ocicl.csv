@@ -1,4 +1,5 @@
 alexandria, ghcr.io/ocicl/alexandria@sha256:e433c2e076ed3bcf8641b97b00192680db2201d305efac9293539dee88c7fbf7, alexandria-20240503-8514d8e/alexandria.asd
+archive, ghcr.io/ocicl/archive@sha256:05385cccdaaedddb9bfc2195c6aa81b7df6c36261c6d202bcc8d0094e6466ac1, archive-20240503-631271c/archive.asd
 asdf-package-system, ghcr.io/ocicl/asdf-package-system@sha256:dfacc260786f4e9e2aa13a797a7b326b58e08ea5db778421a9985b9c67362df1, asdf-package-system-20240503-61776f2/asdf-package-system.asd
 atomics, ghcr.io/ocicl/atomics@sha256:56c5604d3081173d5bb749d64a7952767eadbf9c2a6f9cc100583af9bd23c315, atomics-20250201-ff170cb/atomics.asd
 atomics-test, ghcr.io/ocicl/atomics@sha256:56c5604d3081173d5bb749d64a7952767eadbf9c2a6f9cc100583af9bd23c315, atomics-20250201-ff170cb/atomics-test.asd

@@ -1,0 +1,37 @@
+/* Base tropical island theme */
+.ctfg-background {
+  background-image: linear-gradient(
+    to bottom right,
+    #60a5fa,  /* blue-400 */
+    #2dd4bf,  /* teal-300 */
+    #fcd34d   /* amber-100 */
+  );
+}
+
+/* Alternate themes you can apply dynamically */
+.ctfg-background.ocean-theme {
+  background-image: linear-gradient(
+    to bottom right,
+    #06b6d4,  /* cyan-500 */
+    #0ea5e9,  /* sky-500 */
+    #7dd3fc   /* sky-300 */
+  );
+}
+
+.ctfg-background.sunset-theme {
+  background-image: linear-gradient(
+    to bottom right,
+    #f97316,  /* orange-500 */
+    #f59e0b,  /* amber-500 */
+    #f43f5e   /* rose-500 */
+  );
+}
+
+.ctfg-background.storm-theme {
+  background-image: linear-gradient(
+    to bottom right,
+    #334155,  /* slate-700 */
+    #64748b,  /* slate-500 */
+    #94a3b8   /* slate-400 */
+  );
+}

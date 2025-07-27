@@ -4,41 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ctfg</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    animation: {
-                        'fade-in': 'fadeIn 0.3s ease-out',
-                        'scale-105': 'scale 0.2s ease-out'
-                    }
-                }
-            }
-        };
-    </script>
-    <style>
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        .pattern-bg {
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        }
-    </style>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scale {
+        to { transform: scale(1.05); }
+    }
+</style>
+<link rel="stylesheet" href="css/ctfg.css">
 </head>
 <body class="bg-slate-900 text-white">
     <!-- Login Page -->
     <div
         id="login-page"
-        class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4"
+        class="min-h-screen ctfg-background flex items-center justify-center p-4"
     >
         <div class="absolute inset-0 pattern-bg opacity-20"></div>
 
@@ -64,7 +46,7 @@
                     </svg>
                 </div>
                 <h3 class="text-2xl font-semibold leading-none tracking-tight text-white">ctfg</h3>
-                <p class="text-slate-400">Enter the competition</p>
+                <p class="ctfg-secondary-text">Enter the competition</p>
             </div>
             <div class="p-6 pt-0">
                 <form id="login-form" class="space-y-4">
@@ -143,10 +125,12 @@
         <img src="/images/banner.png" alt="Competition banner"
              class="h-48 md:h-64 lg:h-72 w-auto object-contain mx-auto" />
     </header>
+
     <!-- Main Content Area (add top padding to account for fixed nav + banner) -->
     <main
-        id="main-content"
-        class="pt-8 min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 hidden"
+      id="main-content"
+      class="pt-8 min-h-screen ctfg-background hidden"
+
     >
         <!-- Challenge List View -->
         <div id="challenge-list" class="container mx-auto p-6">
@@ -154,7 +138,7 @@
                 <h1 id="view-title" class="text-4xl font-bold text-white mb-2">
                     Challenges
                 </h1>
-                <p class="text-slate-400">Choose a challenge and prove your skills</p>
+                <p class="ctfg-secondary-text">Choose a challenge and prove your skills</p>
             </div>
 
             <div
@@ -194,7 +178,7 @@
         <div id="scoreboard" class="container mx-auto p-6 hidden">
             <div class="mb-8">
                 <h1 class="text-4xl font-bold text-white mb-2">Scoreboard</h1>
-                <p class="text-slate-400">Current standings</p>
+                <p class="ctfg-secondary-text">Current standings</p>
             </div>
 
             <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
@@ -237,7 +221,7 @@
                 <h2 class="text-2xl font-bold text-white mb-2 text-center">
                     Pick your display name
                 </h2>
-                <p class="text-slate-400 text-center mb-6">
+                <p class="ctfg-secondary-text text-center mb-6">
                     This name will appear on the scoreboard.
                 </p>
 

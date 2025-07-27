@@ -89,7 +89,7 @@ a TLS terminated route for your ctfg service and connect to it thusly:
   be a list of challenges that must be solved before this challenge
   appears on the board.
 
-3. Replace `static/images/banner.png` with your own content.
+3. Replace `images/banner.png` with your own content.
 
 4. Edit `game-clusters.yaml` to point at the cluster hosting this app,
    as well as the list of player clusters (all possibly the same).
