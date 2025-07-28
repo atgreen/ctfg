@@ -21,6 +21,7 @@
 (defparameter *player-clusters* nil)
 (defparameter *dbdir* nil)
 (defparameter *websocket-url* nil)
+(defparameter *ctfg-api-token* nil)
 
 (defmacro fatal-error (&rest rest)
   `(progn
@@ -80,6 +81,7 @@
                   (setf *challenges-path* json-path)
                   (setf *dbdir* (concatenate 'string dbdir "/"))
                   (setf *websocket-url* websocket-url)
+                  (setf *ctfg-api-token* (uiop:getenv "CTFG_API_TOKEN"))
                   (bt:with-lock-held (*server-lock*)
                     (setf *developer-mode* (clingon:getopt cmd :developer-mode))
                     ;; Create the slynk server.  Allow connections from anywhere.

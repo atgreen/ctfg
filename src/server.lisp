@@ -191,7 +191,7 @@
           (respond-json '((:error "missing_parameters")) :code 400)))
       (let ((chal (find cid *all-challenges* :key #'challenge-id)))
         (unless chal
-          (log:info "Hint for unknown challange from " user)
+          (log:info "Hint for unknown challenge from " user)
           (return-from hint (respond-json '((:error "unknown_challenge")) :code 400)))
         ;; sequential lock
         (unless (= hid (next-hint-id (user-id user) cid))
@@ -220,6 +220,33 @@
                 (with-write-lock-held ((client-lock client))
                   (ws:write-to-client-text (client-socket client) msg))))
             (respond-json '((:result . "ok")))))))))
+
+(easy-routes:defroute award ("/api/award" :method :post) ()
+  "Award points as if submitted by user."
+  (let* ((request hunchentoot:*request*)
+         (access-token (hunchentoot:header-in :AUTHORIZATION request)))
+    (log:info access-token)
+    (cond
+      ((null *ctfg-api-token*)
+       (respond-unauthorized))
+      ((not (string= access-token *ctfg-api-token*))
+       (respond-unauthorized))
+      (t
+       (let* ((body (json-body))
+              (username (cdr (assoc :username body)))
+              (cid (cdr (assoc :id body)))
+              (chal (find cid *all-challenges* :key #'challenge-id))
+              (user (lh:gethash username *user-table*))
+              (solved (user-solved-p user cid)))
+         (cond
+           ((null chal)
+            (respond-json '(:error "unknown_id") :code 400))
+           (solved
+            (respond-json `(:result "already" :total ,(user-total-points user))))
+           (t
+            (log:info "Awarding points for challenge ~A to ~A" cid user)
+            (award-points user chal)
+            (respond-json '((:result . "ok"))))))))))
 
 (easy-routes:defroute submit ("/api/submit" :method :post) ()
   "Submit a flag"

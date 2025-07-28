@@ -96,6 +96,29 @@ a TLS terminated route for your ctfg service and connect to it thusly:
    Users are assigned to the different player clusters in a
    round-robin format as they join.
 
+## API
+
+Most REST endpoints in ctfg are intended for use by the browser
+client.  However, ctfg does provide one endpoint intended for use
+by an external non-browser client.
+
+Posting to the `/api/award` endpoint emulates a successful flag
+submission for a specific `username` and challenge `id`.  Use this API
+for any automated flag submission by an external judge process.  For
+example, posting the following json will tell ctfg to behave as
+through player `player1` had submitted the correct flag for challenge
+number `5`.
+
+```
+{
+  "username": "player1",
+  "id": "5"
+}
+```
+
+An `AUTHORIZATION` token must be provided in the http header for this
+API.  Specify this token when you launch ctfg by setting the
+`CTFG_API_TOKEN` environment variable.
 
 ## Author and License
 

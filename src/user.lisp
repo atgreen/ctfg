@@ -5,8 +5,9 @@
 
 (in-package :ctfg)
 
-(defvar *username-table*    (lh:make-castable))   ; id ⇒ username
-(defvar *displayname-table* (lh:make-castable))   ; id ⇒ display-name
+(defvar *username-table*    (lh:make-castable))        ; id ⇒ username
+(defvar *displayname-table* (lh:make-castable))        ; id ⇒ display-name
+(defvar *user-table* (lh:make-castable :test #'equal)) ; username ⇒ user
 
 (defstruct user
   id username displayname total-points solved-challenges)
@@ -97,7 +98,9 @@
                           WHERE user_id = ?" id))
                         0)))
 
-          (make-user :id id
-                     :username username
-                     :displayname displayname
-                     :total-points pts))))))
+          (let ((user (make-user :id id
+                                 :username username
+                                 :displayname displayname
+                                 :total-points pts)))
+            (setf (lh:gethash username *user-table*) user)
+            user))))))
