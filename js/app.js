@@ -27,6 +27,8 @@ const challengeList  = document.getElementById('challenge-list');
 const challengeDetail= document.getElementById('challenge-detail');
 const scoreboardElm  = document.getElementById('scoreboard');
 
+const asID = x => Number(x);
+
 /* ------------------------------------------------------------------ */
 /*  EVENT LISTENERS                                                   */
 /* ------------------------------------------------------------------ */
@@ -130,15 +132,16 @@ function flushChart () {
 }
 
 /* ────────── 3 ▸ message handler split ────────── */
-function handleScoreEvent (msg, deferFlush = false) {
+async function handleScoreEvent (msg, deferFlush = false) {
     if (seenEventIDs.has(msg.id)) return;
     seenEventIDs.add(msg.id);
 
-    /* player-specific bits (solved, points display) stay as they were … */
-    if (msg.type != 'hint') {
+    /* We handle scores and hints here. */
+    if (msg.type === 'score') {
         if (msg.displayname === currentUser) {
-            solvedChallenges.add(msg.challenge_id);
-            if (currentView === 'challenges')       renderChallenges();
+            solvedChallenges.add(asID(msg.challenge_id));
+            if (msg.reload === 'true') await loadChallenges();
+            if (currentView === 'challenges') renderChallenges();
             else if (!challengeDetail.classList.contains('hidden')
                      && openChallengeId === msg.challenge_id)
                 showChallenge(msg.challenge_id);
@@ -425,7 +428,7 @@ function renderChallenges() {
 
         // inside renderChallenges() … 
         categoryItems.forEach(challenge => {
-            const isSolved = solvedChallenges.has(challenge.id);
+            const isSolved = solvedChallenges.has(asID(challenge.id));
 
             /* --- 1. decide colours ------------------------------------------------ */
             const base      = 'rounded-lg p-6 transition-colors cursor-pointer transform hover:scale-105 duration-200';
@@ -590,7 +593,7 @@ function showChallenge(challengeId, push = false) {
     const challenge = challenges.find(c => c.id === challengeId);
     if (!challenge) return;
 
-    const isSolved = solvedChallenges.has(challengeId);
+    const isSolved = solvedChallenges.has(asID(challengeId));
 
     challengeList .classList.add   ('hidden');
     challengeDetail.classList.remove('hidden');
@@ -635,7 +638,7 @@ async function handleFlagSubmit(e, challengeId) {
         const data = await res.json();
         console.log(data)
         if (data.result === 'correct') {
-            solvedChallenges.add(challengeId);
+            solvedChallenges.add(asID(challengeId));
             loadChallenges();
             renderChallenges();
             resultDiv.innerHTML = successHtml(data.points);

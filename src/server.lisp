@@ -154,16 +154,19 @@
     (when solves-list
       (ll:member challenge-id solves-list :test #'equal))))
 
-(defun award-points (user challenge)
+(defun award-points (user challenge reload)
   (log:info "award points")
   (multiple-value-bind (ts event-id)
       (record-flag *db* user challenge)
-    (let ((msg (format nil "[{ \"id\": ~A, \"type\": \"score\", \"displayname\": ~S, \"ts\": ~A, \"challenge\": ~S, \"points\": ~A }]"
+    (let ((msg (format nil "[{ \"id\": ~A, \"type\": \"score\", \"displayname\": ~S, \"ts\": ~A, \"challenge\": ~S, \"points\": ~A ~A}]"
                        event-id
                        (user-displayname user)
                        (floor ts 1000)
                        (challenge-title challenge)
-                       (challenge-points challenge))))
+                       (challenge-points challenge)
+                       (if reload
+                           ", \"reload\": \"true\""
+                           ""))))
       (log:info msg)
       (save-solve (user-id user) (challenge-id challenge))
       (dolist (client (get-client-list))
@@ -245,7 +248,7 @@
             (respond-json `(:result "already" :total ,(user-total-points user))))
            (t
             (log:info "Awarding points for challenge ~A to ~A" cid user)
-            (award-points user chal)
+            (award-points user chal t)
             (respond-json '((:result . "ok"))))))))))
 
 (easy-routes:defroute submit ("/api/submit" :method :post) ()
@@ -267,7 +270,7 @@
          (respond-json `(:result "already" :total ,(user-total-points user))))
         ((eq 1 (ppcre:count-matches (challenge-flag chal) guess))
          (log:info "Correct!")
-         (award-points user chal)
+         (award-points user chal nil)
          (respond-json `((:result . "correct")
                          (:points . ,(challenge-points chal))
                          (:total . ,(user-total-points user)))))
@@ -353,7 +356,7 @@
               (loop for event in events
                     collect (format nil "{ \"id\": ~A, \"type\": \"score\", \"displayname\": ~S, \"ts\": ~A, \"challenge_id\": ~A, \"challenge\": ~S, \"points\": ~A }"
                                    (event-id event)
-                                   (cdr (get-user-name-pair (event-user-id event)))
+                                   (get-displayname (event-user-id event))
                                    (floor (event-ts event) 1000)
                                    (event-challenge-id event)
                                    (challenge-title (find (event-challenge-id event) *all-challenges* :key #'challenge-id))
