@@ -237,7 +237,7 @@ function bootFromLocationHash(ujson) {
 function finishLogin ({ username, displayname, needs_name, websocket_url }) {
 
     currentUser = displayname || username;
-    window.currentUser = username;                  // keep it globally if you like
+    window.currentUser = username;
     document.getElementById('user-name').textContent =
         displayname || '(unnamed)';
 
@@ -270,7 +270,6 @@ function showLogin() {
     banner.classList.add('hidden');
     navigation.classList.add('hidden');
     mainContent.classList.add('hidden');
-    /* optional: clear form fields & focus username input */
 }
 
 async function handleLogin(e) {
@@ -899,7 +898,7 @@ function refreshScoreboard () {
     rows.forEach((row, idx) => {
         const { name, score } = row;
         const tr = document.createElement('tr');
-        tr.className = idx % 2 ? 'bg-slate-800/20' : '';   // zebra
+        tr.className = `${idx % 2 ? 'bg-slate-800/20' : ''} ${row.name === currentUser ? 'bg-green-900/20' : ''}`;
 
         tr.innerHTML = `
       <td class="px-6 py-2 text-slate-300">${idx + 1}</td>
@@ -930,6 +929,10 @@ async function initApp() {
         ujson = await res.json();
         const { user } = ujson;      // e.g. { "user": "alice" }
         finishLogin(ujson);                      // we’re still logged in ✔
+
+        const hash = location.hash.slice(1);           // drop "#"
+        const m = hash.match(/^challenge-(\d+)$/);
+        if (m) showChallenge(Number(m[1]), false);
     } catch (e) {
         /* No valid session → show the login screen */
         console.log(e);
@@ -968,18 +971,6 @@ window.addEventListener('popstate', e => {
     if      (st.view === 'challenge')   showChallenge(st.id); // no push
     else if (st.view === 'scoreboard')  showView('scoreboard');
     else                                showView('challenges');
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    // If hash looks like "#challenge-42" show that challenge right away
-    const hash = location.hash.slice(1);           // drop "#"
-    const m = hash.match(/^challenge-(\d+)$/);
-    if (m) {
-        finishLogin(/* …fetch user session first… */);
-        showChallenge(Number(m[1]), false);          // no push
-    } else {
-        finishLogin(/* … */);                        // shows the grid
-    }
 });
 
 /* ────────── name-modal helpers ────────── */
