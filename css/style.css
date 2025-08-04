@@ -1,4 +1,8 @@
 /* Base tropical island theme */
+.ctfg-banner-background {
+    #60a5fa
+}
+
 .ctfg-background {
   background-image: linear-gradient(
     to bottom right,

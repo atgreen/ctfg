@@ -148,9 +148,9 @@ async function handleScoreEvent (msg, deferFlush = false) {
         }
     }
 
-    userPoints = (scoreboard.get(currentUser) || 0) + msg.points;
-    document.getElementById('user-points').textContent = `${userPoints} pts`;
     applyScoreDelta(msg);          // always cheap
+    userPoints = (scoreboard.get(currentUser) || 0); /* + msg.points; */
+    document.getElementById('user-points').textContent = `${userPoints} pts`;
     if (!deferFlush) flushChart(); // expensive only if we ask for it
 }
 
@@ -517,7 +517,7 @@ function lastUpdateTs (name) {
                          : Number.POSITIVE_INFINITY;    // player has 0 pts
 }
 
-function hintBlockHTML (chID, hint, owned, active) {
+function generateHintHTML (chID, hint, owned, active) {
 
     console.log(chID);
     console.log(hint);
@@ -681,28 +681,6 @@ function errorHtml(msg) {
     </div>`;
 }
 
-function generateHintHTML(chID, hint) {
-    const owned = revealedHints.has(`${chID}:${hint.id}`);
-
-    return `
-    <div class="my-2 p-4 border border-slate-700 rounded-lg">
-      ${owned
-        ? `<p class="text-slate-300 text-sm">${hint.text}</p>`
-        : `
-        <div class="flex justify-between items-center">
-        <span class="text-slate-300 text-sm">
-        Hint &nbsp;(<span class="text-yellow-400 font-semibold">${hint.cost} pts</span>)
-    </span>
-        <button
-    class="reveal-hint-btn bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded"
-    data-ch="${chID}" data-hint="${hint.id}" data-cost="${hint.cost}">
-        Reveal
-    </button>
-        </div>`
-      }
-    </div>`;
-}
-
 function generateChallengeHTML(ch, isSolved) {
     return `
     <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-8">
@@ -738,7 +716,7 @@ function generateChallengeHTML(ch, isSolved) {
                      const owned  = revealedHints.has(`${ch.id}:${h.id}`);
                      const active = !owned && !unlockedGiven;
                      if (active) unlockedGiven = true;
-                     return hintBlockHTML(ch.id, h, owned, active);
+                     return generateHintHTML(ch.id, h, owned, active);
                    }).join('');
                  })()
                }
@@ -779,16 +757,16 @@ function renderScoreboard () {
     tbody.innerHTML = '';
 
     /* 1 ─ build an array from the scoreboard map */
-    const rows = [...scoreboard.entries()].map(([team, score]) => ({
-        team,
+    const rows = [...scoreboard.entries()].map(([name, score]) => ({
+        name,
         score,
-        solved : (timelines.get(team)?.length || 0),          // events – initial point
+        solved : (timelines.get(name)?.length || 0),
         ts     : lastUpdateTs(name)
     }));
 
     /* 2 ─ make sure the current player shows up even with 0 pts */
     if (currentUser && !scoreboard.has(currentUser)) {
-        rows.push({ team: currentUser, score: userPoints, solved: solvedChallenges.size });
+        rows.push({ name: currentUser, score: userPoints, solved: solvedChallenges.size });
     }
 
     /* 3 ─ rank & render */
@@ -798,10 +776,10 @@ function renderScoreboard () {
     })
         .forEach((e, i) => {
             const tr = document.createElement('tr');
-            tr.className = `border-b border-slate-700 ${e.team === currentUser ? 'bg-green-900/20' : ''}`;
+            tr.className = `border-b border-slate-700 ${e.name === currentUser ? 'bg-green-900/20' : ''}`;
             tr.innerHTML = `
           <td class="px-6 py-4 text-slate-300">#${i + 1}</td>
-          <td class="px-6 py-4 text-white font-medium">${e.team}</td>
+          <td class="px-6 py-4 text-white font-medium">${e.name}</td>
           <td class="px-6 py-4 text-right text-green-400 font-semibold">${e.score}</td>
           <td class="px-6 py-4 text-right text-slate-300">${e.solved}</td>`;
             tbody.appendChild(tr);
@@ -907,62 +885,6 @@ function initChart () {
     });
 }
 
-function updateChart (msg) {
-    /* ---------- 1. unpack & validate -------------------------------- */
-    const timestamp = msg.ts;          // epoch ms
-    const name      = msg.displayname;
-    const delta     = msg.points;      // this message’s *increment*
-
-    console.log ('updateChart', msg);
-
-    if (timestamp == null || name == null || delta == null) {
-        console.warn('Malformed score message', msg);
-        return;
-    }
-
-    /* ---------- 2. update running total ----------------------------- */
-    const prevTotal   = scoreboard.get(name) || 0;
-    const newTotal    = prevTotal + delta;         // accumulate
-    scoreboard.set(name, newTotal);
-
-    /* ---------- 3. append to the player’s timeline ------------------ */
-    let tl = timelines.get(name);
-    if (!tl) {
-        tl = [];
-        timelines.set(name, tl);
-    }
-    tl.push({ x: timestamp, y: newTotal, challenge: msg.challenge });
-
-    /* Keep the timeline sorted in case events come in out of order. This
-       can happen if we are getting real-time messages while the initial
-       dump is also arriving.  */
-    tl.sort((a, b) => a.x - b.x);
-
-    /* ---------- 4. rebuild top-N datasets --------------------------- */
-    const topUsers = [...scoreboard.entries()]
-          .sort((a, b) => b[1] - a[1])   // highest score first
-          .slice(0, TOP_N)
-          .map(([u]) => u);
-
-    scoreChart.data.datasets = topUsers.map((u, idx) => {
-        const existing = scoreChart.data.datasets.find(d => d.label === u);
-        const color    = existing ? existing.borderColor
-              : palette[idx % palette.length];
-        return {
-            label          : u,
-            data           : timelines.get(u),
-            borderColor    : color,
-            backgroundColor: color,
-            pointRadius    : 3,
-            tension        : 0.3,
-            borderWidth    : 2
-        };
-    });
-
-    scoreChart.update('none');      // instant, no animation
-    refreshScoreboard();
-}
-
 function refreshScoreboard () {
     const tbody = document.getElementById('scoreboard-body');
     tbody.innerHTML = '';                       // clear
@@ -995,7 +917,6 @@ function refreshScoreboard () {
 /*  BOOTSTRAP                                                         */
 /* ------------------------------------------------------------------ */
 document.addEventListener('DOMContentLoaded', initApp);
-/* document.addEventListener('DOMContentLoaded', initChart);*/
 initChart();
 
 async function initApp() {
