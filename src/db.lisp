@@ -189,6 +189,69 @@ Returns two values: timestamp µs and new event-id."
        (- cost))                              ; ⇐ negative delta
       (values ts (sqlite:last-insert-rowid conn)))))
 
+(defun record-hint-atomic (db user challenge hint-number cost current-points)
+  "Atomically check if hint can be purchased and record it if possible.
+   Checks:
+   1. The hint hasn't been purchased yet
+   2. The hint-number is the next sequential hint 
+   3. User has enough points
+   Returns three values:
+   • :success, :already-purchased, :wrong-sequence, or :insufficient-points
+   • the event timestamp in microseconds (or NIL)
+   • the event ID (or NIL)"
+  (let ((ts (now-micros)))
+    (with-open-connection (conn db)
+      ;; Start a transaction for atomicity
+      (sqlite:execute-non-query conn "BEGIN IMMEDIATE")
+      (handler-case
+          (let* ((already-purchased
+                   (sqlite:execute-single
+                    conn
+                    "SELECT 1 FROM events 
+                     WHERE user_id = ? AND challenge_id = ? 
+                     AND hint_number = ? AND event_type = 2
+                     LIMIT 1"
+                    (user-id user)
+                    (challenge-id challenge)
+                    hint-number))
+                 (max-hint-row
+                   (%fetch-one conn
+                    "SELECT MAX(hint_number) FROM events
+                     WHERE user_id = ? AND challenge_id = ?
+                     AND event_type = 2"
+                    (user-id user)
+                    (challenge-id challenge)))
+                 (max-hint (or (car max-hint-row) 0))
+                 (expected-hint (1+ max-hint)))
+            (cond
+              (already-purchased
+               (sqlite:execute-non-query conn "ROLLBACK")
+               (values :already-purchased nil nil))
+              ((/= hint-number expected-hint)
+               (sqlite:execute-non-query conn "ROLLBACK")
+               (values :wrong-sequence nil nil))
+              ((< current-points cost)
+               (sqlite:execute-non-query conn "ROLLBACK")
+               (values :insufficient-points nil nil))
+              (t
+               ;; All checks passed, record the hint
+               (sqlite:execute-non-query
+                conn
+                "INSERT INTO events
+                   (ts, user_id, challenge_id, event_type, hint_number, points)
+                 VALUES (?, ?, ?, 2, ?, ?)"
+                ts
+                (user-id user)
+                (challenge-id challenge)
+                hint-number
+                (- cost))
+               (let ((row-id (sqlite:last-insert-rowid conn)))
+                 (sqlite:execute-non-query conn "COMMIT")
+                 (values :success ts row-id)))))
+        (error (e)
+          (sqlite:execute-non-query conn "ROLLBACK")
+          (error e))))))
+
 ;;;; ------------------------------------------------------------------
 ;;;;  Hint helpers – SQLite version using %FETCH-ONE
 ;;;; ------------------------------------------------------------------

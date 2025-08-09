@@ -220,33 +220,40 @@
         (unless chal
           (log:info "Hint for unknown challenge from " user)
           (return-from hint (respond-json '((:error "unknown_challenge")) :code 400)))
-        ;; sequential lock
-        (unless (= hid (next-hint-id (user-id user) cid))
-          (log:info "Hint locked for " user)
-          (return-from hint (respond-json '((:error "locked")) :code 403)))
         ;; cost & text from challenge meta
         (let* ((hint (find hid (challenge-hints chal)
                            :key (lambda (h) (cdr (assoc :id h)))))
                (cost (cdr (assoc :cost hint))))
-          ;; (optional) check they have enough points
-          (log:info (user-total-points user))
-          (log:info cost)
-          (when (< (user-total-points user) cost)
-            (log:info "Insufficient points for " user)
-            (return-from hint (respond-json '((:error "insufficient_points")) :code 402)))
-          ;; store negative-delta event
-          (multiple-value-bind (ts eid)
-              (record-hint *db* user chal hid cost)
-            (decf (user-total-points user) cost)
-            ;; broadcast score delta
-            (let ((msg (format nil
-                        "{ \"id\":~A, \"type\":\"hint\", \"displayname\":~S,\
+          (unless hint
+            (log:info "Hint not found for challenge ~A hint ~A" cid hid)
+            (return-from hint (respond-json '((:error "unknown_hint")) :code 400)))
+          ;; Use atomic hint purchase
+          (multiple-value-bind (status ts eid)
+              (record-hint-atomic *db* user chal hid cost (user-total-points user))
+            (case status
+              (:success
+               (decf (user-total-points user) cost)
+               ;; broadcast score delta
+               (let ((msg (format nil
+                           "{ \"id\":~A, \"type\":\"hint\", \"displayname\":~S,\
 \"ts\":~A, \"challenge_id\":~A, \"hint_id\":~A, \"points\":-~A }"
-                        eid (user-displayname user) (floor ts 1000) cid hid cost)))
-              (dolist (client (get-client-list))
-                (with-write-lock-held ((client-lock client))
-                  (ws:write-to-client-text (client-socket client) msg))))
-            (respond-json '((:result . "ok")))))))))
+                           eid (user-displayname user) (floor ts 1000) cid hid cost)))
+                 (dolist (client (get-client-list))
+                   (with-write-lock-held ((client-lock client))
+                     (ws:write-to-client-text (client-socket client) msg))))
+               (respond-json '((:result . "ok"))))
+              (:already-purchased
+               (log:info "Hint already purchased by ~A" user)
+               (respond-json '((:error . "already_purchased")) :code 400))
+              (:wrong-sequence
+               (log:info "Wrong hint sequence for ~A" user)
+               (respond-json '((:error . "locked")) :code 403))
+              (:insufficient-points
+               (log:info "Insufficient points for ~A" user)
+               (respond-json '((:error . "insufficient_points")) :code 402))
+              (t
+               (log:error "Unknown status from record-hint-atomic: ~A" status)
+               (respond-json '((:error . "internal_error")) :code 500)))))))))
 
 (easy-routes:defroute award ("/api/award" :method :post) ()
   "Award points as if submitted by user."
