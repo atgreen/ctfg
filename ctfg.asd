@@ -21,6 +21,7 @@
                 (:file "src/user")
                 (:file "src/event")
                 (:file "src/clients")
+                (:file "src/rate-limiter")
                 (:file "src/server")
                 (:file "src/main"))
   :build-operation "program-op"

@@ -201,6 +201,11 @@
 (easy-routes:defroute set-name ("/api/set-name" :method :post) ()
   "Set your display name"
   (with-authenticated-user (user)
+    ;; Rate limit check
+    (unless (check-rate-limit *api-rate-limiter* user "set-name")
+      (log:warn "Rate limit exceeded for ~A on /api/set-name" (user-displayname user))
+      (return-from set-name
+        (respond-json '((:error . "rate_limit_exceeded")) :code 429)))
     (let* ((body   (json-body))
            (name   (cdr (assoc :name body))))
       (log:info "Setting displayname for player ~A to ~A: " (user-username user) name)
@@ -209,6 +214,11 @@
 
 (easy-routes:defroute hint ("/api/hint" :method :post) ()
   (with-authenticated-user (user)
+    ;; Rate limit check
+    (unless (check-rate-limit *hint-rate-limiter* user "hint")
+      (log:warn "Rate limit exceeded for ~A on /api/hint" (user-displayname user))
+      (return-from hint
+        (respond-json '((:error . "rate_limit_exceeded")) :code 429)))
     (let* ((body (json-body))
            (cid  (cdr (assoc :id body)))
            (hid  (cdr (assoc :hint--id body))))
@@ -287,6 +297,11 @@
 (easy-routes:defroute submit ("/api/submit" :method :post) ()
   "Submit a flag"
   (with-authenticated-user (user)
+    ;; Rate limit check
+    (unless (check-rate-limit *submit-rate-limiter* user "submit")
+      (log:warn "Rate limit exceeded for ~A on /api/submit" (user-displayname user))
+      (return-from submit
+        (respond-json '((:error . "rate_limit_exceeded")) :code 429)))
     (let* ((body   (json-body))
            (cid    (cdr (assoc :id body)))
            (guess  (string-trim '(#\Space #\Tab #\Newline) (cdr (assoc :flag body))))
@@ -445,6 +460,9 @@
   (setf hunchentoot:*show-lisp-errors-p* t)
   (setf hunchentoot:*show-lisp-backtraces-p* t)
   (setf hunchentoot:*session-max-time* most-positive-fixnum)
+  
+  ;; Start rate limit cleanup thread
+  (start-rate-limit-cleanup)
 
   (setf *sentry-dsn* (uiop:getenv "SENTRY_DENS"))
   (when *sentry-dsn*
@@ -509,3 +527,12 @@
   (hunchentoot:start *acceptor*)
   (log:info "Server started successfully on port ~A" port)
   *acceptor*)
+
+(defun shutdown-server ()
+  "Gracefully shutdown the server and cleanup resources"
+  (log:info "Shutting down server...")
+  (when *acceptor*
+    (hunchentoot:stop *acceptor*)
+    (setf *acceptor* nil))
+  (stop-rate-limit-cleanup)
+  (log:info "Server shutdown complete"))

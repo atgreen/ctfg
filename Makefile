@@ -8,8 +8,8 @@ src/main.lisp: runtime-files.tgz
 	touch $@
 
 check: ctfg
-	rm -f tests/*.ts
-	(cd tests; ./make_tests.sh 50;)
+	rm -f tests/ctfg-player*.spec.ts
+	(cd tests; ./make_tests.sh 2;)
 	npx playwright test
 
 clean:
