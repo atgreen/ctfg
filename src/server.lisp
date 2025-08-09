@@ -174,6 +174,30 @@
           (ws:write-to-client-text (client-socket client) msg)))
       (incf (user-total-points user) (challenge-points challenge)))))
 
+(defun award-points-atomic (user challenge reload)
+  "Atomically check and award points for a challenge submission.
+   Returns T if points were awarded, NIL if already solved."
+  (log:info "award points atomic")
+  (multiple-value-bind (success ts event-id)
+      (record-flag-if-not-solved *db* user challenge)
+    (when success
+      (let ((msg (format nil "[{ \"id\": ~A, \"type\": \"score\", \"displayname\": ~S, \"ts\": ~A, \"challenge\": ~S, \"points\": ~A ~A}]"
+                         event-id
+                         (user-displayname user)
+                         (floor ts 1000)
+                         (challenge-title challenge)
+                         (challenge-points challenge)
+                         (if reload
+                             ", \"reload\": \"true\""
+                             ""))))
+        (log:info msg)
+        (save-solve (user-id user) (challenge-id challenge))
+        (dolist (client (get-client-list))
+          (with-write-lock-held ((client-lock client))
+            (ws:write-to-client-text (client-socket client) msg)))
+        (incf (user-total-points user) (challenge-points challenge))))
+    success))
+
 (easy-routes:defroute set-name ("/api/set-name" :method :post) ()
   "Set your display name"
   (with-authenticated-user (user)
@@ -248,8 +272,10 @@
             (respond-json `(:result "already" :total ,(user-total-points user))))
            (t
             (log:info "Awarding points for challenge ~A to ~A" cid user)
-            (award-points user chal t)
-            (respond-json '((:result . "ok"))))))))))
+            ;; Use atomic award to prevent double-awarding
+            (if (award-points-atomic user chal t)
+                (respond-json '((:result . "ok")))
+                (respond-json '((:result . "already_solved")))))))))))
 
 (easy-routes:defroute submit ("/api/submit" :method :post) ()
   "Submit a flag"
@@ -257,8 +283,7 @@
     (let* ((body   (json-body))
            (cid    (cdr (assoc :id body)))
            (guess  (string-trim '(#\Space #\Tab #\Newline) (cdr (assoc :flag body))))
-           (chal   (find cid *all-challenges* :key #'challenge-id))
-           (solved (user-solved-p user cid)))
+           (chal   (find cid *all-challenges* :key #'challenge-id)))
       (log:info "~A submitting for challenge ~A: ~A"
                 (user-displayname user)
                 cid
@@ -266,14 +291,15 @@
       (cond
         ((null chal)
          (respond-json '(:error "unknown_id") :code 400))
-        (solved
-         (respond-json `(:result "already" :total ,(user-total-points user))))
         ((eq 1 (ppcre:count-matches (challenge-flag chal) guess))
          (log:info "Correct!")
-         (award-points user chal nil)
-         (respond-json `((:result . "correct")
-                         (:points . ,(challenge-points chal))
-                         (:total . ,(user-total-points user)))))
+         ;; Use atomic award-points to prevent double-submit
+         (if (award-points-atomic user chal nil)
+             (respond-json `((:result . "correct")
+                             (:points . ,(challenge-points chal))
+                             (:total . ,(user-total-points user))))
+             ;; Already solved (race condition handled)
+             (respond-json `(:result "already" :total ,(user-total-points user)))))
         (t
          (log:info "Incorrect!")
          (respond-json '((:result . "incorrect"))))))))

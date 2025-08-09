@@ -129,6 +129,47 @@ mirroring the behaviour of dbi:connect-cached."
       (let ((row-id (sqlite:last-insert-rowid conn)))
         (values ts row-id)))))
 
+(defun record-flag-if-not-solved (db user challenge)
+  "Atomically check if the user has already solved this challenge and record the flag if not.
+   Returns three values:
+   • T if the flag was recorded, NIL if already solved
+   • the event timestamp in microseconds (or NIL)
+   • the event ID (or NIL)"
+  (let ((ts (now-micros)))
+    (with-open-connection (conn db)
+      ;; Start a transaction for atomicity
+      (sqlite:execute-non-query conn "BEGIN IMMEDIATE")
+      (handler-case
+          (let* ((already-solved
+                   (sqlite:execute-single
+                    conn
+                    "SELECT 1 FROM events 
+                     WHERE user_id = ? AND challenge_id = ? AND event_type = 1
+                     LIMIT 1"
+                    (user-id user)
+                    (challenge-id challenge))))
+            (if already-solved
+                (progn
+                  (sqlite:execute-non-query conn "ROLLBACK")
+                  (values nil nil nil))
+                (progn
+                  ;; Not solved yet, record it
+                  (sqlite:execute-non-query
+                   conn
+                   "INSERT INTO events
+                      (ts, user_id, challenge_id, event_type, points)
+                    VALUES (?, ?, ?, 1, ?)"
+                   ts
+                   (user-id user)
+                   (challenge-id challenge)
+                   (challenge-points challenge))
+                  (let ((row-id (sqlite:last-insert-rowid conn)))
+                    (sqlite:execute-non-query conn "COMMIT")
+                    (values t ts row-id)))))
+        (error (e)
+          (sqlite:execute-non-query conn "ROLLBACK")
+          (error e))))))
+
 (defun record-hint (db user challenge hint-number cost)
   "Store a HINT purchase (negative points).
 Returns two values: timestamp µs and new event-id."

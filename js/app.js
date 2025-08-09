@@ -699,7 +699,8 @@ function generateChallengeHTML(ch, isSolved) {
 
       <div class="mb-6">
         <h2 class="text-xl font-semibold text-white mb-3">Description</h2>
-        <p class="text-slate-300">${ch.description}</p>
+      <div class="px-6 pb-2 text-white/75" style="text-wrap:balance">${marked.parse(ch.description)}</div>
+
       </div>
 
       ${
