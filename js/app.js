@@ -30,6 +30,60 @@ const scoreboardElm  = document.getElementById('scoreboard');
 const asID = x => Number(x);
 
 /* ------------------------------------------------------------------ */
+/*  SECURITY HELPERS                                                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Escape HTML special characters to prevent XSS attacks
+ * @param {string} text - The text to escape
+ * @returns {string} - HTML-escaped text
+ */
+function escapeHtml(text) {
+    if (typeof text !== 'string') return text;
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/**
+ * Sanitize and validate input strings
+ * @param {string} input - The input to sanitize
+ * @param {number} maxLength - Maximum allowed length
+ * @returns {string} - Sanitized input
+ */
+function sanitizeInput(input, maxLength = 1000) {
+    if (typeof input !== 'string') return '';
+    return input.trim().slice(0, maxLength);
+}
+
+/**
+ * Validate username format (alphanumeric + underscore/hyphen)
+ * @param {string} username - Username to validate
+ * @returns {boolean} - Whether username is valid
+ */
+function isValidUsername(username) {
+    return /^[a-zA-Z0-9_-]{3,20}$/.test(username);
+}
+
+/**
+ * Create safe error messages that don't leak sensitive information
+ * @param {string} errorType - Type of error
+ * @param {string} fallback - Fallback message
+ * @returns {string} - Safe error message
+ */
+function createSafeErrorMessage(errorType, fallback = 'An error occurred') {
+    const safeErrors = {
+        'network': 'Connection error. Please try again.',
+        'validation': 'Invalid input. Please check your data.',
+        'auth': 'Authentication failed. Please log in again.',
+        'permission': 'You do not have permission to perform this action.',
+        'rate_limit': 'Too many requests. Please wait and try again.',
+        'server': 'Server error. Please try again later.'
+    };
+    return safeErrors[errorType] || fallback;
+}
+
+/* ------------------------------------------------------------------ */
 /*  EVENT LISTENERS                                                   */
 /* ------------------------------------------------------------------ */
 document.getElementById('login-form')   .addEventListener('submit', handleLogin);
@@ -64,7 +118,7 @@ function showError(message, ms = 5000) {
     card.className =
         'bg-red-600 text-white px-4 py-3 rounded shadow-lg flex items-start gap-3 animate-[slide-in_.2s_ease-out]';
     card.innerHTML = `
-      <span class="flex-1 text-sm">${message}</span>
+      <span class="flex-1 text-sm">${escapeHtml(message)}</span>
       <button class="font-bold ml-3 hover:text-red-200 focus:outline-none">&times;</button>
   `;
 
@@ -87,8 +141,11 @@ function showError(message, ms = 5000) {
 /* -------------------- websocket helper -------------------- */
 const BACKOFF_MIN  = 1_000;     // 1 s
 const BACKOFF_MAX  = 30_000;    // 30 s
+const MAX_RECONNECT_ATTEMPTS = 10; // Maximum reconnection attempts
+const CONNECTION_TIMEOUT = 10_000; // 10 seconds timeout for connection
 
 let reconnectDelay = BACKOFF_MIN;
+let reconnectAttempts = 0;
 
 /* ------------------------------------------------------------------ */
 /*  WEBSOCKET HELPERS                                                 */
@@ -175,11 +232,26 @@ function dispatchEvent (msg, defer=false) {
 function connectWS (websocket_url) {
     if (!currentUser) return;
 
-    ws = new WebSocket(websocket_url);
+    // Check reconnection limits
+    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        console.warn('Maximum WebSocket reconnection attempts reached');
+        showError(createSafeErrorMessage('network', 'Lost connection to server. Please refresh the page.'));
+        return;
+    }
+
+    // Validate and sanitize WebSocket URL
+    const sanitizedUrl = sanitizeInput(websocket_url, 200);
+    if (!sanitizedUrl.startsWith('ws://') && !sanitizedUrl.startsWith('wss://')) {
+        console.error('Invalid WebSocket URL:', sanitizedUrl);
+        return;
+    }
+    
+    ws = new WebSocket(sanitizedUrl);
 
     ws.addEventListener('open', () => {
         console.log('socket open');
         reconnectDelay = BACKOFF_MIN;
+        reconnectAttempts = 0;  // reset on successful connection
     });
 
     ws.addEventListener('message', e => {
@@ -200,9 +272,16 @@ function connectWS (websocket_url) {
     ws.addEventListener('close', e => {
         console.log('WS closed', {code: e.code, reason: e.reason, wasClean: e.wasClean});
         clearInterval(pingTimer);
-        const delay = reconnectDelay + Math.random() * 500;
-        setTimeout(() => connectWS(websocket_url), delay);
-        reconnectDelay = Math.min(reconnectDelay * 2, BACKOFF_MAX);
+        
+        reconnectAttempts++;
+        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+            const delay = reconnectDelay + Math.random() * 1000;
+            console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttempts})`);
+            setTimeout(() => connectWS(websocket_url), delay);
+            reconnectDelay = Math.min(reconnectDelay * 2, BACKOFF_MAX);
+        } else {
+            showError(createSafeErrorMessage('network', 'Connection lost. Please refresh the page.'));
+        }
     });
 
     ws.addEventListener('error', err => {
@@ -275,10 +354,24 @@ function showLogin() {
 async function handleLogin(e) {
     e.preventDefault();
 
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
+    const username = sanitizeInput(document.getElementById('username').value, 50);
+    const password = sanitizeInput(document.getElementById('password').value, 100);
 
-    if (!username || !password) return;
+    // Client-side validation
+    if (!username || !password) {
+        showError(createSafeErrorMessage('validation', 'Username and password are required'));
+        return;
+    }
+
+    if (!isValidUsername(username)) {
+        showError(createSafeErrorMessage('validation', 'Username must be 3-20 characters (letters, numbers, _, -)'));
+        return;
+    }
+
+    if (password.length < 3) {
+        showError(createSafeErrorMessage('validation', 'Password too short'));
+        return;
+    }
 
     try {
         /* ------------ call the server ------------ */
@@ -289,18 +382,31 @@ async function handleLogin(e) {
         });
 
         if (res.status === 401) {
-            showError('Invalid credentials');             // your own helper
+            showError(createSafeErrorMessage('auth', 'Invalid credentials'));
             return;
         }
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (res.status === 429) {
+            showError(createSafeErrorMessage('rate_limit'));
+            return;
+        }
+        if (!res.ok) {
+            showError(createSafeErrorMessage('server'));
+            return;
+        }
 
-        const { displayname, needs_name, websocket_url } = await res.json();
+        const data = await res.json();
+        const { displayname, needs_name, websocket_url } = data;
 
-        bootFromLocationHash({ username, displayname, needs_name, websocket_url });
+        bootFromLocationHash({ 
+            username: escapeHtml(username), 
+            displayname: escapeHtml(displayname || ''), 
+            needs_name, 
+            websocket_url: escapeHtml(websocket_url || '') 
+        });
 
     } catch (err) {
         console.error(err);
-        showError('Could not reach the server. Try again later.');
+        showError(createSafeErrorMessage('network'));
     }
 }
 
@@ -441,15 +547,15 @@ function renderChallenges() {
             card.innerHTML = `
     <div class="flex items-start justify-between mb-4">
       <div>
-        <h3 class="text-xl font-semibold text-white mb-2">${challenge.title}</h3>
+        <h3 class="text-xl font-semibold text-white mb-2">${escapeHtml(challenge.title || '')}</h3>
       </div>
           ${isSolved ? '<div class="text-green-400"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></div>' : ''}
     </div>
     <div class="flex items-center justify-between">
       <span class="text-${getDifficultyColor(challenge.difficulty)}-400 text-sm font-medium">
-        ${challenge.difficulty}
+        ${escapeHtml(challenge.difficulty || '')}
       </span>
-      <span class="text-green-400 font-semibold">${challenge.points} pts</span>
+      <span class="text-green-400 font-semibold">${escapeHtml(String(challenge.points || 0))} pts</span>
     </div>
   `;
 
@@ -568,15 +674,38 @@ async function handleRevealHint (e) {
             body        : JSON.stringify({ id: chID, hint_id: hintID })
         });
 
-        if (res.status === 401) { showError('Session expired'); return showLogin(); }
-        const { result, message } = await res.json();
-        if (result !== 'ok') throw new Error(message || 'Not enough points');
+        if (res.status === 401) { 
+            showError(createSafeErrorMessage('auth')); 
+            return showLogin(); 
+        }
+        if (res.status === 429) {
+            showError(createSafeErrorMessage('rate_limit'));
+            btn.disabled = false;
+            btn.textContent = 'Reveal';
+            return;
+        }
+        if (!res.ok) {
+            showError(createSafeErrorMessage('server'));
+            btn.disabled = false;
+            btn.textContent = 'Reveal';
+            return;
+        }
+
+        const data = await res.json();
+        const { result, message } = data;
+        if (result !== 'ok') {
+            const errorType = message?.includes('points') ? 'permission' : 'server';
+            showError(createSafeErrorMessage(errorType));
+            btn.disabled = false;
+            btn.textContent = 'Reveal';
+            return;
+        }
 
         await loadChallenges();
         showChallenge(chID);                // re-render with hint text
     } catch (err) {
         console.error(err);
-        showError(err.message || 'Could not reveal hint');
+        showError(createSafeErrorMessage('network'));
         btn.disabled = false;          // allow retry
         btn.textContent = 'Reveal';
     }
@@ -629,9 +758,17 @@ async function handleFlagSubmit(e, challengeId) {
             body:         JSON.stringify({ id: challengeId, flag: submitted })
         });
 
-        if (res.status === 401) {           // session expired
-            showError('Please log in again');  // your red-banner helper
-            return showLogin();               // switch UI back to login view
+        if (res.status === 401) {
+            showError(createSafeErrorMessage('auth', 'Please log in again'));
+            return showLogin();
+        }
+        if (res.status === 429) {
+            showError(createSafeErrorMessage('rate_limit'));
+            return;
+        }
+        if (!res.ok) {
+            showError(createSafeErrorMessage('server'));
+            return;
         }
 
         const data = await res.json();
@@ -640,7 +777,7 @@ async function handleFlagSubmit(e, challengeId) {
             solvedChallenges.add(asID(challengeId));
             loadChallenges();
             renderChallenges();
-            resultDiv.innerHTML = successHtml(data.points);
+            resultDiv.innerHTML = successHtml(escapeHtml(String(data.points || 0)));
             setTimeout(() => showChallenge(challengeId), 1500);
         } else if (data.result === 'already') {
             resultDiv.innerHTML = `<div class="text-green-400">Already solved!</div>`;
@@ -649,7 +786,7 @@ async function handleFlagSubmit(e, challengeId) {
         }
     } catch (err) {
         console.error(err);
-        showError('Network error — try again');
+        showError(createSafeErrorMessage('network'));
     } finally {
         flagInput.value = '';
     }
@@ -685,13 +822,13 @@ function generateChallengeHTML(ch, isSolved) {
     <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-8">
       <div class="flex items-start justify-between mb-6">
         <div>
-          <h1 class="text-3xl font-bold text-white mb-2">${ch.title}</h1>
+          <h1 class="text-3xl font-bold text-white mb-2">${escapeHtml(ch.title || '')}</h1>
           <div class="flex items-center gap-4">
             <span class="inline-block px-3 py-1 text-sm font-medium rounded-full ${getCategoryColor(ch.category)}">
-              ${ch.category}
+              ${escapeHtml(ch.category || '')}
             </span>
-            <span class="text-${getDifficultyColor(ch.difficulty)}-400 text-sm font-medium">${ch.difficulty}</span>
-            <span class="text-green-400 font-semibold">${ch.points} pts</span>
+            <span class="text-${getDifficultyColor(ch.difficulty)}-400 text-sm font-medium">${escapeHtml(ch.difficulty || '')}</span>
+            <span class="text-green-400 font-semibold">${escapeHtml(String(ch.points || 0))} pts</span>
             ${isSolved ? '<span class="text-green-400 flex items-center gap-1"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>Solved</span>' : ''}
           </div>
         </div>
@@ -699,7 +836,7 @@ function generateChallengeHTML(ch, isSolved) {
 
       <div class="mb-6">
         <h2 class="text-xl font-semibold text-white mb-3">Description</h2>
-      <div class="px-6 pb-2 text-white/75" style="text-wrap:balance">${marked.parse(ch.description)}</div>
+      <div class="px-6 pb-2 text-white/75" style="text-wrap:balance">${ch.description ? marked.parse(sanitizeInput(ch.description, 10000)) : ''}</div>
 
       </div>
 
