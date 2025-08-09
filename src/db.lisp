@@ -57,6 +57,18 @@ mirroring the behaviour of dbi:connect-cached."
             (,var   (connect-cached ,db-sym)))
        ,@body)))
 
+(defmacro with-fresh-connection ((var db) &body body)
+  "Bind VAR to a fresh cl-sqlite handle (not cached), then execute BODY.
+The handle is closed after BODY completes. Use for atomic transactions."
+  (let ((db-sym (gensym "DB"))
+        (conn-sym (gensym "CONN")))
+    `(let* ((,db-sym ,db)
+            (,conn-sym (sqlite:connect (filename ,db-sym) :busy-timeout 30000)))
+       (unwind-protect
+           (let ((,var ,conn-sym))
+             ,@body)
+         (sqlite:disconnect ,conn-sym)))))
+
 ;;;; --------------------------------------------------------------------------
 ;;;;  Backend definitions
 ;;;; --------------------------------------------------------------------------
@@ -136,7 +148,7 @@ mirroring the behaviour of dbi:connect-cached."
    • the event timestamp in microseconds (or NIL)
    • the event ID (or NIL)"
   (let ((ts (now-micros)))
-    (with-open-connection (conn db)
+    (with-fresh-connection (conn db)
       ;; Start a transaction for atomicity
       (sqlite:execute-non-query conn "BEGIN IMMEDIATE")
       (handler-case
@@ -200,7 +212,7 @@ Returns two values: timestamp µs and new event-id."
    • the event timestamp in microseconds (or NIL)
    • the event ID (or NIL)"
   (let ((ts (now-micros)))
-    (with-open-connection (conn db)
+    (with-fresh-connection (conn db)
       ;; Start a transaction for atomicity
       (sqlite:execute-non-query conn "BEGIN IMMEDIATE")
       (handler-case
