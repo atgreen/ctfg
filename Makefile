@@ -9,7 +9,7 @@ src/main.lisp: runtime-files.tgz
 
 check: ctfg
 	rm -f tests/ctfg-player*.spec.ts
-	(cd tests; ./make_tests.sh 2;)
+	(cd tests; ./make_tests.sh 50;)
 	npx playwright test
 
 clean:

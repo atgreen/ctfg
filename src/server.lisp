@@ -152,7 +152,7 @@
    Returns non-NIL (the tail of the list starting from the found element) if solved, NIL otherwise."
   (let ((solves-list (lh:gethash user-id *solves-table*)))
     (when solves-list
-      (ll:member challenge-id solves-list :test #'equal))))
+      (ll:member challenge-id solves-list))))
 
 (defun award-points (user challenge reload)
   (log:info "award points")
@@ -358,6 +358,7 @@
                                            (cons "category" (challenge-category challenge))
                                            (cons "difficulty" (challenge-difficulty challenge))
                                            (cons "points" (challenge-points challenge))
+                                           (cons "solved" (user-solved-p (user-id user) (challenge-id challenge)))
                                            (cons "description"
                                                  (process-description
                                                   user
