@@ -7,40 +7,73 @@ on:
 jobs:
   build:
     permissions: write-all
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-x86_64
+          - os: macos-latest
+            target: macos
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup SBCL and ocicl
+      - name: Setup SBCL and ocicl (Linux)
+        if: runner.os == 'Linux'
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           brew install sbcl ocicl gcc@11
           ocicl setup >> ~/.sbclrc
           patchelf --set-interpreter /lib64/ld-linux-x86-64.so.2 --set-rpath /lib64 /home/linuxbrew/.linuxbrew/Cellar/sbcl/*/libexec/bin/sbcl
 
-      - name: Install dependencies
+      - name: Setup SBCL and ocicl (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install sbcl ocicl
+          ocicl setup >> ~/.sbclrc
+
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           ocicl install
 
-      - name: Install libfixposix
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          ocicl install
+
+      - name: Install libfixposix (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update -y
           sudo apt-get install -y libfixposix-dev
 
-      - name: Build
+      - name: Install libfixposix (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install libfixposix
+
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           make
           mv ctfg ctfg-linux-x86_64
 
+      - name: Build (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          make
+          mv ctfg ctfg-macos-$(uname -m)
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
-          path: ./ctfg-linux-x86_64
-          name: ctfg-linux-x86_64
+          path: ./ctfg-${{ matrix.target }}*
+          name: ctfg-${{ matrix.target }}
 
       - name: Create a GitHub release
         uses: ncipollo/release-action@v1
@@ -48,4 +81,5 @@ jobs:
           tag: ${{ steps.tag_version.outputs.new_tag }}
           name: Release ${{ steps.tag_version.outputs.new_tag }}
           body: ${{ steps.tag_version.outputs.changelog }}
-          artifacts: ./ctfg-linux-x86_64
+          artifacts: ./ctfg-${{ matrix.target }}*
+          allowUpdates: true

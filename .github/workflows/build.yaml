@@ -19,7 +19,7 @@ jobs:
   tests:
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
 
     runs-on: ${{ matrix.os }}
 
@@ -29,28 +29,54 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup SBCL, ocicl, and gcc
+      - name: Setup SBCL, ocicl, and gcc (Linux)
+        if: runner.os == 'Linux'
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           brew install sbcl ocicl gcc@11
           ocicl setup >> ~/.sbclrc
           patchelf --set-interpreter /lib64/ld-linux-x86-64.so.2 --set-rpath /lib64 /home/linuxbrew/.linuxbrew/Cellar/sbcl/*/libexec/bin/sbcl
 
-      - name: Install LISP dependencies
+      - name: Setup SBCL and ocicl (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install sbcl ocicl
+          ocicl setup >> ~/.sbclrc
+
+      - name: Install LISP dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           ocicl install
 
-      - name: Install libfixposix
+      - name: Install LISP dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          ocicl install
+
+      - name: Install libfixposix (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update -y
           sudo apt-get install -y libfixposix-dev
 
-      - name: Build
+      - name: Install libfixposix (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install libfixposix
+
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           make
           mv ctfg ctfg-linux-x86_64
+
+      - name: Build (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          make
+          mv ctfg ctfg-macos-$(uname -m)
 
       - name: Setup node
         uses: actions/setup-node@v4
@@ -63,9 +89,15 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: Run Playwright Tests
+      - name: Run Playwright Tests (Linux)
+        if: runner.os == 'Linux'
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          make check
+
+      - name: Run Playwright Tests (macOS)
+        if: runner.os == 'macOS'
+        run: |
           make check
 
       - name: Upload Playwright Report
@@ -84,10 +116,20 @@ jobs:
           path: scoreboard-*.png
           retention-days: 30
 
-      - name: Upload `ctfg` Binary
+      - name: Upload `ctfg` Binary (Linux)
+        if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           path: ./ctfg-linux-x86_64
           name: ctfg-linux-x86_64
+          retention-days: 30
+
+      - name: Upload `ctfg` Binary (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          path: ./ctfg-macos-*
+          name: ctfg-macos-${{ runner.arch }}
           retention-days: 30
