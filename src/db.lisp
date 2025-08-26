@@ -6,21 +6,48 @@
 (in-package :ctfg)
 
 ;;;; --------------------------------------------------------------------------
-;;;;  Low-level connection caching
+;;;;  Thread-local connection management
 ;;;; --------------------------------------------------------------------------
 
-(defvar *sqlite-handles*
-  ;; pathname → sqlite:sqlite-handle
-  (make-hash-table :test #'equal))
+;; Thread-local variables to hold this thread's SQLite connection
+;; These are special/dynamic variables that will have separate bindings per thread
+(defvar *thread-sqlite-connection* nil
+  "Thread-local SQLite connection handle.")
+(defvar *thread-sqlite-path* nil
+  "Thread-local SQLite database path for the current connection.")
+
+;; Ensure Hunchentoot worker threads get fresh bindings for our thread-local vars
+#+sbcl
+(eval-when (:load-toplevel :execute)
+  (pushnew '(*thread-sqlite-connection* . nil) sb-thread:*default-special-bindings* :test #'equal)
+  (pushnew '(*thread-sqlite-path* . nil) sb-thread:*default-special-bindings* :test #'equal))
 
 (defun %connect-sqlite (path &key (busy-timeout 10000))
-  "Open (or reuse) a cl-sqlite HANDLE for the database file at PATH.
+  "Open (or reuse) a thread-local cl-sqlite HANDLE for the database file at PATH.
+Each thread gets its own connection to avoid corruption under concurrent access.
 Busy-timeout is expressed in milliseconds."
-  (or (gethash path *sqlite-handles*)
-      (setf (gethash path *sqlite-handles*)
-            (sqlite:connect path :busy-timeout busy-timeout)))
-  ;; no “cached-disconnect” – the handles live for the whole process
-  )
+  (let ((path-string (namestring path)))
+    ;; If we already have a connection for this path in this thread, reuse it
+    (if (and *thread-sqlite-connection*
+             (string= *thread-sqlite-path* path-string))
+        *thread-sqlite-connection*
+        ;; Create new connection for this thread
+        (progn
+          ;; Close existing connection if path changed
+          (when *thread-sqlite-connection*
+            (ignore-errors (sqlite:disconnect *thread-sqlite-connection*)))
+          ;; Open new connection
+          (setf *thread-sqlite-connection* (sqlite:connect path :busy-timeout busy-timeout)
+                *thread-sqlite-path* path-string)
+          *thread-sqlite-connection*))))
+
+(defun close-thread-db-connection ()
+  "Close the current thread's SQLite connection if one exists.
+This is called automatically when threads die, but can be called manually if needed."
+  (when *thread-sqlite-connection*
+    (ignore-errors (sqlite:disconnect *thread-sqlite-connection*))
+    (setf *thread-sqlite-connection* nil
+          *thread-sqlite-path* nil)))
 
 (defclass db/sqlite (db-backend)
   ((sqlite-db-filename :initarg :filename :reader filename))

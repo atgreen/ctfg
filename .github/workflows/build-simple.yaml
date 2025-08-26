@@ -1,0 +1,111 @@
+# Simplified build for testing macOS binary creation
+name: Build Simple
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-x86_64
+          - os: macos-latest
+            target: macos
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup SBCL and ocicl (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          brew install sbcl ocicl gcc@11
+          ocicl setup >> ~/.sbclrc
+          patchelf --set-interpreter /lib64/ld-linux-x86-64.so.2 --set-rpath /lib64 /home/linuxbrew/.linuxbrew/Cellar/sbcl/*/libexec/bin/sbcl
+
+      - name: Setup SBCL and ocicl (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install sbcl ocicl
+          ocicl setup >> ~/.sbclrc
+
+      - name: Install LISP dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          ocicl install
+
+      - name: Install LISP dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          ocicl install
+
+      - name: Install libfixposix (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libfixposix-dev
+
+      - name: Install libfixposix (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install libfixposix
+
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          make
+          mv ctfg ctfg-${{ matrix.target }}
+
+      - name: Build (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          make
+          mv ctfg ctfg-${{ matrix.target }}-$(uname -m)
+
+      - name: Test binary
+        run: |
+          ls -la ctfg-*
+          ./ctfg-* --help || true
+
+      - name: Test SQLite thread safety (macOS only)
+        if: runner.os == 'macOS'
+        run: |
+          echo "Testing thread-safe SQLite implementation..."
+          # Start server in background
+          ./ctfg-* &
+          SERVER_PID=$!
+          sleep 3
+          
+          echo "Running concurrent requests to test database..."
+          # Make several concurrent requests to stress-test the database
+          for i in {1..5}; do
+            curl -s http://localhost:8080/api/challenges > /dev/null &
+          done
+          
+          # Wait for requests to complete
+          sleep 2
+          
+          echo "Checking if server is still running..."
+          if kill -0 $SERVER_PID 2>/dev/null; then
+            echo "✓ Server survived concurrent database access"
+            kill $SERVER_PID
+            wait $SERVER_PID 2>/dev/null || true
+          else
+            echo "✗ Server crashed during concurrent access"
+            exit 1
+          fi
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          path: ./ctfg-*
+          name: ctfg-${{ matrix.target }}
+          retention-days: 30
