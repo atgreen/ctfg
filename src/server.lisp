@@ -547,3 +547,11 @@
     (setf *acceptor* nil))
   (stop-rate-limit-cleanup)
   (log:info "Server shutdown complete"))
+
+(defmethod hunchentoot:create-request-handler-thread :around ((taskmaster hunchentoot:one-thread-per-connection-taskmaster) socket)
+  (handler-bind ((error (lambda (c)
+                          (format *error-output* "Error in thread ~A: ~A~%"
+                                  (bt:current-thread) c)
+                          (sb-debug:print-backtrace :count 50 :stream *error-output*)
+                          (finish-output *error-output*))))
+    (call-next-method)))
