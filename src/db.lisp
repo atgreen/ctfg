@@ -58,7 +58,7 @@ Busy-timeout is expressed in milliseconds."
                          (push key keys-to-remove)))
                      *thread-connections*)
             (dolist (key keys-to-remove)
-              (remhash key *thread-connections*))))))
+              (remhash key *thread-connections*)))))))
 
 (defun string-prefix-p (prefix string)
   "Check if STRING starts with PREFIX."
@@ -198,7 +198,7 @@ The handle is closed after BODY completes. Use for atomic transactions."
           (let* ((already-solved
                    (sqlite:execute-single
                     conn
-                    "SELECT 1 FROM events 
+                    "SELECT 1 FROM events
                      WHERE user_id = ? AND challenge_id = ? AND event_type = 1
                      LIMIT 1"
                     (user-id user)
@@ -248,7 +248,7 @@ Returns two values: timestamp µs and new event-id."
   "Atomically check if hint can be purchased and record it if possible.
    Checks:
    1. The hint hasn't been purchased yet
-   2. The hint-number is the next sequential hint 
+   2. The hint-number is the next sequential hint
    3. User has enough points
    Returns three values:
    • :success, :already-purchased, :wrong-sequence, or :insufficient-points
@@ -262,8 +262,8 @@ Returns two values: timestamp µs and new event-id."
           (let* ((already-purchased
                    (sqlite:execute-single
                     conn
-                    "SELECT 1 FROM events 
-                     WHERE user_id = ? AND challenge_id = ? 
+                    "SELECT 1 FROM events
+                     WHERE user_id = ? AND challenge_id = ?
                      AND hint_number = ? AND event_type = 2
                      LIMIT 1"
                     (user-id user)
