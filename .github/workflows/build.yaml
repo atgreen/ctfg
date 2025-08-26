@@ -107,14 +107,18 @@ jobs:
           echo "=== Testing ASDF system loading in SBCL ==="
           sbcl --non-interactive --eval "(handler-case (progn (asdf:load-system :ctfg) (format t \"~%System loaded successfully~%\")) (error (c) (format t \"~%ERROR loading system: ~A~%\" c) (sb-debug:print-backtrace :count 10)))" 2>&1 || true
           
+          echo "=== Installing coreutils for gtimeout ==="
+          brew install coreutils
+          
           echo "=== Testing by running main directly in SBCL (not as saved binary) ==="
-          timeout 10 sbcl --non-interactive --eval "(handler-case (progn (asdf:load-system :ctfg) (format t \"~%System loaded, starting main...~%\") (ctfg:main)) (error (c) (format t \"~%ERROR in main: ~A~%\" c) (sb-debug:print-backtrace :count 20)))" 2>&1 || true
+          # Run with developer mode args to match test scenario
+          gtimeout 10 sbcl --non-interactive --eval "(handler-case (progn (asdf:load-system :ctfg) (format t \"~%System loaded, simulating developer mode startup...~%\") (setf ctfg::*developer-mode* t) (ctfg::start-server :port 8080)) (error (c) (format t \"~%ERROR: ~A~%\" c) (sb-debug:print-backtrace :count 20)))" 2>&1 || true
           
           echo "=== Testing without developer mode ==="
-          timeout 5 ./ctfg 2>&1 || true
+          gtimeout 5 ./ctfg 2>&1 || true
           
           echo "=== Testing with developer mode ==="
-          timeout 5 ./ctfg --developer-mode 2>&1 || true
+          gtimeout 5 ./ctfg --developer-mode 2>&1 || true
 
       - name: Setup node
         uses: actions/setup-node@v4
@@ -147,7 +151,12 @@ jobs:
             ./ctfg --help || true
             
             echo "=== Trying to start ctfg in foreground to see error ==="
-            timeout 3 ./ctfg -d 2>&1 | tail -50 || true
+            # Use background process with sleep instead of timeout
+            ./ctfg -d 2>&1 &
+            CTFG_PID=$!
+            sleep 3
+            kill $CTFG_PID 2>/dev/null || true
+            wait $CTFG_PID 2>/dev/null || true
             
             echo "=== Checking if it's a file/path issue ==="
             echo "Current directory: $(pwd)"
