@@ -76,7 +76,9 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           make
-          cp ctfg ctfg-macos-$(uname -m)
+          ARCH=$(uname -m)
+          cp ctfg ctfg-macos-${ARCH}
+          echo "MACOS_ARCH=${ARCH}" >> $GITHUB_ENV
           
       - name: Debug - Test macOS binary and check dependencies
         if: runner.os == 'macOS'
@@ -228,5 +230,5 @@ jobs:
         with:
           if-no-files-found: error
           path: ./ctfg-macos-*
-          name: ctfg-macos-${{ runner.arch }}
+          name: ctfg-macos-${{ env.MACOS_ARCH }}
           retention-days: 30

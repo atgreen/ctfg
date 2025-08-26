@@ -8,7 +8,7 @@
   :description "A simple Capture-The-Flag engine"
   :author      "Anthony Green"
   :license     "MIT"
-  :version     "0.1.9"
+  :version     "0.1.10"
   :depends-on  (:version-string :clingon :hunchentoot :easy-routes :log4cl
                 :markup :slynk :cl-json :cl-csv :clws :sqlite
                 :cl-dbi :dbd-sqlite3 :luckless :sentry-client :cl-ppcre

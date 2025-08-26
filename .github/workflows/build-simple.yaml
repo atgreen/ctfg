@@ -67,7 +67,9 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           make
-          mv ctfg ctfg-${{ matrix.target }}-$(uname -m)
+          ARCH=$(uname -m)
+          mv ctfg ctfg-${{ matrix.target }}-${ARCH}
+          echo "MACOS_ARCH=${ARCH}" >> $GITHUB_ENV
 
       - name: Test binary
         run: |
@@ -102,10 +104,20 @@ jobs:
             exit 1
           fi
 
-      - name: Upload Binary
+      - name: Upload Binary (Linux)
+        if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
-          path: ./ctfg-*
+          path: ./ctfg-${{ matrix.target }}
           name: ctfg-${{ matrix.target }}
+          retention-days: 30
+
+      - name: Upload Binary (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          path: ./ctfg-${{ matrix.target }}-*
+          name: ctfg-${{ matrix.target }}-${{ env.MACOS_ARCH }}
           retention-days: 30
