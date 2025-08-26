@@ -17,16 +17,19 @@
   "Thread-local SQLite database path for the current connection.")
 
 ;; Ensure Hunchentoot worker threads get fresh bindings for our thread-local vars
-#+sbcl
-(eval-when (:load-toplevel :execute)
-  (pushnew '(*thread-sqlite-connection* . nil) sb-thread:*default-special-bindings* :test #'equal)
-  (pushnew '(*thread-sqlite-path* . nil) sb-thread:*default-special-bindings* :test #'equal))
+;; We'll rely on bordeaux-threads and Hunchentoot's thread management instead
+;; of SBCL-specific *default-special-bindings* which may not exist in all versions
 
 (defun %connect-sqlite (path &key (busy-timeout 10000))
   "Open (or reuse) a thread-local cl-sqlite HANDLE for the database file at PATH.
 Each thread gets its own connection to avoid corruption under concurrent access.
 Busy-timeout is expressed in milliseconds."
   (let ((path-string (namestring path)))
+    ;; Ensure thread-local variables are properly bound in this thread
+    (unless (boundp '*thread-sqlite-connection*)
+      (setf *thread-sqlite-connection* nil
+            *thread-sqlite-path* nil))
+    
     ;; If we already have a connection for this path in this thread, reuse it
     (if (and *thread-sqlite-connection*
              (string= *thread-sqlite-path* path-string))
