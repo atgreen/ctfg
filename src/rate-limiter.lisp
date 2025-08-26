@@ -106,15 +106,20 @@
     (setf *rate-limit-cleanup-thread*
           (bt2:make-thread
            (lambda ()
-             (loop
-               (sleep 300) ; Clean up every 5 minutes
-               (handler-case
-                   (progn
-                     (cleanup-old-buckets *submit-rate-limiter* (* 30 60 1000))
-                     (cleanup-old-buckets *hint-rate-limiter* (* 30 60 1000))
-                     (cleanup-old-buckets *api-rate-limiter* (* 30 60 1000)))
-                 (error (e)
-                   (log:error "Rate limit cleanup error: ~A" e)))))
+             (handler-bind ((error (lambda (c)
+                                     (format *error-output* "Error in thread ~A: ~A~%"
+                                             (bt:current-thread) c)
+                                     (sb-debug:print-backtrace :count 50 :stream *error-output*)
+                                     (finish-output *error-output*))))
+               (loop
+                 (sleep 300) ; Clean up every 5 minutes
+                 (handler-case
+                     (progn
+                       (cleanup-old-buckets *submit-rate-limiter* (* 30 60 1000))
+                       (cleanup-old-buckets *hint-rate-limiter* (* 30 60 1000))
+                       (cleanup-old-buckets *api-rate-limiter* (* 30 60 1000)))
+                   (error (e)
+                     (log:error "Rate limit cleanup error: ~A" e))))))
            :name "rate-limit-cleanup"))))
 
 (defun stop-rate-limit-cleanup ()

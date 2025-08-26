@@ -86,7 +86,12 @@
                     (setf *developer-mode* (clingon:getopt cmd :developer-mode))
                     ;; Create the slynk server.  Allow connections from anywhere.
                     (when slynk-port
-                      (slynk:create-server :port slynk-port :interface "0.0.0.0" :dont-close t)
+                      (handler-bind ((error (lambda (c)
+                                              (format *error-output* "Error in thread ~A: ~A~%"
+                                                      (bt:current-thread) c)
+                                              (sb-debug:print-backtrace :count 50 :stream *error-output*)
+                                              (finish-output *error-output*))))
+                        (slynk:create-server :port slynk-port :interface "0.0.0.0" :dont-close t))
                       (log:info "Started slynk server on port ~A" slynk-port))
                     (start-server port)
                     (log:info "Waiting for connections...")
