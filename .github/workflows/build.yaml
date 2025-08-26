@@ -104,21 +104,47 @@ jobs:
           pwd
           ls -la index.html challenges.json credentials.csv
           
-          echo "=== Testing ASDF system loading in SBCL ==="
-          sbcl --non-interactive --eval "(handler-case (progn (asdf:load-system :ctfg) (format t \"~%System loaded successfully~%\")) (error (c) (format t \"~%ERROR loading system: ~A~%\" c) (sb-debug:print-backtrace :count 10)))" 2>&1 || true
-          
           echo "=== Installing coreutils for gtimeout ==="
           brew install coreutils
           
+          echo "=== Testing ASDF system loading in SBCL ==="
+          sbcl --non-interactive \
+               --eval "(asdf:load-system :ctfg)" \
+               --eval "(format t \"~%System loaded successfully~%\")" \
+               2>&1 || true
+          
           echo "=== Testing by running main directly in SBCL (not as saved binary) ==="
-          # Run with developer mode args to match test scenario
-          gtimeout 10 sbcl --non-interactive --eval "(handler-case (progn (asdf:load-system :ctfg) (format t \"~%System loaded, simulating developer mode startup...~%\") (setf ctfg::*developer-mode* t) (ctfg::start-server :port 8080)) (error (c) (format t \"~%ERROR: ~A~%\" c) (sb-debug:print-backtrace :count 20)))" 2>&1 || true
+          # Start server in background and test with curl
+          sbcl --eval "(asdf:load-system :ctfg)" \
+               --eval "(handler-case (progn (format t \"~%Starting server in developer mode...~%\") (setf ctfg::*developer-mode* t) (ctfg::start-server :port 8080)) (error (c) (format t \"~%ERROR: ~A~%\" c) (sb-debug:print-backtrace :count 20)))" &
+          SBCL_PID=$!
+          sleep 5
+          echo "=== Testing HTTP request to SBCL-run server ==="
+          curl -v http://localhost:8080 2>&1 || true
+          echo "=== Testing /challenges endpoint ==="
+          curl -v http://localhost:8080/challenges 2>&1 || true
+          kill $SBCL_PID 2>/dev/null || true
+          wait $SBCL_PID 2>/dev/null || true
           
-          echo "=== Testing without developer mode ==="
-          gtimeout 5 ./ctfg 2>&1 || true
+          echo "=== Testing binary without developer mode ==="
+          ./ctfg &
+          CTFG_PID=$!
+          sleep 3
+          echo "=== Testing HTTP request to binary (non-dev mode) ==="
+          curl -v http://localhost:8080 2>&1 || true
+          kill $CTFG_PID 2>/dev/null || true
+          wait $CTFG_PID 2>/dev/null || true
           
-          echo "=== Testing with developer mode ==="
-          gtimeout 5 ./ctfg --developer-mode 2>&1 || true
+          echo "=== Testing binary with developer mode ==="
+          ./ctfg --developer-mode &
+          CTFG_PID=$!
+          sleep 3
+          echo "=== Testing HTTP request to binary (dev mode) ==="
+          curl -v http://localhost:8080 2>&1 || true
+          echo "=== Testing /challenges endpoint (dev mode) ==="
+          curl -v http://localhost:8080/challenges 2>&1 || true
+          kill $CTFG_PID 2>/dev/null || true
+          wait $CTFG_PID 2>/dev/null || true
 
       - name: Setup node
         uses: actions/setup-node@v4
