@@ -114,9 +114,9 @@ jobs:
                2>&1 || true
           
           echo "=== Testing by running main directly in SBCL (not as saved binary) ==="
-          # Just call main like the binary does - use handler-bind to keep stack
+          # Just call main without args for now
           sbcl --eval "(asdf:load-system :ctfg)" \
-               --eval "(handler-bind ((error (lambda (c) (format t \"~%ERROR: ~A~%\" c) (sb-debug:print-backtrace :count 30) (sb-ext:exit :code 1)))) (ctfg:main))" -- -d &
+               --eval "(handler-bind ((error (lambda (c) (format t \"~%ERROR: ~A~%\" c) (sb-debug:print-backtrace :count 30) (sb-ext:exit :code 1)))) (ctfg:main))" &
           SBCL_PID=$!
           sleep 5
           echo "=== Testing HTTP request to SBCL-run server ==="
