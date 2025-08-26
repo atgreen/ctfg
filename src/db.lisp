@@ -19,7 +19,7 @@
 
 (defun get-thread-id ()
   "Get a unique identifier for the current thread."
-  #+sbcl (sb-thread:thread-name (sb-thread:current-thread))
+  #+sbcl (sb-thread:thread-name sb-thread:*current-thread*)
   #+ccl (ccl:process-name ccl:*current-process*)
   #-(or sbcl ccl) (bt:thread-name (bt:current-thread)))
 
