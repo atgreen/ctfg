@@ -6,51 +6,64 @@
 (in-package :ctfg)
 
 ;;;; --------------------------------------------------------------------------
-;;;;  Thread-local connection management
+;;;;  Thread-safe connection pool
 ;;;; --------------------------------------------------------------------------
 
-;; Thread-local variables to hold this thread's SQLite connection
-;; These are special/dynamic variables that will have separate bindings per thread
-(defvar *thread-sqlite-connection* nil
-  "Thread-local SQLite connection handle.")
-(defvar *thread-sqlite-path* nil
-  "Thread-local SQLite database path for the current connection.")
+;; Use thread ID as key for connection mapping
+(defvar *thread-connections*
+  (make-hash-table :test #'equal :synchronized t)
+  "Thread-safe hash table mapping thread IDs to SQLite connections.")
 
-;; Ensure Hunchentoot worker threads get fresh bindings for our thread-local vars
-;; We'll rely on bordeaux-threads and Hunchentoot's thread management instead
-;; of SBCL-specific *default-special-bindings* which may not exist in all versions
+(defvar *connection-lock* (bt:make-lock "sqlite-connection-lock")
+  "Lock to protect connection creation/cleanup.")
+
+(defun get-thread-id ()
+  "Get a unique identifier for the current thread."
+  #+sbcl (sb-thread:thread-name (sb-thread:current-thread))
+  #+ccl (ccl:process-name ccl:*current-process*)
+  #-(or sbcl ccl) (bt:thread-name (bt:current-thread)))
 
 (defun %connect-sqlite (path &key (busy-timeout 10000))
-  "Open (or reuse) a thread-local cl-sqlite HANDLE for the database file at PATH.
+  "Get or create a SQLite connection for the current thread.
 Each thread gets its own connection to avoid corruption under concurrent access.
 Busy-timeout is expressed in milliseconds."
-  (let ((path-string (namestring path)))
-    ;; Ensure thread-local variables are properly bound in this thread
-    (unless (boundp '*thread-sqlite-connection*)
-      (setf *thread-sqlite-connection* nil
-            *thread-sqlite-path* nil))
-    
-    ;; If we already have a connection for this path in this thread, reuse it
-    (if (and *thread-sqlite-connection*
-             (string= *thread-sqlite-path* path-string))
-        *thread-sqlite-connection*
-        ;; Create new connection for this thread
-        (progn
-          ;; Close existing connection if path changed
-          (when *thread-sqlite-connection*
-            (ignore-errors (sqlite:disconnect *thread-sqlite-connection*)))
-          ;; Open new connection
-          (setf *thread-sqlite-connection* (sqlite:connect path :busy-timeout busy-timeout)
-                *thread-sqlite-path* path-string)
-          *thread-sqlite-connection*))))
+  (let ((thread-id (get-thread-id))
+        (path-string (namestring path)))
+    (bt:with-lock-held (*connection-lock*)
+      (let* ((key (format nil "~A:~A" thread-id path-string))
+             (existing-conn (gethash key *thread-connections*)))
+        (if existing-conn
+            existing-conn
+            (let ((new-conn (sqlite:connect path :busy-timeout busy-timeout)))
+              (setf (gethash key *thread-connections*) new-conn)
+              new-conn))))))
 
-(defun close-thread-db-connection ()
-  "Close the current thread's SQLite connection if one exists.
-This is called automatically when threads die, but can be called manually if needed."
-  (when *thread-sqlite-connection*
-    (ignore-errors (sqlite:disconnect *thread-sqlite-connection*))
-    (setf *thread-sqlite-connection* nil
-          *thread-sqlite-path* nil)))
+(defun close-thread-db-connection (&optional thread-id path)
+  "Close SQLite connections for a specific thread, or current thread if not specified."
+  (let ((tid (or thread-id (get-thread-id))))
+    (bt:with-lock-held (*connection-lock*)
+      (if path
+          ;; Close specific connection
+          (let* ((path-string (namestring path))
+                 (key (format nil "~A:~A" tid path-string))
+                 (conn (gethash key *thread-connections*)))
+            (when conn
+              (ignore-errors (sqlite:disconnect conn))
+              (remhash key *thread-connections*)))
+          ;; Close all connections for this thread
+          (let ((keys-to-remove '()))
+            (maphash (lambda (key conn)
+                       (when (string-prefix-p (format nil "~A:" tid) key)
+                         (ignore-errors (sqlite:disconnect conn))
+                         (push key keys-to-remove)))
+                     *thread-connections*)
+            (dolist (key keys-to-remove)
+              (remhash key *thread-connections*))))))
+
+(defun string-prefix-p (prefix string)
+  "Check if STRING starts with PREFIX."
+  (and (<= (length prefix) (length string))
+       (string= prefix string :end2 (length prefix))))
 
 (defclass db/sqlite (db-backend)
   ((sqlite-db-filename :initarg :filename :reader filename))
