@@ -114,9 +114,9 @@ jobs:
                2>&1 || true
           
           echo "=== Testing by running main directly in SBCL (not as saved binary) ==="
-          # Start server in background and test with curl
+          # Just call main like the binary does - use handler-bind to keep stack
           sbcl --eval "(asdf:load-system :ctfg)" \
-               --eval "(handler-case (progn (format t \"~%Starting server in developer mode...~%\") (setf ctfg::*developer-mode* t) (ctfg::start-server 8080)) (error (c) (format t \"~%ERROR: ~A~%\" c) (sb-debug:print-backtrace :count 20)))" &
+               --eval "(handler-bind ((error (lambda (c) (format t \"~%ERROR: ~A~%\" c) (sb-debug:print-backtrace :count 30) (sb-ext:exit :code 1)))) (ctfg:main))" -- -d &
           SBCL_PID=$!
           sleep 5
           echo "=== Testing HTTP request to SBCL-run server ==="
