@@ -76,7 +76,45 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           make
-          mv ctfg ctfg-macos-$(uname -m)
+          cp ctfg ctfg-macos-$(uname -m)
+          
+      - name: Debug - Test macOS binary and check dependencies
+        if: runner.os == 'macOS'
+        run: |
+          echo "=== Testing if binary runs ==="
+          ./ctfg --help || true
+          
+          echo "=== Getting binary info ==="
+          file ./ctfg
+          otool -L ./ctfg | head -20 || true
+          
+          echo "=== Checking ocicl systems location ==="
+          ls -la ocicl/ | head -20
+          
+          echo "=== Checking SBCL location and dependencies ==="
+          which sbcl
+          otool -L $(which sbcl) || true
+          
+          echo "=== Checking for libfixposix (should be in homebrew) ==="
+          brew list libfixposix || true
+          find /opt/homebrew -name "*fixposix*" 2>/dev/null | head -10 || true
+          find /usr/local -name "*fixposix*" 2>/dev/null | head -10 || true
+          
+          echo "=== Checking working directory and required files ==="
+          pwd
+          ls -la index.html challenges.json credentials.csv
+          
+          echo "=== Testing ASDF system loading in SBCL ==="
+          sbcl --non-interactive --eval "(handler-case (progn (asdf:load-system :ctfg) (format t \"~%System loaded successfully~%\")) (error (c) (format t \"~%ERROR loading system: ~A~%\" c) (sb-debug:print-backtrace :count 10)))" 2>&1 || true
+          
+          echo "=== Testing by running main directly in SBCL (not as saved binary) ==="
+          timeout 10 sbcl --non-interactive --eval "(handler-case (progn (asdf:load-system :ctfg) (format t \"~%System loaded, starting main...~%\") (ctfg:main)) (error (c) (format t \"~%ERROR in main: ~A~%\" c) (sb-debug:print-backtrace :count 20)))" 2>&1 || true
+          
+          echo "=== Testing without developer mode ==="
+          timeout 5 ./ctfg 2>&1 || true
+          
+          echo "=== Testing with developer mode ==="
+          timeout 5 ./ctfg --developer-mode 2>&1 || true
 
       - name: Setup node
         uses: actions/setup-node@v4
@@ -95,10 +133,29 @@ jobs:
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           make check
 
-      - name: Run Playwright Tests (macOS)
+      - name: Run Playwright Tests (macOS) with debugging
         if: runner.os == 'macOS'
         run: |
-          make check
+          # Run tests but capture more output on failure
+          if ! make check; then
+            echo "=== Test failed, checking for diagnostics ==="
+            
+            echo "=== Checking for crash reports ==="
+            ls -la ~/Library/Logs/DiagnosticReports/ 2>/dev/null | tail -5 || true
+            
+            echo "=== Testing if ctfg binary still works after failure ==="
+            ./ctfg --help || true
+            
+            echo "=== Trying to start ctfg in foreground to see error ==="
+            timeout 3 ./ctfg -d 2>&1 | tail -50 || true
+            
+            echo "=== Checking if it's a file/path issue ==="
+            echo "Current directory: $(pwd)"
+            echo "Files present:"
+            ls -la *.html *.json *.csv 2>/dev/null || true
+            
+            exit 1
+          fi
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v4
