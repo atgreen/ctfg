@@ -114,11 +114,9 @@ jobs:
                2>&1 || true
           
           echo "=== Testing by running main directly in SBCL (not as saved binary) ==="
-          # Run with debugging and no compiler
+          # Run with simpler error handling
           sbcl --eval "(asdf:load-system :ctfg)" \
-               --eval "(setf *debugger-hook* nil)" \
-               --eval "(setf sb-ext:*invoke-debugger-hook* nil)" \
-               --eval "(handler-bind ((error (lambda (c) (format t \"~%ERROR at ~A: ~A~%\" (sb-debug:frame-call (sb-debug:top-frame)) c) (sb-debug:print-backtrace :count 50) (sb-ext:exit :code 1)))) (ctfg:main))" 2>&1 &
+               --eval "(handler-bind ((error (lambda (c) (format t \"~%ERROR: ~A~%\" c) (sb-debug:print-backtrace :count 50) (sb-ext:exit :code 1)))) (ctfg:main))" 2>&1 &
           SBCL_PID=$!
           echo "Waiting for server to start..."
           sleep 5
