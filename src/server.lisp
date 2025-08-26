@@ -506,21 +506,31 @@
 
   (bordeaux-threads:make-thread
    (lambda ()
-     (handler-case
-         (ws:run-server 12345)
-       (error (e)
-         (log:error "WebSocket server crashed: ~A" e)
-         (capture-exception e))))
+     (handler-bind ((error (lambda (c)
+                             (format *error-output* "Error in thread ~A: ~A~%"
+                                     (bt:current-thread) c)
+                             (sb-debug:print-backtrace :count 50 :stream *error-output*)
+                             (finish-output *error-output*))))
+       (handler-case
+           (ws:run-server 12345)
+         (error (e)
+           (log:error "WebSocket server crashed: ~A" e)
+           (capture-exception e)))))
    :name "websockets server")
 
   (bordeaux-threads:make-thread
    (lambda ()
-     (handler-case
-         (ws:run-resource-listener
-          (ws:find-global-resource "/scorestream"))
-       (error (e)
-         (log:error "Resource listener crashed: ~A" e)
-         (capture-exception e))))
+     (handler-bind ((error (lambda (c)
+                             (format *error-output* "Error in thread ~A: ~A~%"
+                                     (bt:current-thread) c)
+                             (sb-debug:print-backtrace :count 50 :stream *error-output*)
+                             (finish-output *error-output*))))
+       (handler-case
+           (ws:run-resource-listener
+            (ws:find-global-resource "/scorestream"))
+         (error (e)
+           (log:error "Resource listener crashed: ~A" e)
+           (capture-exception e)))))
    :name "resource listener for /scorestream")
 
   ;; Create and start the easy-routes acceptor
