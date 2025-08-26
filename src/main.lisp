@@ -96,7 +96,7 @@
                     (start-server port)
                     (log:info "Waiting for connections...")
                     ;; Wait forever.
-                    (bt:condition-wait *shutdown-cv* *server-lock*))))
+                    (sleep most-positive-fixnum))))
      :examples '(("Run web service on port 9090:"
                   . "ctfg -p 9090")))))
 
