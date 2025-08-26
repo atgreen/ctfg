@@ -114,15 +114,22 @@ jobs:
                2>&1 || true
           
           echo "=== Testing by running main directly in SBCL (not as saved binary) ==="
-          # Just call main without args for now
+          # Run with debugging and no compiler
           sbcl --eval "(asdf:load-system :ctfg)" \
-               --eval "(handler-bind ((error (lambda (c) (format t \"~%ERROR: ~A~%\" c) (sb-debug:print-backtrace :count 30) (sb-ext:exit :code 1)))) (ctfg:main))" &
+               --eval "(setf *debugger-hook* nil)" \
+               --eval "(setf sb-ext:*invoke-debugger-hook* nil)" \
+               --eval "(handler-bind ((error (lambda (c) (format t \"~%ERROR at ~A: ~A~%\" (sb-debug:frame-call (sb-debug:top-frame)) c) (sb-debug:print-backtrace :count 50) (sb-ext:exit :code 1)))) (ctfg:main))" 2>&1 &
           SBCL_PID=$!
+          echo "Waiting for server to start..."
           sleep 5
+          echo "Server PID: $SBCL_PID"
+          ps aux | grep $SBCL_PID | grep -v grep || true
+          echo "=== Testing if server is listening ==="
+          netstat -an | grep 8080 || lsof -i :8080 || true
           echo "=== Testing HTTP request to SBCL-run server ==="
-          curl -v http://localhost:8080 2>&1 || true
-          echo "=== Testing /challenges endpoint ==="
-          curl -v http://localhost:8080/challenges 2>&1 || true
+          curl -v --max-time 5 http://localhost:8080 2>&1 || true
+          echo "=== Checking if SBCL process is still running ==="
+          ps aux | grep $SBCL_PID | grep -v grep || true
           kill $SBCL_PID 2>/dev/null || true
           wait $SBCL_PID 2>/dev/null || true
           
