@@ -194,8 +194,8 @@
         (save-solve (user-id user) (challenge-id challenge))
         (dolist (client (get-client-list))
           (with-write-lock-held ((client-lock client))
-            (ws:write-to-client-text (client-socket client) msg)))
-        (incf (user-total-points user) (challenge-points challenge))))
+            (ws:write-to-client-text (client-socket client) msg))))
+      (incf (user-total-points user) (challenge-points challenge)))
     success))
 
 (easy-routes:defroute set-name ("/api/set-name" :method :post) ()
