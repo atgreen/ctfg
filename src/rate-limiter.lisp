@@ -88,9 +88,11 @@
         (keys-to-remove '()))
     ;; Collect old keys
     (lh:maphash (lambda (key bucket)
-                  (with-read-lock-held ((rate-limit-bucket-lock bucket))
-                    (when (> (- now (rate-limit-bucket-last-refill bucket)) max-age-ms)
-                      (push key keys-to-remove))))
+                  ;; Skip tombstone entries from the luckless hashtable
+                  (when (rate-limit-bucket-p bucket)
+                    (with-read-lock-held ((rate-limit-bucket-lock bucket))
+                      (when (> (- now (rate-limit-bucket-last-refill bucket)) max-age-ms)
+                        (push key keys-to-remove)))))
                 (rate-limiter-buckets limiter))
     ;; Remove old keys
     (dolist (key keys-to-remove)
