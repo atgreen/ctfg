@@ -1354,7 +1354,7 @@ const ScoreboardManager = {
         const lastScore = timeline.length > 0 ? timeline[timeline.length - 1].y : 0;
         
         const dataPoint = {
-            x: new Date(timestamp / 1000), // Convert microseconds to milliseconds
+            x: new Date(timestamp), // timestamp is already in milliseconds
             y: lastScore + delta
         };
         
