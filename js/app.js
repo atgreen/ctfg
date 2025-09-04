@@ -717,7 +717,7 @@ const ViewManager = {
     setupChallengeEventListeners(challengeId, isSolved) {
         // Hint reveal buttons
         document.querySelectorAll('.reveal-hint-btn').forEach(btn =>
-            btn.addEventListener('click', ChallengeManager.handleRevealHint));
+            btn.addEventListener('click', ChallengeManager.handleRevealHint.bind(ChallengeManager)));
 
         // Flag submission form (only if not solved)
         if (!isSolved) {
