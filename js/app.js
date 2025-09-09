@@ -877,7 +877,7 @@ const ChallengeManager = {
             resultDiv.innerHTML = UIUtils.generateSuccessHtml(data.points || 0);
             // Show solved view immediately
             ViewManager.showChallenge(challengeId);
-        } else if (data.result === 'already') {
+        } else if (data.result === 'already_solved') {
             resultDiv.innerHTML = `<div class="text-green-400">Already solved!</div>`;
         } else {
             resultDiv.innerHTML = UIUtils.generateErrorHtml('Incorrect flag. Try again!');

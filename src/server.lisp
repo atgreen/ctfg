@@ -44,7 +44,7 @@
           ;; If no caslist exists, try to add a new one
           (let ((new-caslist (ll:caslist value)))
             (when (lh:put-if-absent *solves-table* key new-caslist)
-              (return t))))))) ; Successfully added new caslist
+              (return t)))))))
 
 
 ;; ----------------------------------------------------------------------------
@@ -286,7 +286,7 @@
            ((null chal)
             (respond-json '(:error "unknown_id") :code 400))
            (solved
-            (respond-json `(:result "already" :total ,(user-total-points user))))
+            (respond-json `(:result "already_solved" :total ,(user-total-points user))))
            (t
             (log:info "Awarding points for challenge ~A to ~A" cid user)
             ;; Use atomic award to prevent double-awarding
@@ -321,7 +321,7 @@
                              (:points . ,(challenge-points chal))
                              (:total . ,(user-total-points user))))
              ;; Already solved (race condition handled)
-             (respond-json `(:result "already" :total ,(user-total-points user)))))
+             (respond-json `(:result "already_solved" :total ,(user-total-points user)))))
         (t
          (log:info "Incorrect!")
          (respond-json '((:result . "incorrect"))))))))
