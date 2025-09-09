@@ -934,6 +934,18 @@ const ChallengeManager = {
             return;
         }
         
+        if (res.status === 402) {
+            UIUtils.showError('Insufficient points to purchase this hint');
+            this.resetHintButton(btn);
+            return;
+        }
+        
+        if (res.status === 403) {
+            UIUtils.showError('This hint is locked. Purchase previous hints first');
+            this.resetHintButton(btn);
+            return;
+        }
+        
         if (res.status === 429) {
             UIUtils.showError(SecurityUtils.createSafeErrorMessage('rate_limit'));
             this.resetHintButton(btn);
