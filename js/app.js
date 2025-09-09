@@ -84,6 +84,7 @@ const AppState = {
     // Scoreboard state
     timelines: new Map(),             // username → [{x, y}, …]
     scoreboard: new Map(),            // username → latest points
+    userChallengeCount: new Map(),    // username → challenges solved count
     seenEventIDs: new Set(),
     scoreChart: null
 };
@@ -457,7 +458,14 @@ const AuthManager = {
                 body: JSON.stringify({ name })
             });
             
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            if (!res.ok) {
+                const data = await res.json();
+                if (data.error === 'name_taken') {
+                    UIUtils.showError('That display name is already taken. Please choose another.');
+                    return;
+                }
+                throw new Error(`HTTP ${res.status}`);
+            }
 
             AuthManager.hideNameModal();
             document.getElementById('user-name').textContent = name;
@@ -1323,6 +1331,12 @@ const ScoreboardManager = {
         const currentScore = AppState.scoreboard.get(name) || 0;
         AppState.scoreboard.set(name, currentScore + delta);
         
+        // Track challenges solved (only for positive points, not hints)
+        if (delta > 0) {
+            const currentCount = AppState.userChallengeCount.get(name) || 0;
+            AppState.userChallengeCount.set(name, currentCount + 1);
+        }
+        
         // Update user points in navbar if this is the current user
         if (name === AppState.currentUser) {
             const userPoints = AppState.scoreboard.get(AppState.currentUser) || 0;
@@ -1425,11 +1439,14 @@ const ScoreboardManager = {
         
         const safeName = SecurityUtils.escapeHtml(row.name);
         const safeScore = SecurityUtils.escapeHtml(String(row.score));
+        const challengeCount = AppState.userChallengeCount.get(row.name) || 0;
+        const safeChallengeCount = SecurityUtils.escapeHtml(String(challengeCount));
         
         tr.innerHTML = `
             <td class="py-3 px-4 text-slate-300 font-medium">${rank}</td>
             <td class="py-3 px-4 text-white font-semibold">${safeName}</td>
             <td class="py-3 px-4 text-green-400 font-bold text-right">${safeScore}</td>
+            <td class="py-3 px-4 text-blue-400 text-right">${safeChallengeCount}</td>
         `;
         
         return tr;
@@ -1538,13 +1555,28 @@ const ScoreboardManager = {
 /**
  * Set up event listeners and initialize the application
  */
-function initializeApplication() {
+async function initializeApplication() {
     // Initialize the scoreboard chart
     ScoreboardManager.initChart();
+    
+    // Check for existing session first
+    try {
+        const res = await fetch('/api/me', {
+            credentials: 'include'
+        });
+        if (res.ok) {
+            const data = await res.json();
+            // User has an existing session, restore it
+            AuthManager.finishLogin(data);
+        }
+    } catch (err) {
+        console.log('No existing session');
+    }
     
     // Authentication event listeners
     document.getElementById('login-form')?.addEventListener('submit', AuthManager.handleLogin.bind(AuthManager));
     document.getElementById('logout-btn')?.addEventListener('click', AuthManager.handleLogout.bind(AuthManager));
+    document.getElementById('cancel-name-btn')?.addEventListener('click', AuthManager.handleLogout.bind(AuthManager));
     
     // Navigation event listeners
     document.getElementById('challenges-btn')?.addEventListener('click', () => {

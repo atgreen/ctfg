@@ -208,9 +208,14 @@
         (respond-json '((:error . "rate_limit_exceeded")) :code 429)))
     (let* ((body   (json-body))
            (name   (cdr (assoc :name body))))
+      ;; Check if the display name is already taken by another user
+      (when (displayname-exists-p *db* name (user-id user))
+        (log:info "Display name ~A already taken (requested by ~A)" name (user-username user))
+        (return-from set-name
+          (respond-json '((:error . "name_taken")) :code 409)))
       (log:info "Setting displayname for player ~A to ~A: " (user-username user) name)
       (set-displayname *db* user name)
-      "")))
+      (respond-json '((:result . "ok"))))))
 
 (easy-routes:defroute hint ("/api/hint" :method :post) ()
   (with-authenticated-user (user)

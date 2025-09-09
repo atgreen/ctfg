@@ -126,6 +126,20 @@
 ;;;  User Updates
 ;;; ------------------------------------------------------------------
 
+(defun displayname-exists-p (db displayname &optional exclude-user-id)
+  "Check if a display name is already taken by another user.
+   If EXCLUDE-USER-ID is provided, that user is excluded from the check
+   (useful when checking if a user can keep their current name)."
+  (with-open-connection (conn db)
+    (let ((result (if exclude-user-id
+                      (%fetch-one conn
+                                  "SELECT 1 FROM users WHERE displayname = ? AND id != ? LIMIT 1"
+                                  displayname exclude-user-id)
+                      (%fetch-one conn
+                                  "SELECT 1 FROM users WHERE displayname = ? LIMIT 1"
+                                  displayname))))
+      (not (null result)))))
+
 (defun set-displayname (db user-object displayname)
   "Persist DISPLAYNAME for USER-OBJECT in the database and return the updated USER-OBJECT.
    Updates relevant caches.
