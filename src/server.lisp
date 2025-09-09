@@ -280,7 +280,7 @@
               (username (cdr (assoc :username body)))
               (cid (cdr (assoc :id body)))
               (chal (find cid *all-challenges* :key #'challenge-id))
-              (user (lh:gethash username *user-table*))
+              (user (lh:gethash username *username-to-user-object*))
               (solved (user-solved-p user cid)))
          (cond
            ((null chal)
