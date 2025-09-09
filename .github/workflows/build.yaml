@@ -211,7 +211,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: scoreboard
+          name: scoreboard-${{ runner.os }}
           path: scoreboard-*.png
           retention-days: 30
 
