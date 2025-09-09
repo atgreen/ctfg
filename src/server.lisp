@@ -461,11 +461,11 @@
   (setf hunchentoot:*show-lisp-errors-p* t)
   (setf hunchentoot:*show-lisp-backtraces-p* t)
   (setf hunchentoot:*session-max-time* most-positive-fixnum)
-  
+
   ;; Start rate limit cleanup thread
   (start-rate-limit-cleanup)
 
-  (setf *sentry-dsn* (uiop:getenv "SENTRY_DENS"))
+  (setf *sentry-dsn* (uiop:getenv "SENTRY_DSN"))
   (when *sentry-dsn*
     (log:info "Initializing sentry client.")
     (sentry-client:initialize-sentry-client *sentry-dsn*))
