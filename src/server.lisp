@@ -361,19 +361,63 @@
                    (parse-integer hex :start i :end (+ i 2) :radix 16)))
     out))
 
+;; CRC32 implementation
+(defun %crc32 (bytes)
+  "Calculate CRC32 checksum of a byte array."
+  (let ((crc #xFFFFFFFF)
+        (polynomial #xEDB88320))
+    (loop for byte across bytes do
+      (setf crc (logxor crc byte))
+      (dotimes (j 8)
+        (if (logbitp 0 crc)
+            (setf crc (logxor (ash crc -1) polynomial))
+            (setf crc (ash crc -1)))))
+    (logxor crc #xFFFFFFFF)))
+
 (defun mask-string (plain key)
-  "XOR mask PLAIN with KEY (both strings), return uppercase hex."
+  "XOR mask PLAIN with KEY (both strings), add CRC32 checksum, return uppercase hex."
   (let* ((p (%string->utf8 plain))
          (k (%string->utf8 key))
-         (x (%xor-bytes p k)))
-    (%hex-encode x)))
+         (checksum (%crc32 p))
+         ;; Create buffer with data + checksum (4 bytes)
+         (with-checksum (make-array (+ (length p) 4) :element-type '(unsigned-byte 8))))
+    ;; Copy data
+    (replace with-checksum p)
+    ;; Append checksum (big-endian, 4 bytes)
+    (setf (aref with-checksum (length p)) (ldb (byte 8 24) checksum))
+    (setf (aref with-checksum (+ (length p) 1)) (ldb (byte 8 16) checksum))
+    (setf (aref with-checksum (+ (length p) 2)) (ldb (byte 8 8) checksum))
+    (setf (aref with-checksum (+ (length p) 3)) (ldb (byte 8 0) checksum))
+    ;; XOR the entire buffer
+    (let ((x (%xor-bytes with-checksum k)))
+      (%hex-encode x))))
 
 (defun unmask-string (hex key)
-  "Reverse of MASK-STRING. HEX is the masked hex string."
-  (let* ((x (%hex-decode hex))
-         (k (%string->utf8 key))
-         (p (%xor-bytes x k)))
-    (%utf8->string p)))
+  "Reverse of MASK-STRING with checksum verification. HEX is the masked hex string."
+  (handler-case
+      (let* ((x (%hex-decode hex))
+             (k (%string->utf8 key))
+             (decrypted (%xor-bytes x k)))
+        ;; Check minimum length for checksum
+        (when (< (length decrypted) 4)
+          (error "Data too short to contain checksum"))
+        (let* ((data-length (- (length decrypted) 4))
+               (data (subseq decrypted 0 data-length))
+               ;; Extract checksum (last 4 bytes, big-endian)
+               (stored-checksum (logior (ash (aref decrypted data-length) 24)
+                                        (ash (aref decrypted (+ data-length 1)) 16)
+                                        (ash (aref decrypted (+ data-length 2)) 8)
+                                        (aref decrypted (+ data-length 3))))
+               ;; Calculate checksum of data
+               (calculated-checksum (%crc32 data)))
+          ;; Verify checksum
+          (unless (= stored-checksum calculated-checksum)
+            (error "Checksum mismatch! Data may be corrupted. Expected: ~X, Got: ~X"
+                   stored-checksum calculated-checksum))
+          (%utf8->string data)))
+    (error (e)
+      (log:error "Error unmasking string: ~A" e)
+      (error e))))
 
 (defun process-description (user description)
   (setf description
