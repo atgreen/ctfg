@@ -331,6 +331,50 @@
          (log:info "Incorrect!")
          (respond-json '((:result . "incorrect"))))))))
 
+(defun %string->utf8 (s)
+  (babel:string-to-octets s :encoding :utf-8))
+
+(defun %utf8->string (bytes)
+  (babel:octets-to-string bytes :encoding :utf-8))
+
+(defun %xor-bytes (bytes key-bytes)
+  (let* ((n (length bytes))
+         (k (length key-bytes))
+         (out (make-array n :element-type '(unsigned-byte 8))))
+    (dotimes (i n out)
+      (setf (aref out i)
+            (logxor (aref bytes i)
+                    (aref key-bytes (mod i k)))))))
+
+(defun %hex-encode (bytes)
+  (with-output-to-string (out)
+    (loop for b across bytes do
+      (format out "~2,'0X" b))))
+
+(defun %hex-decode (hex)
+  (let* ((len (length hex))
+         (_ (assert (evenp len) () "Hex length must be even."))
+         (out (make-array (/ len 2) :element-type '(unsigned-byte 8))))
+    (loop for i from 0 below len by 2
+          for j from 0
+          do (setf (aref out j)
+                   (parse-integer hex :start i :end (+ i 2) :radix 16)))
+    out))
+
+(defun mask-string (plain key)
+  "XOR mask PLAIN with KEY (both strings), return uppercase hex."
+  (let* ((p (%string->utf8 plain))
+         (k (%string->utf8 key))
+         (x (%xor-bytes p k)))
+    (%hex-encode x)))
+
+(defun unmask-string (hex key)
+  "Reverse of MASK-STRING. HEX is the masked hex string."
+  (let* ((x (%hex-decode hex))
+         (k (%string->utf8 key))
+         (p (%xor-bytes x k)))
+    (%utf8->string p)))
+
 (defun process-description (user description)
   (setf description
         (cl-ppcre:regex-replace-all "@CONTROL_CLUSTER@" description *control-cluster*))
@@ -338,6 +382,9 @@
         (cl-ppcre:regex-replace-all "@USERNAME@" description (user-username user)))
   (setf description
         (cl-ppcre:regex-replace-all "@USERID@" description (format nil "~A" (user-id user))))
+  (setf description
+        (cl-ppcre:regex-replace-all "@OBFUSCATED_DISPLAYNAME@" description
+                                    (mask-string (user-displayname user) "some-secret-key")))
   (setf description
         (let ((index (rem (user-id user) (length *player-clusters*))))
           (cl-ppcre:regex-replace-all "@PLAYER_CLUSTER@"
