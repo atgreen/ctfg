@@ -1180,7 +1180,7 @@ const ChallengeRenderer = {
             if (isRevealed) {
                 return `
                     <div class="my-2 p-4 border border-green-600 rounded-lg bg-green-900/20">
-                        <div class="text-green-400 font-medium mb-2">Hint ${index + 1} (-${h.cost} pts)</div>
+                        <div class="text-green-400 font-medium mb-2">Hint ${index + 1} (${h.cost} pts)</div>
                         <div class="text-white/90">${SecurityUtils.escapeHtml(h.text || '')}</div>
                     </div>
                 `;
@@ -1197,7 +1197,7 @@ const ChallengeRenderer = {
                             <span class="text-slate-300">Hint ${index + 1}</span>
                             <button class="reveal-hint-btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
                                     data-ch="${ch.id}" data-hint="${h.id}">
-                                Reveal (-${h.cost} pts)
+                                Reveal (${h.cost} pts)
                             </button>
                         </div>
                     </div>
