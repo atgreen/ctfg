@@ -427,10 +427,13 @@
   (setf description
         (cl-ppcre:regex-replace-all "@USERID@" description (format nil "~A" (user-id user))))
   (setf description
-        (cl-ppcre:regex-replace-all "@DISPLAYNAME@" description (user-displayname user)))
+        (cl-ppcre:regex-replace-all "@DISPLAYNAME@" description
+                                    (or (user-displayname user) "[unset]")))
   (setf description
         (cl-ppcre:regex-replace-all "@OBFUSCATED_DISPLAYNAME@" description
-                                    (mask-string (user-displayname user) "some-secret-key")))
+                                    (if (user-displayname user)
+                                        (mask-string (user-displayname user) "some-secret-key")
+                                        "[unset]")))
   (setf description
         (let ((index (rem (user-id user) (length *player-clusters*))))
           (cl-ppcre:regex-replace-all "@PLAYER_CLUSTER@"

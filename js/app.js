@@ -470,6 +470,9 @@ const AuthManager = {
             AuthManager.hideNameModal();
             document.getElementById('user-name').textContent = name;
             AppState.currentUser = name;
+
+            // Reload challenges to update any @DISPLAYNAME@ placeholders
+            await ChallengeManager.loadChallenges();
             
         } catch (err) {
             console.error('Name submission error:', err);
