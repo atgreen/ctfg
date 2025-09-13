@@ -427,6 +427,8 @@
   (setf description
         (cl-ppcre:regex-replace-all "@USERID@" description (format nil "~A" (user-id user))))
   (setf description
+        (cl-ppcre:regex-replace-all "@DISPLAYNAME@" description (user-displayname user)))
+  (setf description
         (cl-ppcre:regex-replace-all "@OBFUSCATED_DISPLAYNAME@" description
                                     (mask-string (user-displayname user) "some-secret-key")))
   (setf description
