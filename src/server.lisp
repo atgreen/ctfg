@@ -605,6 +605,10 @@
   (setf ws:*debug-on-resource-errors* nil)
   (setf ws::*max-write-backlog* (* 500 30)) ; 500 players, 30 challenges
 
+  ;; Increase session store capacity for high load
+  (setf hunchentoot:*session-gc-frequency* 20)  ; More frequent cleanup
+  (setf hunchentoot:*rewrite-for-session-urls* nil) ; Disable URL rewriting for performance
+
   (bordeaux-threads:make-thread
    (lambda ()
      (handler-bind ((error (lambda (c)
@@ -634,8 +638,12 @@
            (capture-exception e)))))
    :name "resource listener for /scorestream")
 
-  ;; Create and start the easy-routes acceptor
-  (setf *acceptor* (make-instance 'my-acceptor :port port))
+  ;; Create and start the easy-routes acceptor with high-capacity taskmaster
+  (setf *acceptor* (make-instance 'my-acceptor
+                     :port port
+                     :taskmaster (make-instance 'hunchentoot:one-thread-per-connection-taskmaster
+                                   :max-thread-count 500      ; 5x default for high load
+                                   :max-accept-count 600)))   ; 500 + 100 buffer
   (hunchentoot:start *acceptor*)
   (log:info "Server started successfully on port ~A" port)
   *acceptor*)

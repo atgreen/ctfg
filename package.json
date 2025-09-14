@@ -6,12 +6,21 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "This is a simple Capture-The-Flag game engine.",
   "devDependencies": {
     "@playwright/test": "^1.52.0",
     "@types/node": "^22.15.17"
   },
   "dependencies": {
-    "package.json": "^2.0.1"
-  }
+    "package.json": "^2.0.1",
+    "ws": "^8.18.3"
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com//atgreen/ctfg"
+  },
+  "type": "commonjs"
 }

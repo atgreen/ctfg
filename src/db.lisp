@@ -23,7 +23,7 @@
   #+ccl (ccl:process-name ccl:*current-process*)
   #-(or sbcl ccl) (bt:thread-name (bt:current-thread)))
 
-(defun %connect-sqlite (path &key (busy-timeout 10000))
+(defun %connect-sqlite (path &key (busy-timeout 30000))
   "Get or create a SQLite connection for the current thread.
 Each thread gets its own connection to avoid corruption under concurrent access.
 Busy-timeout is expressed in milliseconds."
@@ -134,9 +134,13 @@ The handle is closed after BODY completes. Use for atomic transactions."
 (defmethod initialize-instance :after ((db db/sqlite) &key &allow-other-keys)
   (log:info "INITIALIZING DB/SQLITE")
   (with-open-connection (dbc db)
-    ;; Pragmas
+    ;; Pragmas for high-concurrency performance
     (dolist (sql '("PRAGMA busy_timeout = 30000;"
-                   "PRAGMA journal_mode = WAL;"))
+                   "PRAGMA journal_mode = WAL;"
+                   "PRAGMA synchronous = NORMAL;"     ; Faster writes
+                   "PRAGMA cache_size = -64000;"      ; 64MB cache
+                   "PRAGMA temp_store = MEMORY;"      ; Use RAM for temp
+                   "PRAGMA mmap_size = 268435456;"))  ; 256MB memory map
       (sqlite:execute-non-query dbc sql))))
 
 (defmethod initialize-instance :after ((db db-backend) &key)
