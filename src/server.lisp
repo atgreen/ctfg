@@ -77,12 +77,125 @@
 (defun app-root ()
   (uiop:getcwd))
 
-(defun dev/no-cache-callback (file content-type)
-  "Executed right before HANDLE-STATIC-FILE streams FILE.
-   We ignore the arguments and just tell the browser not to cache."
+;; Static file cache for improved performance
+(defvar *static-file-cache* (make-hash-table :test 'equal)
+  "Hash table cache for static files. Key: file path, Value: (content . content-type)")
+
+(defvar *cache-lock* (bordeaux-threads:make-lock "static-cache-lock")
+  "Lock for thread-safe access to the static file cache")
+
+(defun get-cached-file (file-path content-type)
+  "Get file from cache or load and cache it. Returns (values content cached-p)"
+  (if *developer-mode*
+      ;; In developer mode, don't cache - always read from disk
+      (values (alexandria:read-file-into-byte-vector file-path) nil)
+      ;; In production mode, use cache
+      (bordeaux-threads:with-lock-held (*cache-lock*)
+        (let ((cached (gethash file-path *static-file-cache*)))
+          (if cached
+              (values (car cached) t)
+              ;; Not cached, load and cache it
+              (let ((content (alexandria:read-file-into-byte-vector file-path)))
+                (setf (gethash file-path *static-file-cache*)
+                      (cons content content-type))
+                (values content nil)))))))
+
+(defun clear-static-cache ()
+  "Clear the static file cache (useful for testing or memory management)"
+  (bordeaux-threads:with-lock-held (*cache-lock*)
+    (clrhash *static-file-cache*)))
+
+(defun get-cache-stats ()
+  "Get statistics about the static file cache"
+  (bordeaux-threads:with-lock-held (*cache-lock*)
+    (let ((entries (hash-table-count *static-file-cache*))
+          (total-size 0))
+      (loop for (content . content-type) being the hash-values of *static-file-cache*
+            do (incf total-size (length content)))
+      (values entries total-size))))
+
+(defun preload-static-files ()
+  "Preload common static files into cache"
+  (unless *developer-mode*
+    (let ((common-files '("css/ctfg.css" "js/app.js" "images/banner.png")))
+      (log:info "Preloading static files into cache...")
+      (dolist (file-rel-path common-files)
+        (let ((file-path (merge-pathnames file-rel-path (app-root))))
+          (when (probe-file file-path)
+            (handler-case
+                (let ((content-type (get-content-type file-path)))
+                  (get-cached-file file-path content-type)
+                  (log:debug "Preloaded: ~A (~A)" file-rel-path content-type))
+              (error (e)
+                (log:warn "Failed to preload ~A: ~A" file-rel-path e))))))
+      (multiple-value-bind (entries total-size) (get-cache-stats)
+        (log:info "Static cache preloaded: ~D files, ~D bytes" entries total-size)))))
+
+(defun get-content-type (file-path)
+  "Determine content type based on file extension"
+  (let ((extension (pathname-type file-path)))
+    (cond
+      ((string-equal extension "css") "text/css")
+      ((string-equal extension "js") "application/javascript")
+      ((string-equal extension "png") "image/png")
+      ((string-equal extension "jpg") "image/jpeg")
+      ((string-equal extension "jpeg") "image/jpeg")
+      ((string-equal extension "gif") "image/gif")
+      ((string-equal extension "svg") "image/svg+xml")
+      ((string-equal extension "html") "text/html")
+      ((string-equal extension "htm") "text/html")
+      (t "application/octet-stream"))))
+
+(defun cached-static-dispatcher (request)
+  "Custom dispatcher that serves static files with caching"
+  (let* ((script-name (hunchentoot:script-name request))
+         (static-paths '("/css/" "/js/" "/images/")))
+    ;; Check if this is a static file request
+    (when (some (lambda (prefix) (alexandria:starts-with-subseq prefix script-name))
+                static-paths)
+      ;; Return a handler function
+      (lambda ()
+        (let* ((file-path (merge-pathnames
+                           (subseq script-name 1) ; Remove leading slash
+                           (app-root)))
+               (content-type (get-content-type file-path)))
+
+          (if (probe-file file-path)
+              (multiple-value-bind (content cached-p)
+                  (get-cached-file file-path content-type)
+
+                ;; Set content type
+                (setf (hunchentoot:content-type*) content-type)
+
+                ;; Set cache headers
+                (if *developer-mode*
+                    (hunchentoot:no-cache)
+                    (progn
+                      (setf (hunchentoot:header-out "Cache-Control") "public, max-age=31536000") ; 1 year
+                      (setf (hunchentoot:header-out "Expires")
+                            (hunchentoot:rfc-1123-date (+ (get-universal-time) (* 365 24 60 60))))))
+
+                ;; Log cache hit/miss for debugging
+                (when (and (not *developer-mode*) (log:debug))
+                  (log:debug "Static file ~A: ~A" file-path (if cached-p "CACHE HIT" "CACHE MISS")))
+
+                ;; Return the content
+                content)
+
+              ;; File not found
+              (progn
+                (setf (hunchentoot:return-code*) hunchentoot:+http-not-found+)
+                "File not found")))))))
+
+(defun cache-callback (file content-type)
+  "Legacy callback for compatibility (no longer used with custom dispatcher)"
   (declare (ignore file content-type))
-  (when *developer-mode*
-    (hunchentoot:no-cache)))
+  (if *developer-mode*
+      (hunchentoot:no-cache)
+      (progn
+        (setf (hunchentoot:header-out "Cache-Control") "public, max-age=31536000")
+        (setf (hunchentoot:header-out "Expires")
+              (hunchentoot:rfc-1123-date (+ (get-universal-time) (* 365 24 60 60)))))))
 
 (defvar *index.html* nil)
 
@@ -578,21 +691,12 @@
   (log:info "Static content directory: ~A" (uiop:getcwd))
   (log:info "Starting server version ~A on port ~A" +version+ port)
 
-  ;; Set up static file handlers in the global dispatch table
-  (setf hunchentoot:*dispatch-table*
-        (list
-         (hunchentoot:create-folder-dispatcher-and-handler
-          "/images/" (fad:pathname-as-directory
-                      (merge-pathnames "images/" (app-root)))
-          nil #'dev/no-cache-callback)
-         (hunchentoot:create-folder-dispatcher-and-handler
-          "/js/" (fad:pathname-as-directory
-                  (merge-pathnames "js/" (app-root)))
-          "application/javascript" #'dev/no-cache-callback)
-         (hunchentoot:create-folder-dispatcher-and-handler
-          "/css/" (fad:pathname-as-directory
-                   (merge-pathnames "css/" (app-root)))
-          "text/css" #'dev/no-cache-callback)))
+  ;; Preload static files into cache for better performance
+  (preload-static-files)
+
+  ;; Add our custom static file dispatcher to the front of the dispatch table
+  ;; Easy-routes automatically adds its dispatcher when routes are defined
+  (push 'cached-static-dispatcher hunchentoot:*dispatch-table*)
 
   (read-credentials)
 
