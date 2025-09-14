@@ -15,6 +15,40 @@
   color: #64748b;
 }
 
+/* Links in challenge descriptions */
+.text-white\/75 a,
+.text-gray-300 a,
+.challenge-link-url {
+  color: #67e8f9; /* cyan-300 - bright against slate */
+  text-decoration: underline;
+  text-decoration-color: #67e8f940; /* subtle underline */
+  text-underline-offset: 2px;
+  transition: all 0.2s ease;
+}
+
+.text-white\/75 a:hover,
+.text-gray-300 a:hover,
+.challenge-link-url:hover {
+  color: #a5f3fc; /* cyan-200 - even brighter on hover */
+  text-decoration-color: #a5f3fc;
+  text-shadow: 0 0 10px #67e8f950;
+}
+
+.text-white\/75 a:visited,
+.text-gray-300 a:visited,
+.challenge-link-url:visited {
+  color: #fbbf24; /* amber-400 - warm contrast for visited */
+  text-decoration-color: #fbbf2440;
+}
+
+.text-white\/75 a:visited:hover,
+.text-gray-300 a:visited:hover,
+.challenge-link-url:visited:hover {
+  color: #fcd34d; /* amber-300 */
+  text-decoration-color: #fcd34d;
+  text-shadow: 0 0 10px #fbbf2450;
+}
+
 .NOT-ctfg-background
   background: linear-gradient(
     to bottom right,

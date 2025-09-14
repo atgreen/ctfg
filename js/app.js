@@ -1181,7 +1181,7 @@ const ChallengeRenderer = {
                 return `
                     <div class="my-2 p-4 border border-green-600 rounded-lg bg-green-900/20">
                         <div class="text-green-400 font-medium mb-2">Hint ${index + 1} (${h.cost} pts)</div>
-                        <div class="text-white/90">${SecurityUtils.escapeHtml(h.text || '')}</div>
+                        <div class="text-white/90">${h.text || ''}</div> <!-- HTML is trusted from challenges.json -->
                     </div>
                 `;
             } else if (isLocked) {
