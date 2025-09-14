@@ -142,6 +142,29 @@ The following placeholders in challenge descriptions are automatically replaced 
    Users are assigned to the different player clusters in a
    round-robin format as they join.
 
+## Load Testing
+
+For testing server performance under high concurrent load, use the included `player-emulator.js`:
+
+```bash
+# Test with N concurrent players (requires Node.js and npm install)
+./player-emulator.js <server_url> challenges.json credentials.csv <N>
+
+# Examples:
+./player-emulator.js http://localhost:8080 challenges.json credentials.csv 70
+./player-emulator.js https://ctfg.example.com challenges.json credentials.csv 390
+```
+
+The emulator simulates realistic browser behavior:
+- Fetches static files (HTML, CSS, JS, images)
+- Logs in with credentials from CSV file
+- Sets unique display names
+- Establishes WebSocket connections
+- Solves all available challenges using testflags
+- Validates WebSocket messages and logs detailed progress
+
+Perfect for stress testing before game day!
+
 ## API
 
 Most REST endpoints in ctfg are intended for use by the browser
