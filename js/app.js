@@ -1178,10 +1178,12 @@ const ChallengeRenderer = {
             const isLocked = index > 0 && !AppState.revealedHints.has(`${ch.id}:${ch.hints[index - 1].id}`);
             
             if (isRevealed) {
+                // Parse hint text as markdown (supports both markdown and HTML)
+                const hintHtml = h.text ? marked.parse(h.text) : '';
                 return `
                     <div class="my-2 p-4 border border-green-600 rounded-lg bg-green-900/20">
                         <div class="text-green-400 font-medium mb-2">Hint ${index + 1} (${h.cost} pts)</div>
-                        <div class="text-white/90">${h.text || ''}</div> <!-- HTML is trusted from challenges.json -->
+                        <div class="text-white/90">${hintHtml}</div>
                     </div>
                 `;
             } else if (isLocked) {

@@ -9,8 +9,8 @@
     "flag": "^26$",
     "testflag": "26",
     "hints": [
-      { "id": 1, "text": "Count all the disturbed items in the lab.", "cost": 5 },
-      { "id": 2, "text": "Add: books + papers + cups", "cost": 10 }
+      { "id": 1, "text": "**Step 1:** Count the items<br><br>- 📚 *15 books* scattered<br>- 📄 <em>8 papers</em> torn<br>- ☕ **3 cups** spilled<br><br><mark>Remember: Every item matters!</mark>", "cost": 0 },
+      { "id": 2, "text": "## The Formula:\n\n`books + papers + cups = total`\n\n### Breakdown:\n\n| Item | Count | Status |\n|------|-------|--------|\n| 📚 Books | **15** | Scattered |\n| 📄 Papers | *8* | Torn |\n| ☕ Cups | <mark>3</mark> | Spilled |\n| **Total** | **?** | Calculate! |\n\n> **Solution:** `15 + 8 + 3 = ?`", "cost": 0 }
     ]
   },
   {
