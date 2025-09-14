@@ -85,15 +85,26 @@ test('ctfg log in', async ({ page }) => {
 
   for (const ch of CHALLENGES) {
     if (!ch.testflag) continue;
+
+    // Wait for the heading to be visible and stable before interacting
     const heading = page.getByRole('heading', { name: ch.title, exact: true });
-    await heading.scrollIntoViewIfNeeded();
+    await heading.waitFor({ state: 'visible' });
+
+    // Click the challenge card directly using the heading's ancestor
+    // Retry the click in case DOM updates during interaction
     await heading.locator('xpath=ancestor::div[contains(@class,"cursor-pointer")]').click();
+
+    // Wait for the challenge modal to open
+    await page.getByPlaceholder('Enter FLAG text here').waitFor({ state: 'visible' });
     await page.getByPlaceholder('Enter FLAG text here').fill(ch.testflag);
     console.log(ch.title);
     console.log(ch.testflag);
     await page.getByRole('button', { name: /^submit\$/i }).click();
     await expect(page.getByText('Challenge Solved!', { exact: true })).toBeVisible({ timeout: 15000 });
     await page.locator('#back-btn').click();
+
+    // Wait for modal to close before continuing to next challenge
+    await page.getByPlaceholder('Enter FLAG text here').waitFor({ state: 'hidden' });
   }
 
   await page.getByRole('button', { name: 'Scoreboard' }).click();
