@@ -70,24 +70,70 @@ a TLS terminated route for your ctfg service and connect to it thusly:
 
 1. Player credentials should live in a file called `credentials.csv`.  It's a simple `username,password` csv file.
 
-2. Challenges are in `challenges.json`.  This should be a json array containing objects like this:
-```
+2. Challenges are defined in `challenges.json`. This should be a JSON array containing challenge objects with the following structure:
+
+```json
+{
+    "id": 5,
+    "title": "SQL Injection Login",
+    "category": "Web",
+    "difficulty": "Easy",
+    "points": 150,
+    "description": "Challenge description supporting both Markdown and HTML",
+    "flag": "^regexp flag goes here$",
+    "testflag": "exact_flag_for_testing",
+    "hints": [
         {
-            "id": 5,
-            "title": "SQL Injection Login",
-            "category": "Web",
-            "difficulty": "Easy",
-            "points": 150,
-            "description": "This is an HTML description of the challenge. Put whatever you want in here.",
-            "flag": "^regexp flag goes here$",
-            "requirements": [2, 3]
+            "id": 1,
+            "text": "First hint text (supports Markdown/HTML)",
+            "cost": 10
         },
+        {
+            "id": 2,
+            "text": "Second hint reveals after first is purchased",
+            "cost": 20
+        }
+    ],
+    "requirements": [2, 3],
+    "content": "Optional additional content field"
+}
 ```
 
-  Each challenge needs a unique `id`.  All of the other fields are
-  self-explanatory.  The `requirements` field is optional. It should
-  be a list of challenges that must be solved before this challenge
-  appears on the board.
+### Challenge Fields
+
+- **id** (required): Unique integer identifier for the challenge
+- **title** (required): Challenge name displayed in the UI
+- **category** (required): Category for grouping challenges (e.g., "Web", "Crypto", "Forensics")
+- **difficulty** (required): Difficulty level (e.g., "Easy", "Medium", "Hard")
+- **points** (required): Point value awarded for solving
+- **description** (required): Challenge description that supports both Markdown syntax and HTML. The marked library renders Markdown while preserving HTML tags
+- **flag** (required): Regular expression pattern for validating flag submissions
+- **testflag** (optional): Exact flag value used for automated testing
+- **hints** (optional): Array of hint objects with:
+  - **id**: Unique identifier within the challenge
+  - **text**: Hint content (supports Markdown and HTML)
+  - **cost**: Points deducted when hint is revealed
+  - Hints are revealed sequentially - players must purchase earlier hints first
+- **requirements** (optional): Array of challenge IDs that must be solved before this challenge becomes available
+- **content** (optional): Additional content field for extended challenge information
+
+### Text Formatting
+
+Both challenge descriptions and hint texts support:
+- **Markdown**: Headers, bold/italic, code blocks, tables, lists, blockquotes
+- **HTML**: Direct HTML tags like `<br>`, `<strong>`, `<em>`, `<mark>`, `<code>`
+- **Mixed content**: Markdown and HTML can be used together
+
+### Dynamic Placeholders
+
+The following placeholders in challenge descriptions are automatically replaced at runtime:
+
+- **@USERNAME@**: The player's login username
+- **@USERID@**: The player's numeric user ID
+- **@DISPLAYNAME@**: The player's chosen display name (or "[unset]" if not configured)
+- **@OBFUSCATED_DISPLAYNAME@**: An XOR-masked and checksummed version of the display name (for anti-cheating purposes)
+- **@CONTROL_CLUSTER@**: The control cluster from game-clusters.yaml
+- **@PLAYER_CLUSTER@**: The player's assigned cluster (assigned round-robin from the player clusters list)
 
 3. Replace `images/banner.png` with your own content.
 
