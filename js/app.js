@@ -15,6 +15,25 @@
 'use strict';
 
 /* =================================================================== */
+/* MARKDOWN CONFIGURATION                                              */
+/* =================================================================== */
+
+/**
+ * Configure marked to open all links in new tabs
+ */
+marked.use({
+    renderer: {
+        link(token) {
+            const href = token.href || '';
+            const title = token.title || '';
+            const text = token.text || '';
+            const titleAttr = title ? ` title="${title}"` : "";
+            return `<a href="${href}" target="_blank" rel="noopener noreferrer"${titleAttr}>${text}</a>`;
+        }
+    }
+});
+
+/* =================================================================== */
 /* CONFIGURATION & CONSTANTS                                           */
 /* =================================================================== */
 
