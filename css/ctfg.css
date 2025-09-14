@@ -61,3 +61,16 @@
 .NOT-ctfg-secondary-text {
   color: #94a3b8;
 }
+
+div#challenge-content h2 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 700;
+    color: white;
+}
+
+div#challenge-content ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin: 1rem 0;
+}

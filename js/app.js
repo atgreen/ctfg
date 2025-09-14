@@ -87,6 +87,7 @@ const AppState = {
     
     // UI state
     currentView: 'challenges',
+    pendingRoute: null,
     
     // Challenge state
     solvedChallenges: new Set(),
@@ -732,9 +733,14 @@ const ViewManager = {
         DOMElements.challengeList.classList.add('hidden');
         DOMElements.challengeDetail.classList.remove('hidden');
         
-        document.getElementById('challenge-content').innerHTML = 
+        document.getElementById('challenge-content').innerHTML =
             ChallengeRenderer.generateChallengeHTML(challenge, isSolved);
-        
+
+        // Apply syntax highlighting to code blocks
+        if (typeof hljs !== 'undefined') {
+            hljs.highlightAll();
+        }
+
         // Set up event listeners for the challenge
         this.setupChallengeEventListeners(challengeId, isSolved);
     },
@@ -786,9 +792,19 @@ const ChallengeManager = {
 
             const data = await res.json();
             this.processChallengeData(data);
-            
+
             if (AppState.currentView === 'challenges') {
                 ChallengeRenderer.renderChallengeGrid();
+            }
+
+            // Handle any pending route after challenges are loaded
+            if (AppState.pendingRoute) {
+                const route = AppState.pendingRoute;
+                AppState.pendingRoute = null; // Clear the pending route
+
+                if (route.type === 'challenge') {
+                    ViewManager.showChallenge(route.id);
+                }
             }
             
         } catch (err) {
@@ -1645,12 +1661,21 @@ async function initializeApplication() {
  */
 function handleInitialRoute() {
     const hash = location.hash.slice(1);
-    
+
     if (hash === 'scoreboard') {
         ViewManager.showView('scoreboard');
     } else if (hash.startsWith('challenge-')) {
         const id = Number(hash.split('-')[1]);
-        if (id) ViewManager.showChallenge(id);
+        if (id) {
+            // Check if challenges are loaded, if not queue this route
+            if (Object.keys(AppState.challenges).length === 0) {
+                AppState.pendingRoute = { type: 'challenge', id: id };
+                // Show loading state or challenges view while waiting
+                ViewManager.showView('challenges');
+            } else {
+                ViewManager.showChallenge(id);
+            }
+        }
     }
     // Default to challenges view
 }
