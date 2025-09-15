@@ -1,3 +1,6 @@
+[!NOTE]
+The review below was generated through an iterative process whereby a critic LLM reviews the application, following the prompt in reviewer-brief.md, and then critic LLMs critique the reviewers report, following the prompt in critic-brief.md.  This process is iterated 4 times by which they should have achieved consensus, and this final report below was generated.
+
 # CTFG Resilience and Availability Review
 
 ## Executive Summary
@@ -155,4 +158,3 @@
 - External:
   - SQLite WAL Mode — https://www.sqlite.org/wal.html
   - SQLite Query Planning/Indexes — https://www.sqlite.org/optoverview.html
-
