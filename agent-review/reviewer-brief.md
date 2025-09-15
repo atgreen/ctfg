@@ -1,5 +1,10 @@
 # Reviewer Brief: CTFG Resilience and Availability Review
 
+> [!NOTE]
+> Include the following preamble at the very top of the final report (`agent-review/README.md`) to clarify the process used to generate it:
+>
+> "[!NOTE]\nThis report was produced via an iterative LLM review process. A reviewer LLM evaluated the codebase using `reviewer-brief.md`. Two independent critic LLMs then critiqued each draft using `critic-brief.md`. The review-and-critique cycle repeated for up to four rounds to drive convergence. The document below reflects the final, consensus report."
+
 You are an expert software architect and programmer skilled in many languages and tools. You are reviewing the application in this directory, which is a game engine intended to support 200 players for a 3‑hour intense event.
 
 ## Objectives

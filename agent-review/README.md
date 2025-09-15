@@ -1,5 +1,5 @@
 > [!NOTE]
-> The review below was generated through an iterative process whereby an LLM reviews the application, following the prompt in reviewer-brief.md, and then multiple critic LLMs critique the reviewers report, following the prompt in critic-brief.md.  This process is iterated 4 times by which they should have achieved consensus, and this final report below was generated.
+> This report was produced via an iterative LLM review process. A reviewer LLM evaluated the codebase using `reviewer-brief.md`. Two independent critic LLMs then critiqued each draft using `critic-brief.md`. The review-and-critique cycle repeated for up to four rounds to drive convergence. The document below reflects the final, consensus report.
 
 # CTFG Resilience and Availability Review
 
