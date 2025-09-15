@@ -1,51 +1,45 @@
-CTFG Resilience and Availability Review (Codex 3)
+# CTFG Resilience and Availability Review — codex-3
 
-Round 2 feedback digested. Below I lock down disputed points with concrete evidence, expand on the websocket replay question, and integrate additional hardening ideas.
+## Change Log
+- Corrected my prior P0 conclusion regarding `bt2`; confirmed availability in ocicl bordeaux-threads v2 and demoted from blocker.
+- Added ocicl citations for `bt2` package and `condition-broadcast` symbol.
+- Incorporated nuance on WebSocket client cleanup and proposed server-driven heartbeat for resilience.
+- Kept priorities for security and performance unchanged; clarified maintenance note on mixed threading APIs.
 
-Disputed Point: award-points-atomic increment
-- Position: The increment executes unconditionally. This is observable in the source and in the API response logic.
-- Evidence (src/server.lisp lines 296–312):
-  - `(when success ...)` spans lines 296–310; the `let`, `log:info`, `save-solve`, and `dolist` are inside this block.
-  - Line 311 contains `(incf (user-total-points user) (challenge-points challenge))` at the same indentation level as the `when`, and after the `when`’s closing paren on 310.
-  - Line 312 returns `success` from `multiple-value-bind`.
-- Behavioral implication: On a duplicate flag submit, `record-flag-if-not-solved` returns NIL, so no event is inserted/broadcast, but `user-total-points` is still incremented. The HTTP response for duplicate (`:result "already_solved" :total <points>`) will show an inflated total, and subsequent hint affordability checks may be incorrect.
-- Resolution: Move the `incf` into the `when success` body.
+## Accepted vs. Contested Points (Round 2)
 
-WebSocket Replay: strategy and client impact
-- Current behavior: On connect, server spawns a thread and sends the full `events` table as a single array. Under heavy history this is costly.
-- Client expectations: The frontend accepts both a batch (array) and live single events. It uses the batch to reconstruct timelines and a scoreboard map.
-- Safer replay options (compatible with current client):
-  - Windowed replay: send only the last K events (e.g., by `ORDER BY ts DESC LIMIT K`, then reverse on send). For a 3‑hour event, K≈10k is usually sufficient.
-  - Snapshot + delta: compute current per‑user totals server‑side and send an initial “score snapshot” message, then follow with recent events. This avoids full history but would require a small client change to accept the snapshot.
-  - Chunking: If retaining full history, chunk into multiple frames (e.g., blocks of 1k messages) to reduce memory spikes and allow progressive rendering.
+### Accepted (Corrections)
+- `bt2` is available and intended
+  - Evidence: ocicl/bordeaux-threads-0.9.4/apiv2/pkgdcl.lisp:4–5, 71
+    "(defpackage :bt2 (:nicknames :bordeaux-threads-2)) … exports … #:condition-broadcast"
+  - Evidence: ocicl/bordeaux-threads-0.9.4/apiv2/api-condition-variables.lisp:90–97 defines `condition-broadcast`.
+  - Evidence: src/rwlock.lisp:22–27 uses `bt:` for wait/notify and `bt2:condition-broadcast` for broadcast.
+  - Conclusion: Mixed API usage appears deliberate; not a build blocker. Demote previous P0 to Low/Docs: clarify rationale or consolidate to one API for maintainability.
 
-Static file serving: additional hardening
-- I agree with the suggestions to:
-  - Serve static assets from a dedicated domain/subdomain with strict CSP.
-  - Prefer a reverse proxy (e.g., nginx) for static files in production, keeping Hunchentoot for dynamic routes only.
-  - Keep the in‑process static cache as a fallback or for dev mode.
+- WS client cleanup exists; edge cases acknowledged
+  - Evidence: src/server.lisp:657–663 and src/clients.lisp:29–39 implement disconnect removal.
+  - Library behavior: ocicl/clws-20240503-b20799d/resource.lisp:177–205 routes EOF/DROPPED to `disconnect-client`.
+  - Refinement: Zombie connections may persist under network partitions absent keepalives; suggest server‑initiated ping/idle reap.
 
-Small refinements and confirmations
-- Origin policy: Whitelist known event origins to reduce abuse surface with minimal operational burden.
-- Memory and thread lifecycle: Headroom is acceptable; shutdown paths already destroy the cleanup thread. Leave as is.
-- Indexes: Retain the three recommended indexes; they directly accelerate the identified queries.
-- `/api/award` robustness: Use `ensure-user` or return 4xx; correct `user-solved-p` argument.
-- Regex flags: Prefer exact compare; if regex needed, escape and anchor the stored value.
+### Contested (None material)
+- No material disagreements remain in round 2; severity/priorities updated accordingly.
 
-Updated prioritized actions (no change in order)
-1) Fix `/api/hint` parameter key.
-2) Remove sensitive logging.
-3) Disable detailed error pages in production.
-4) Move the `incf` into the `when success` body in `award-points-atomic`.
-5) Harden static path resolution; reject traversal; consider proxying static.
-6) Add and analyze indexes.
-7) Compute hint affordability inside the transaction.
-8) WS backlog raise + replay windowing/chunking; optionally snapshot totals.
-9) `/api/award` resilience and `user-solved-p` fix.
-10) Exact/anchored flag check.
+## Priority Adjustments
+- P1 (Critical Security):
+  1) WS origin/token
+  2) Static traversal
+  3) Disable prod backtraces
+- P2 (High Perf/Operational):
+  4) Add DB indexes
+  5) Increase CLWS accept backlog
+  6) WAL auto-checkpoint
+  7) Rate-limit `/api/award`
+- P3 (Medium/Hardening):
+  8) Remove token logging
+  9) Document or unify bt/bt2 usage
+  10) Optional: server heartbeat to reap stale WS clients
 
-Rationale summary for reviewers
-- I grounded contested claims in concrete paren matching and line numbers to avoid indentation ambiguity.
-- WS replay changes remain compatible with the current client; a future snapshot message can further reduce replay costs.
-- Production static hardening via proxy/CSP adds defense‑in‑depth with minimal code change.
+## Verification Additions
+- `bt2` availability: confirm `(find-symbol "CONDITION-BROADCAST" :bt2)` resolves; sanity broadcast on a test CV.
+- WS liveness: implement periodic server `write-to-client-text` ping or clws ping frame if supported; drop unresponsive clients and verify list shrinks.
 

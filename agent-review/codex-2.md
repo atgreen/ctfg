@@ -1,74 +1,80 @@
-CTFG Resilience and Availability Review (Codex 2)
+# CTFG Resilience and Availability Review — codex-2
 
-Incorporating reviewer feedback from Claude and Gemini. I confirm where we agree, and I challenge points where evidence contradicts their assertions. I include rationale so you can audit each claim quickly.
+## Change Log
+- Clarified S-expression analysis for `award-points-atomic` to reflect correct body forms within the `when` form.
+- Accepted new critical finding on `bt2` package usage and `%broadcast` typo; added evidence and priority adjustments.
+- Accepted WAL checkpointing recommendation and expanded operational steps.
+- Contested claim about unbounded WS client registry with evidence of disconnect handling.
+- Strengthened `/api/award` rate limit recommendation and token logging fix with explicit evidence.
 
-What I Accepted (agreement)
-- Hint API mismatch is game‑breaking. Server reads `:hint--id` while client posts `hint_id` → all hint purchases fail with 400. Fix server key to `:hint_id`.
-- Logging of sensitive data must be removed. Do not log flag guesses or the Authorization token.
-- Disable detailed error responses in production. Keep Sentry capture; set `*show-lisp-errors-p*` and `*show-lisp-backtraces-p*` to NIL when not in developer mode.
-- Static file dispatcher needs traversal hardening. Prefix checks help, but add explicit rejection of `..`/`~` segments and serve only from whitelisted roots.
-- WebSocket backlog of 5 is too low for 200 players and reconnect storms. Raise backlog in CLWS (vendor patch) and chunk/window event replay.
-- Add event table indexes aligned to hot queries: `(user_id, challenge_id, event_type)`, `ts`, and optionally `(user_id, challenge_id, event_type, hint_number)`.
-- Move hint affordability check fully into the DB transaction to avoid races and stale in‑memory totals.
+## Accepted vs. Contested Points
 
-Where I Disagree (with rationale)
-1) award-points-atomic points increment placement
-   - Gemini believes the `(incf (user-total-points user) ...)` is inside the `(when success ...)` block. It is not. The parens close the `when` before the `incf`, so `incf` runs unconditionally.
-   - Evidence (structure simplified):
-     (multiple-value-bind (success ts event-id) ...
-       (when success
-         ;; build and broadcast msg ...)
-       (incf (user-total-points user) (challenge-points challenge))
-       success)
-   - Outcome: points are incremented even when `record-flag-if-not-solved` returns NIL (already solved). Fix: move `incf` into the `when success` block.
+### Accepted
+- Critical: `bt2` package and `%broadcast` typo
+  - Evidence: src/rwlock.lisp:26
+    "(defun %broadcast (cv) (bt2:condition-broadcast cv))"
+  - Evidence: src/package.lisp:7–11
+    "(defpackage #:ctfg
+      (:use #:cl #:bt2)
+      …)"
+  - Evidence: src/rate-limiter.lisp:104–111, 127–132
+    uses `bt2:make-thread`, `bt2:thread-alive-p`, `bt2:destroy-thread` for cleanup thread.
+  - Rationale/Impact: `bt2` is not a standard package in ocicl; compilation/runtime would fail. This is a P0 blocker for running from source; must be corrected to `bt:` (Bordeaux Threads) or appropriate package.
+  - Recommendation: Replace `bt2:` with `bt:` throughout (`rwlock.lisp`, `rate-limiter.lisp`, package `:use`). Verify that `bt:` exposes `condition-broadcast` or provide an alternative (e.g., emulate broadcast via looped `condition-notify`).
+  - Verification: Build from source; run smoke tests and ensure rate-limit cleanup thread starts; exercise RW lock paths.
 
-2) Origin policy “may be intentional” for CTF
-   - Even if scoreboard data is non‑sensitive, an open origin check enables trivial embedding that can amplify load or be used for nuisance traffic. In practice, origin checks are cheap to restrict to your event domain(s) without hampering participants. Recommendation stands: whitelist expected origins in production.
+- High: WAL checkpoint control
+  - Evidence: src/db.lisp:134–144 enables WAL and performance PRAGMAs; no `wal_checkpoint` or `wal_autocheckpoint` present elsewhere.
+  - Rationale: During a 3‑hour event with steady writes, WAL may grow; without auto-checkpointing, disk usage can creep and fsyncs bunch.
+  - Recommendation: Add `PRAGMA wal_autocheckpoint = 1000;` at init and/or scheduled `PRAGMA wal_checkpoint(TRUNCATE);` during quiet periods.
+  - Verification: Observe `events.db-wal` size over time during emulator runs.
 
-Additional Clarifications (based on reviewer asks)
-- Memory usage of in‑memory solve tracking
-  - `*solves-table*` maps `user-id` → luckless CAS list of challenge IDs. Upper bound for the event is modest: 200 players × ≤30 challenges ≈ ≤6,000 nodes. This is acceptable headroom.
-  - Persisted truth lives in SQLite; `*solves-table*` is a fast cache hydrated on boot from `collect-events`.
+- Medium: `/api/award` logs bearer token and lacks rate limiting
+  - Evidence (logging): src/server.lisp:388–391 — `(log:info access-token)`.
+  - Evidence (no RL): src/server.lisp:386–415 contains no `check-rate-limit` call; compare submit/hint/set-name at src/server.lisp:318–321, 336–339, 419–423.
+  - Recommendation: Remove token logging (or log hash/first 8 chars). Apply `check-rate-limit *api-rate-limiter*` keyed to a service user or IP.
+  - Verification: Confirm header not logged; hammer endpoint and receive 429s.
 
-- Thread lifecycle
-  - Rate‑limit cleanup thread: created once, destroyed in `shutdown-server` via `stop-rate-limit-cleanup` (calls `bt2:destroy-thread`). WebSocket server and resource listener threads are started with handlers that capture and log exceptions. This is reasonable for a single‑node event; just ensure `shutdown-server` is called during controlled stops.
+- High: CLWS accept backlog of 5
+  - Evidence (ocicl): ocicl/clws-20240503-b20799d/server.lisp:96–106 — `:backlog 5` in `with-open-socket`.
+  - Recommendation: Patch to increase backlog (e.g., 256–1024) for event; contribute upstream or vendor patch locally.
 
-- Database index benefit
-  - Observed statements:
-    - Solve dedupe: `WHERE user_id=? AND challenge_id=? AND event_type=1 LIMIT 1`
-    - Hint checks: `SELECT 1 … user_id=? AND challenge_id=? AND hint_number=? AND event_type=2`, plus `MAX(hint_number)` with same prefix.
-    - Event replay: `ORDER BY ts`.
-  - Proposed indexes directly support these filters/sorts, reducing lock contention and tail latencies under bursty loads.
+- S-expression correction (non-substantive outcome change)
+  - Evidence: src/server.lisp:296–312 shows `when success` body consisting of two forms: a `let` containing `(log:info …)`, `(save-solve …)`, `(dolist …)`; and a sibling `(incf …)`.
+  - Conclusion remains: broadcast, cache update, and point increment only occur on success.
 
-Confirmed Bugs/Weaknesses with Evidence
-- `/api/award` robustness
-  - Uses cache lookup `(lh:gethash username *username-to-user-object*)`; NIL user can flow to later derefs. Fix: use `(ensure-user *db* username)` or 4xx on unknown usernames.
+### Contested
+- High: “Unbounded WebSocket Client Registry” and no cleanup
+  - Claim: Clients are registered without cleanup, causing memory leak.
+  - Evidence of cleanup: src/server.lisp:657–663
+    "(defmethod ws:resource-client-disconnected ((resource scorestream-resource) client)
+      … (remove-client client) …)"
+  - Evidence of removal: src/clients.lisp:29–39
+    "(defun remove-client (client) … (setf *websocket-clients* (delete client *websocket-clients* :key #'client-socket :test #'equal)) …)"
+  - Assessment: The code removes clients on disconnect; no leak by design. Monitoring is still advised to detect edge cases (e.g., abrupt socket drops without callback), but severity should be lowered or dropped.
 
-- `user-solved-p` misused in `/api/award`
-  - Signature is `(user-id challenge-id)`; code passes the user object and `cid`. The check is wrong (though dedupe is ultimately enforced by the DB). Fix: pass `(user-id user)` or drop the redundant precheck.
+## Clarified S-expression Analysis
 
-- Regex flag matching
-  - Current path: `ppcre:count-matches (challenge-flag chal) guess`. This treats the stored flag as a regex and isn’t anchored. To avoid both false positives and regex backtracking surprises, use exact comparison or anchor/escape the stored flag.
+Focus: `award-points-atomic`
 
-- Duplicated globals
-  - `*challenges-path*` and `*websocket-url*` are defined in multiple compilation units. Prefer a single definition to avoid load‑order surprises.
+- Structural outline (raw): src/server.lisp:293–312
+  "(log:info …)
+   (multiple-value-bind (success ts event-id) …
+     (when success
+       (let ((msg …))
+         (log:info msg)
+         (save-solve …)
+         (dolist (…) (with-write-lock-held (…) (ws:write-to-client-text …))))
+       (incf (user-total-points user) (challenge-points challenge)))
+     success)"
+- Body of `when`: exactly two forms, in order:
+  1) a `let` containing three body forms (log/save/broadcast),
+  2) the `(incf …)` form.
+- The `success` symbol is outside `when` but inside the `multiple-value-bind` body, which is inside the defun.
 
-Refined Action Plan (with rationale)
-1) Correct `/api/hint` parameter key to `:hint_id` and keep 4xx mapping for other errors.
-2) Remove/obfuscate sensitive logging (flags and Authorization token). Log metadata only.
-3) Disable detailed error pages in production mode; keep Sentry exception capture.
-4) Fix `award-points-atomic` so `incf` executes only on success.
-5) Harden static file dispatcher to reject traversal and serve only known subtrees.
-6) Add DB indexes; run `ANALYZE` after first warmup to help the planner.
-7) Move hint affordability check to run inside `BEGIN IMMEDIATE` with `SUM(points)` to enforce correctness.
-8) WebSocket improvements: raise backlog (vendor patch), chunk/window event replay, and ensure write‑backlog limits are sized for peak bursts.
-9) `/api/award` robustness: `ensure-user` or return 4xx; fix `user-solved-p` call.
-10) Exact/anchored flag comparison to avoid regex pitfalls.
-
-Notes on Operational Readiness
-- Sessions are configured to persist; appropriate for a 3‑hour event with manual lifecycle.
-- Observability: consider counters (rate‑limit rejects, dup‑submit, hint‑locked, WS connects/disconnects) for quick triage during the event.
-
-Conclusion
-Both reviewers validate the most important risks and agree on the highest‑priority fixes. The only contested point—the unconditional points increment—is a real bug by inspection and should be corrected. With these fixes and small scalability adjustments, the system should comfortably meet the event’s resilience and availability targets.
+## Updated Priorities
+1) P0: Fix `bt2` usages and `%broadcast` typo (blocking for source builds).
+2) P1: Secure WS origin/token, fix static traversal, disable prod backtraces.
+3) P2: Add DB indexes; increase CLWS backlog; add WAL auto-checkpoint.
+4) P3: Rate-limit `/api/award`; remove token logging; bound WS replay window.
 
