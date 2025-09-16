@@ -589,18 +589,26 @@ class Player {
         // Wrap entire player run in a timeout
         const playerTimeout = 300000; // 5 minute total timeout per player
 
+        let playerTimer;
         try {
             await Promise.race([
                 this._runInternal(),
-                new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error(`Player ${this.id} timeout after ${playerTimeout/1000}s`)), playerTimeout)
-                )
+                new Promise((_, reject) => {
+                    playerTimer = setTimeout(
+                        () => reject(new Error(`Player ${this.id} timeout after ${playerTimeout/1000}s`)),
+                        playerTimeout
+                    );
+                })
             ]);
         } catch (err) {
             this.log(`Player run failed: ${err.message}`);
             recordError(err, 'player_run', this.id);
             this.metrics.errors.push({timestamp: Date.now(), error: err.message, context: 'player_run'});
         } finally {
+            if (playerTimer) {
+                clearTimeout(playerTimer);
+                playerTimer = null;
+            }
             // Always cleanup WebSocket and timers
             await this.cleanup();
             this.log('Player simulation complete');
@@ -865,12 +873,16 @@ async function main() {
 
     // Wait for all players to complete with global timeout
     const globalTimeout = 600000; // 10 minute global timeout
+    let globalTimer;
     try {
         await Promise.race([
             Promise.all(promises),
-            new Promise((_, reject) =>
-                setTimeout(() => reject(new Error(`Global test timeout after ${globalTimeout/1000}s`)), globalTimeout)
-            )
+            new Promise((_, reject) => {
+                globalTimer = setTimeout(
+                    () => reject(new Error(`Global test timeout after ${globalTimeout/1000}s`)),
+                    globalTimeout
+                );
+            })
         ]);
     } catch (err) {
         console.log(`\n⚠️  Test timeout: ${err.message}`);
@@ -881,6 +893,11 @@ async function main() {
             Promise.allSettled(promises),
             new Promise(resolve => setTimeout(resolve, 5000))
         ]);
+    } finally {
+        if (globalTimer) {
+            clearTimeout(globalTimer);
+            globalTimer = null;
+        }
     }
 
     // Stop progress monitor
@@ -943,6 +960,10 @@ async function main() {
                 console.log(`   ${count}x ${error}`);
             });
     }
+
+    // Ensure process exits cleanly even if any stray handles remain
+    process.removeAllListeners('SIGINT');
+    process.exit(0);
 }
 
 // Run the main function
