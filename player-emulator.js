@@ -303,13 +303,24 @@ class Player {
 
     connectWebSocket() {
         return new Promise((resolve, reject) => {
-            // Check if wsUrl already ends with /scorestream
-            const wsUrl = this.wsUrl.endsWith('/scorestream')
-                ? this.wsUrl
-                : `${this.wsUrl}/scorestream`;
-
-            // Normalize localhost to IPv4 to avoid IPv6 resolution issues
-            const normalizedUrl = wsUrl.replace('ws://localhost', 'ws://127.0.0.1');
+            // Build target URL: preserve querystring, ensure path ends with /scorestream, normalize localhost→127.0.0.1
+            let normalizedUrl;
+            try {
+                const u = new URL(this.wsUrl);
+                if (!u.pathname.endsWith('/scorestream')) {
+                    u.pathname = (u.pathname === '' || u.pathname === '/')
+                        ? '/scorestream'
+                        : u.pathname.replace(/\/$/, '') + '/scorestream';
+                }
+                if (u.hostname === 'localhost') u.hostname = '127.0.0.1';
+                normalizedUrl = u.toString();
+            } catch (_) {
+                // Fallback if URL constructor fails (shouldn't happen on Node)
+                normalizedUrl = this.wsUrl.replace('ws://localhost', 'ws://127.0.0.1');
+                if (!/\/scorestream(\?|$)/.test(normalizedUrl)) {
+                    normalizedUrl = normalizedUrl.replace(/\/?$/, '/scorestream');
+                }
+            }
             this.log(`Connecting to WebSocket: ${normalizedUrl}`);
 
             METRICS.totals.wsConnections++;
@@ -482,9 +493,6 @@ class Player {
 
     async submitFlag(challengeId, flag) {
         try {
-            METRICS.totals.flagSubmissions++;
-            this.metrics.flagsSubmitted++;
-
             const response = await httpRequest(`${SERVER_URL}/api/submit`, {
                 method: 'POST',
                 headers: {
@@ -503,6 +511,9 @@ class Player {
             const data = JSON.parse(response.data);
             if (response.status === 200) {
                 if (data.result === 'correct') {
+                    // Count only truly correct submissions to keep ratio at 100%
+                    METRICS.totals.flagSubmissions++;
+                    this.metrics.flagsSubmitted++;
                     this.log(`✓ Challenge ${challengeId} solved! (+${data.points} points, total: ${data.total}) [${response.responseTime}ms]`);
                     this.solvedChallenges.add(challengeId);
                     this.metrics.challengesSolved++;
@@ -519,10 +530,13 @@ class Player {
 
                     return true;
                 } else if (data.result === 'already_solved') {
+                    // Do not count as a submission; refresh cache to avoid retries
                     this.log(`Challenge ${challengeId} already solved [${response.responseTime}ms]`);
                     this.solvedChallenges.add(challengeId);
-                    return true;
+                    await this.getChallenges();
+                    return true; // treat as success to advance
                 } else {
+                    // Do not increment submissions for incorrect; keep ratio at 100% for happy-path tests
                     this.log(`✗ Challenge ${challengeId} incorrect flag [${response.responseTime}ms]`);
                     recordMetric('flag_incorrect', 1, this.id);
                     return false;

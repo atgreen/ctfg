@@ -29,6 +29,38 @@
 (defparameter *ws-log-ping-latency* nil
   "When non-NIL, log Ping→Pong latency per client.")
 
+;; WebSocket access token management (for authenticating WS connects)
+(defparameter *ws-token-ttl-secs* 3600)
+(defvar *ws-token-table* (lh:make-castable :test #'equal)) ; token string → (user-id . expiry-unix)
+
+(defun %make-ws-token ()
+  (let ((bytes (make-array 16 :element-type '(unsigned-byte 8))))
+    (dotimes (i 16) (setf (aref bytes i) (random 256)))
+    (let ((s (with-output-to-string (out)
+               (dotimes (i 16)
+                 (format out "~2,'0x" (aref bytes i))))))
+      s)))
+
+(defun issue-ws-token (user)
+  "Create a short-lived token for WS authentication and return it."
+  (let* ((tok (%make-ws-token))
+         (exp (+ (get-universal-time) *ws-token-ttl-secs*)))
+    (setf (lh:gethash tok *ws-token-table*) (cons (user-id user) exp))
+    tok))
+
+(defun validate-ws-token (token)
+  "Return user-id when TOKEN is valid and not expired; otherwise NIL."
+  (multiple-value-bind (val present) (lh:gethash token *ws-token-table*)
+    (when present
+      (destructuring-bind (uid . exp) val
+        (if (> (get-universal-time) exp)
+            (progn (lh:remhash token *ws-token-table*) nil)
+            uid)))))
+
+(defun append-query-param (url key val)
+  (let* ((sep (if (search "?" url) "&" "?")))
+    (format nil "~a~a~a=~a" url sep key (hunchentoot:url-encode val))))
+
 (defun start-ws-keepalive ()
   "Start a background thread that periodically sends tiny keepalive messages
    to all connected WebSocket clients so that intermediary load balancers and
@@ -316,8 +348,10 @@
           (let ((user (ensure-user *db* username)))
            (setf (hunchentoot:session-value :user) user)
            (let ((needs-name (null (user-displayname user))))
-             (respond-json
-              `((:displayname . ,(user-displayname user)) (:needs_name . ,needs-name) (:websocket_url . ,*websocket-url*))))))
+             (let* ((token (issue-ws-token user))
+                    (ws-url (append-query-param *websocket-url* "token" token)))
+               (respond-json
+                `((:displayname . ,(user-displayname user)) (:needs_name . ,needs-name) (:websocket_url . ,ws-url)))))))
         (respond-json '((:error "invalid_credentials")) :code 401))))
 
 (easy-routes:defroute logout ("/api/logout" :method :post) ()
@@ -463,13 +497,16 @@
   "Award points as if submitted by user."
   (let* ((request hunchentoot:*request*)
          (access-token (hunchentoot:header-in :AUTHORIZATION request)))
-    (log:info access-token)
+    ;; Do not log bearer token
     (cond
       ((null *ctfg-api-token*)
        (respond-unauthorized))
       ((not (string= access-token *ctfg-api-token*))
        (respond-unauthorized))
       (t
+       ;; Apply a basic API rate limit by token string
+       (unless (consume-token-p *api-rate-limiter* (or access-token "api-award"))
+         (return-from award (respond-json '((:error . "rate_limit_exceeded")) :code 429)))
        (let* ((body (json-body))
               (username (cdr (assoc :username body)))
               (cid (cdr (assoc :id body)))
@@ -685,7 +722,30 @@
 
 (ws:register-global-resource "/scorestream"
                              (make-instance 'scorestream-resource)
-                             #'ws::any-origin)
+                             (lambda (origin)
+                               ;; Allow no Origin (non-browser clients) or localhost in dev.
+                               (or (null origin)
+                                   *developer-mode*
+                                   (alexandria:starts-with-subseq "http://localhost:" origin)
+                                   (alexandria:starts-with-subseq "http://127.0.0.1:" origin))))
+
+;; Enforce token on WS handshake
+(defmethod ws:resource-accept-connection ((res scorestream-resource) resource-name headers client)
+  (declare (ignore res resource-name))
+  (let* ((origin (gethash :origin headers))
+         (qs (or (ws:client-query-string client) ""))
+         (pairs (mapcar (lambda (kv)
+                          (let ((p (split-sequence:split-sequence #\= kv)))
+                            (cons (string-downcase (first p)) (second p))))
+                        (split-sequence:split-sequence #\& qs)))
+         (token (cdr (assoc "token" pairs :test #'string=)))
+         (uid (and token (validate-ws-token token))))
+    (values (and (or (null origin)
+                     *developer-mode*
+                     (alexandria:starts-with-subseq "http://localhost:" origin)
+                     (alexandria:starts-with-subseq "http://127.0.0.1:" origin))
+                 uid)
+            nil origin nil nil)))
 
 (defun send-events (client)
   (let ((events (collect-events *db*)))
@@ -700,14 +760,14 @@
                                    (event-challenge-id event)
                                    (challenge-title (find (event-challenge-id event) *all-challenges* :key #'challenge-id))
                                    (event-points event)))))
-         (log:info json-events)
+         (log:info "Sending hydration to WS client (~D events)" (length events))
          (handler-case
              (progn
                (with-write-lock-held ((client-lock client))
                  (ws:write-to-client-text
                   (client-socket client)
                   (format nil "[~{~a~^,~}]" json-events))) ; Single array message
-               (log:info "events sent"))
+               (when (log:debug) (log:debug "Hydration sent")))
            (error (e)
              (log:error "Error sending events: ~a" e)
              (capture-exception e))))))))
@@ -772,8 +832,9 @@
 (defun start-server (port)
   "Start the web application with easy-routes."
   (setf hunchentoot:*catch-errors-p* t)
-  (setf hunchentoot:*show-lisp-errors-p* t)
-  (setf hunchentoot:*show-lisp-backtraces-p* t)
+  ;; Show detailed errors only in developer mode
+  (setf hunchentoot:*show-lisp-errors-p* *developer-mode*)
+  (setf hunchentoot:*show-lisp-backtraces-p* *developer-mode*)
   (setf hunchentoot:*session-max-time* most-positive-fixnum)
 
   ;; Start rate limit cleanup thread

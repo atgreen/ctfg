@@ -14,3 +14,5 @@ ctfg
 /runtime-files.tgz
 .claude
 node_modules
+metrics-*.json
+performance-report-*.html

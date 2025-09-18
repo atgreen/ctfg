@@ -169,7 +169,8 @@ Use this for any DB operation; opening/closing is cheap and avoids FD leaks."
                    "PRAGMA synchronous = NORMAL;"     ; Faster writes
                    "PRAGMA cache_size = -64000;"      ; 64MB cache
                    "PRAGMA temp_store = MEMORY;"      ; Use RAM for temp
-                   "PRAGMA mmap_size = 268435456;"))  ; 256MB memory map
+                   "PRAGMA mmap_size = 268435456;"     ; 256MB memory map
+                   "PRAGMA wal_autocheckpoint = 1000;"))  ; checkpoint ~4MB WAL
       (sqlite:execute-non-query dbc sql))))
 
 (defmethod initialize-instance :after ((db db-backend) &key)
@@ -434,22 +435,28 @@ Returns two values: timestamp µs and new event-id."
 ;;;;  Read helpers
 ;;;; --------------------------------------------------------------------------
 
-(defun collect-events (db)
-  "Return a list of EVENT objects."
+(defun collect-events (db &key limit)
+  "Return a list of EVENT objects. If LIMIT is provided, return the most recent LIMIT events."
   (with-open-connection (conn db)
-    (loop
-      for (id ts uid cid etype hint pts)
-        in (sqlite:execute-to-list
-            conn
-            "SELECT id, ts, user_id, challenge_id,
-                    event_type, hint_number, points
-               FROM events
-              ORDER BY ts")
-      collect (make-event
-               :id           id
-               :ts           ts
-               :user-id      uid
-               :challenge-id cid
-               :event-type   etype
-               :hint-number  hint
-               :points       pts))))
+    (let ((rows (if limit
+                    (sqlite:execute-to-list
+                     conn
+                     (format nil "SELECT id, ts, user_id, challenge_id, event_type, hint_number, points
+                                 FROM events ORDER BY ts DESC LIMIT ~d" (truncate limit)))
+                    (sqlite:execute-to-list
+                     conn
+                     "SELECT id, ts, user_id, challenge_id,
+                             event_type, hint_number, points
+                        FROM events
+                       ORDER BY ts"))))
+      ;; If limited with DESC, reverse to chronological order for clients
+      (when limit (setf rows (nreverse rows)))
+      (loop for (id ts uid cid etype hint pts) in rows
+            collect (make-event
+                     :id           id
+                     :ts           ts
+                     :user-id      uid
+                     :challenge-id cid
+                     :event-type   etype
+                     :hint-number  hint
+                     :points       pts)))))
