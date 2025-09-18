@@ -123,6 +123,8 @@ Practical tips:
 - Server keepalive pings are enabled by default; `*ws-keepalive-interval*` and `*ws-ping-timeout*` control cadence and timeout. PONGs update `client-last-pong-ts` in `src/server.lisp`.
 - Load/backlog: the CLWS listener can accept a `:backlog` (see `*ws-backlog*`); increase for large bursts.
 
+- Initial replay semantics: The WS “hydration” message on connect must include the FULL event history. The frontend computes the scoreboard by reducing the event stream; truncating the replay will yield incorrect totals. If optimization is needed, implement a server-side snapshot (totals + solves) plus recent events instead of capping the history.
+
 Testing tips:
 - Validate the handshake with `wscat -c ws://127.0.0.1:12345/scorestream`. If it fails, confirm you restarted after CLWS changes and you are connecting to IPv4.
 - From curl: send an Upgrade request and expect `101 Switching Protocols`.
