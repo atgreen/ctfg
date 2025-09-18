@@ -13,3 +13,4 @@ ctfg
 /scoreboard*.png
 /runtime-files.tgz
 .claude
+node_modules
