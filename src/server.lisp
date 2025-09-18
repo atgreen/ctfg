@@ -13,6 +13,51 @@
 
 (defparameter *websocket-url* nil)
 
+;; WebSocket keepalive configuration
+(defparameter *ws-keepalive-interval* 15
+  "Seconds between server-initiated keepalive pings. Set to 0 to disable.")
+
+;; Keepalive thread control
+(defvar *ws-keepalive-thread* nil)
+(defvar *ws-keepalive-running* nil)
+
+(defun start-ws-keepalive ()
+  "Start a background thread that periodically sends tiny keepalive messages
+   to all connected WebSocket clients so that intermediary load balancers and
+   routes (e.g., OpenShift, AWS) keep the connections alive."
+  (when (and *ws-keepalive-thread* (bt:thread-alive-p *ws-keepalive-thread*))
+    (return-from start-ws-keepalive *ws-keepalive-thread*))
+  (when (and (numberp *ws-keepalive-interval*) (> *ws-keepalive-interval* 0))
+    (setf *ws-keepalive-running* t)
+    (setf *ws-keepalive-thread*
+          (bt:make-thread
+           (lambda ()
+             (handler-bind ((error (lambda (c)
+                                     (format *error-output* "Error in thread ~A: ~A~%"
+                                             (bt:current-thread) c)
+                                     (sb-debug:print-backtrace :count 50 :stream *error-output*)
+                                     (finish-output *error-output*))))
+               (loop while *ws-keepalive-running*
+                     do (sleep *ws-keepalive-interval*)
+                        (ignore-errors
+                          (dolist (c (get-client-list))
+                            (handler-case
+                                ;; Use a very small JSON payload. The client ignores
+                                ;; messages that are not score/hint events.
+                                (with-write-lock-held ((client-lock c))
+                                  (ws:write-to-client-text (client-socket c) "{\"type\":\"ping\"}"))
+                              (error (e)
+                                ;; Drop the client on write error to avoid leaks
+                                (log:warn "Keepalive ping failed; removing client: ~A" e)
+                                (ignore-errors (remove-client (client-socket c)))))))))
+           :name "ws keepalive"))
+    (log:info "WebSocket keepalive enabled (~As)" *ws-keepalive-interval*)
+    *ws-keepalive-thread*))
+
+(defun stop-ws-keepalive ()
+  "Signal the keepalive thread to stop."
+  (setf *ws-keepalive-running* nil))
+
 (defvar *solves-table* (lh:make-castable))
 
 (defun capture-exception (e)
@@ -736,11 +781,14 @@
                              (finish-output *error-output*))))
        (handler-case
            (ws:run-resource-listener
-            (ws:find-global-resource "/scorestream"))
+           (ws:find-global-resource "/scorestream"))
          (error (e)
            (log:error "Resource listener crashed: ~A" e)
            (capture-exception e)))))
    :name "resource listener for /scorestream")
+
+  ;; Start WebSocket keepalive pings if enabled
+  (start-ws-keepalive)
 
   ;; Create and start the easy-routes acceptor with high-capacity taskmaster
   (setf *acceptor* (make-instance 'my-acceptor
@@ -758,6 +806,7 @@
   (when *acceptor*
     (hunchentoot:stop *acceptor*)
     (setf *acceptor* nil))
+  (stop-ws-keepalive)
   (stop-rate-limit-cleanup)
   (log:info "Server shutdown complete"))
 

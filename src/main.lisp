@@ -40,6 +40,8 @@
                                         :description "database directory" :initial-value "."))
         (w (clingon:make-option :string :short-name #\w :long-name "websocket-url" :key :websocket-url
                                         :description "websocket-url" :initial-value "ws://localhost:12345/scorestream"))
+        (k (clingon:make-option :integer :short-name #\k :long-name "ws-keepalive-interval" :key :ws-keepalive-interval
+                                         :description "seconds between WebSocket keepalive pings (0=disable)" :initial-value 15))
         (d (clingon:make-option :flag :short-name #\d :long-name "developer-mode" :key :developer-mode
                                       :description "enable developer mode" :initial-value nil)))
     (clingon:make-command
@@ -49,7 +51,7 @@
      :authors (list "Anthony Green")
      :license "MIT"
      :usage ""
-     :options (list p s b w d)
+     :options (list p s b w k d)
      :sub-commands (list (init/command))
      :handler (lambda (cmd)
 
@@ -77,10 +79,13 @@
                        (port (clingon:getopt cmd :port))
                        (dbdir (clingon:getopt cmd :dbdir))
                        (websocket-url (clingon:getopt cmd :websocket-url))
-                       (slynk-port (clingon:getopt cmd :slynk-port)))
+                       (slynk-port (clingon:getopt cmd :slynk-port))
+                       (ws-keepalive (clingon:getopt cmd :ws-keepalive-interval)))
                   (setf *challenges-path* json-path)
                   (setf *dbdir* (concatenate 'string dbdir "/"))
                   (setf *websocket-url* websocket-url)
+                  (when (and (integerp ws-keepalive) (>= ws-keepalive 0))
+                    (setf *ws-keepalive-interval* ws-keepalive))
                   (setf *ctfg-api-token* (uiop:getenv "CTFG_API_TOKEN"))
                   (bt:with-lock-held (*server-lock*)
                     (setf *developer-mode* (clingon:getopt cmd :developer-mode))

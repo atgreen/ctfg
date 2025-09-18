@@ -45,7 +45,7 @@ const WEBSOCKET_CONFIG = {
     BACKOFF_MAX: 30_000,              // 30 seconds maximum delay
     MAX_RECONNECT_ATTEMPTS: 10,       // Maximum reconnection attempts
     CONNECTION_TIMEOUT: 10_000,       // 10 seconds connection timeout
-    PING_INTERVAL: 45_000,            // 45 seconds ping interval
+    PING_INTERVAL: 15_000,            // 15 seconds ping interval
     MAX_MESSAGE_SIZE: 5_000_000       // 5MB maximum message size
 };
 
