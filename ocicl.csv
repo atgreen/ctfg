@@ -50,7 +50,7 @@ clingon.demo, ghcr.io/ocicl/clingon@sha256:8d9021c0f530b1bbb019c672f64a703112544
 clingon.intro, ghcr.io/ocicl/clingon@sha256:8d9021c0f530b1bbb019c672f64a703112544f489654c89cbe4ce93c60888664, clingon-20240603-f2a730f/clingon.intro.asd
 clingon.test, ghcr.io/ocicl/clingon@sha256:8d9021c0f530b1bbb019c672f64a703112544f489654c89cbe4ce93c60888664, clingon-20240603-f2a730f/clingon.test.asd
 closer-mop, ghcr.io/ocicl/closer-mop@sha256:82ce314799fd75cbcda36a0b050b7815de6e919efb394a24f0ffe32c9e9c18ea, closer-mop-20250602-2ed3946/closer-mop.asd
-clws, ghcr.io/ocicl/clws@sha256:1621f89539857d74dbefb73343973583c9a9b30227363f6247242b7303f493dc, clws-20240503-b20799d/clws.asd
+clws, ghcr.io/ocicl/clws@sha256:0a8921e96fa67c8e4dc0fd2e571a6bb74f84ffd8ea925c59d0017165162f8c42, clws-20250918-287006c/clws.asd
 dbd-mysql, ghcr.io/ocicl/cl-dbi@sha256:2562e0b2c1ed9eed53113172ec62a564518a8987732862f638584928840f348f, cl-dbi-20240907-8dbd2cc/dbd-mysql.asd
 dbd-postgres, ghcr.io/ocicl/cl-dbi@sha256:2562e0b2c1ed9eed53113172ec62a564518a8987732862f638584928840f348f, cl-dbi-20240907-8dbd2cc/dbd-postgres.asd
 dbd-sqlite3, ghcr.io/ocicl/cl-dbi@sha256:2562e0b2c1ed9eed53113172ec62a564518a8987732862f638584928840f348f, cl-dbi-20240907-8dbd2cc/dbd-sqlite3.asd

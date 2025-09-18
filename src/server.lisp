@@ -26,6 +26,8 @@
   "Seconds to wait for a client Pong before considering the connection dead.")
 (defparameter *ws-ping-latency-warn-ms* 2000
   "Warn if Ping→Pong latency exceeds this many milliseconds.")
+(defparameter *ws-log-ping-latency* nil
+  "When non-NIL, log Ping→Pong latency per client.")
 
 (defun start-ws-keepalive ()
   "Start a background thread that periodically sends tiny keepalive messages
@@ -50,12 +52,15 @@
                           (when (null ping-fn)
                             (log:warn "CLWS ping not available; disabling server keepalive pings")
                             (return))
-                          ;; Send PING to all clients
+                          ;; Send PING to all clients (store last-ping-ms and include ms payload)
                           (ignore-errors
                             (dolist (c (get-client-list))
                               (handler-case
                                   (with-write-lock-held ((client-lock c))
-                                    (funcall ping-fn (client-socket c)))
+                                    (let* ((tsms (floor (now-micros) 1000))
+                                           (payload (format nil "~D" tsms)))
+                                      (setf (client-last-ping-ms c) tsms)
+                                      (funcall ping-fn (client-socket c) payload)))
                                 (error (e)
                                   (log:warn "Keepalive ping failed; removing client: ~A" e)
                                   (ignore-errors (remove-client (client-socket c)))))))
@@ -734,15 +739,18 @@
              (now-secs (get-universal-time))
              (payload-str (ignore-errors (%utf8->string message)))
              (now-ms (floor (now-micros) 1000))
-             (sent-ms (ignore-errors (parse-integer (or payload-str "") :junk-allowed t)))
+             (sent-ms (or (ignore-errors (parse-integer (or payload-str "") :junk-allowed t))
+                          (and wrapper (client-last-ping-ms wrapper))))
              (latency (and sent-ms (- now-ms sent-ms))))
         (when wrapper
           (with-write-lock-held ((client-lock wrapper))
             (setf (client-last-pong-ts wrapper) now-secs)))
         (when latency
-          (if (> latency *ws-ping-latency-warn-ms*)
-              (log:warn "WS Pong latency ~A ms from ~A:~A" latency (ws:client-host client) (ws:client-port client))
-              (log:debug "WS Pong latency ~A ms from ~A:~A" latency (ws:client-host client) (ws:client-port client)))))
+          (cond
+            ((> latency *ws-ping-latency-warn-ms*)
+             (log:warn "WS Pong latency ~A ms from ~A:~A" latency (ws:client-host client) (ws:client-port client)))
+            (*ws-log-ping-latency*
+             (log:info "WS Pong latency ~A ms from ~A:~A" latency (ws:client-host client) (ws:client-port client))))))
     (error (e)
       (log:warn "Error handling PONG: ~A" e))))
 

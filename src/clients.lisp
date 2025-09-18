@@ -14,7 +14,8 @@
 (defstruct client
   socket
   lock                                   ; per-socket mutex if you need one
-  last-pong-ts)                          ; last time (get-universal-time) we saw a PONG
+  last-pong-ts                           ; last time (get-universal-time) we saw a PONG
+  last-ping-ms)                          ; last PING send time (ms since epoch)
 
 ;;; ------------------------------------------------------------------
 ;;; public helpers
