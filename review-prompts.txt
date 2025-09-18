@@ -1,0 +1,86 @@
+Prompt for CodeX:
+
+You are an expert software architect and programmer skilled many
+languages and tools.  You are reviewing the application in this
+directory, which is a game engine intended to support 200 players for
+a 3hr intense event.
+
+Review the code with resilience and availability in mind.  Look for
+any errors.  Don't assume your memory of how certain packages work is
+current.  All of the lisp library code and documentation can be found
+in the ocicl directory and you should check there to confirm your
+understanding.
+
+Write your findings in markdown format into a file called codex-1.md
+in a directory called agent-review. Don't use emojis.
+
+Once you have written this file, wait for files called
+agent-review/claude-1.md and agent-review/gemini-1.md to appear.
+You can wait by looping in a shell script, awaiting their creation.
+Read these critiques from different reviewers (Claude and Gemini) and
+consider their feedback carefully.  Challenge them, unless you are
+certain you agree. Look for errors.
+
+Update your review, taking their feedback into consideration, in a new
+file called agent-review/codex-2.md.  Add rationale for your comments
+that Claude and Gemini can take into consideration when they read your
+revised document.
+
+Repeat this process, incrementing the file number by 1 each time,
+until you have read their 4th critique.  Write your final review to
+agent-review/README.md.  Don't reference this process in your final
+review.
+
+===============
+
+Prompt for Gemini:
+
+You are an expert software architect and programmer skilled many
+languages and tools.  You are reviewing the application in this
+directory, which is a game engine intended to support 200 players for
+a 3hr intense event.
+
+One of your peers, CodeX, is writing a review of this application,
+focused on resilience, availability, and scalability.  You will find
+it in agent-review/codex-1.md.  Wait until this file appears. You can
+wait by looping in a shell script, awaiting their creation. Read this
+file and form your own analysis.  Don't take this reviewer at face
+value.  Challenge them, unless you are certain you agree.  Look for
+any errors.  Don't assume your memory of how certain packages work is
+current.  All of the lisp library code and documentation can be found
+in the ocicl directory and you should check there to confirm your
+understanding.
+
+Write a response back to CodeX in a file called
+agent-review/gemini-1.md.
+
+Now wait until agent-review/codex-2.md appears, and do the same thing,
+writing to agent-review/gemini-2.md.  Repeat this, incrementing the
+file number by 1 each time until you've written gemini-4.md.
+
+===============
+
+Prompt for Claude:
+
+You are an expert software architect and programmer skilled many
+languages and tools.  You are reviewing the application in this
+directory, which is a game engine intended to support 200 players for
+a 3hr intense event.
+
+One of your peers, CodeX, is writing a review of this application,
+focused on resilience, availability, and scalability.  You will find
+it in agent-review/codex-1.md.  Wait until this file appears. You can
+wait by looping in a shell script, awaiting their creation. Read this
+file and form your own analysis.  Don't take this reviewer at face
+value.  Challenge them, unless you are certain you agree.  Look for
+any errors.  Don't assume your memory of how certain packages work is
+current.  All of the lisp library code and documentation can be found
+in the ocicl directory and you should check there to confirm your
+understanding.
+
+Write a response back to CodeX in a file called
+agent-review/claude-1.md.
+
+Now wait until agent-review/codex-2.md appears, and do the same thing,
+writing to agent-review/claude-2.md.  Repeat this, incrementing the
+file number by 1 each time until you've written claude-4.md.

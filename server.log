@@ -1,0 +1,18 @@
+ <INFO> [03:41:02] ctfg challenges.lisp (top level form read-challenges) -
+  Read 15 challenges.
+ <INFO> [03:41:02] ctfg db.lisp (top level form initialize-instance :after db-backend) -
+  INITIALIZING DB
+ <INFO> [03:41:02] ctfg db.lisp (top level form initialize-instance :after db/sqlite) -
+  INITIALIZING DB/SQLITE
+ <INFO> [03:41:02] ctfg server.lisp (top level form start-server) -
+  Static content directory: /home/green/git/ctfg/
+ <INFO> [03:41:02] ctfg server.lisp (top level form start-server) -
+  Starting server version 0.1.14-ge5064d2+dirty on port 8080
+ <INFO> [03:41:02] ctfg server.lisp (top level form read-credentials) -
+  Read 400 credentials from credentials.csv
+ <INFO> [03:41:02] ctfg server.lisp (top level form start-server) -
+  Accepting WebSocket connections from origin: http://localhost:8080
+Socket error in "socket": EPERM (Operation not permitted)
+; 
+; compilation unit aborted
+;   caught 1 fatal ERROR condition

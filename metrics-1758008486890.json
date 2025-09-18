@@ -1,0 +1,292 @@
+{
+  "startTime": 1758008485602,
+  "endTime": 1758008486889,
+  "players": [
+    {
+      "id": 1,
+      "username": "player2",
+      "password": "iNAk7p82",
+      "displayName": "Player_player2_622",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758008485622,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": [
+          {
+            "timestamp": 1758008486470,
+            "error": "",
+            "context": "static_files"
+          },
+          {
+            "timestamp": 1758008486574,
+            "error": "",
+            "context": "login"
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "username": "player3",
+      "password": "qoomBnlP",
+      "displayName": "Player_player3_622",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758008485622,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": [
+          {
+            "timestamp": 1758008486785,
+            "error": "",
+            "context": "static_files"
+          },
+          {
+            "timestamp": 1758008486888,
+            "error": "",
+            "context": "login"
+          }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "username": "player4",
+      "password": "09wTiwd4",
+      "displayName": "Player_player4_622",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758008485622,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": [
+          {
+            "timestamp": 1758008486482,
+            "error": "",
+            "context": "static_files"
+          },
+          {
+            "timestamp": 1758008486589,
+            "error": "",
+            "context": "login"
+          }
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "username": "player5",
+      "password": "zB8K4VYA",
+      "displayName": "Player_player5_622",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758008485622,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": [
+          {
+            "timestamp": 1758008486085,
+            "error": "",
+            "context": "static_files"
+          },
+          {
+            "timestamp": 1758008486192,
+            "error": "",
+            "context": "login"
+          }
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "username": "player6",
+      "password": "otE3tMY8",
+      "displayName": "Player_player6_622",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758008485622,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": [
+          {
+            "timestamp": 1758008486720,
+            "error": "",
+            "context": "static_files"
+          },
+          {
+            "timestamp": 1758008486824,
+            "error": "",
+            "context": "login"
+          }
+        ]
+      }
+    }
+  ],
+  "totals": {
+    "loginAttempts": 5,
+    "loginSuccess": 0,
+    "wsConnections": 0,
+    "wsSuccessful": 0,
+    "flagSubmissions": 0,
+    "flagsCorrect": 0,
+    "challengesLoaded": 0,
+    "staticFilesLoaded": 0,
+    "errors": [
+      {
+        "timestamp": 1758008486085,
+        "error": {
+          "code": "EPERM",
+          "responseTime": 50,
+          "timestamp": 1758008486034
+        },
+        "context": "static_files",
+        "playerId": 4
+      },
+      {
+        "timestamp": 1758008486192,
+        "error": {
+          "code": "EPERM",
+          "responseTime": 4,
+          "timestamp": 1758008486187
+        },
+        "context": "login",
+        "playerId": 4
+      },
+      {
+        "timestamp": 1758008486470,
+        "error": {
+          "code": "EPERM",
+          "responseTime": 4,
+          "timestamp": 1758008486466
+        },
+        "context": "static_files",
+        "playerId": 1
+      },
+      {
+        "timestamp": 1758008486482,
+        "error": {
+          "code": "EPERM",
+          "responseTime": 3,
+          "timestamp": 1758008486478
+        },
+        "context": "static_files",
+        "playerId": 3
+      },
+      {
+        "timestamp": 1758008486574,
+        "error": {
+          "code": "EPERM",
+          "responseTime": 2,
+          "timestamp": 1758008486571
+        },
+        "context": "login",
+        "playerId": 1
+      },
+      {
+        "timestamp": 1758008486589,
+        "error": {
+          "code": "EPERM",
+          "responseTime": 7,
+          "timestamp": 1758008486582
+        },
+        "context": "login",
+        "playerId": 3
+      },
+      {
+        "timestamp": 1758008486720,
+        "error": {
+          "code": "EPERM",
+          "responseTime": 3,
+          "timestamp": 1758008486717
+        },
+        "context": "static_files",
+        "playerId": 5
+      },
+      {
+        "timestamp": 1758008486785,
+        "error": {
+          "code": "EPERM",
+          "responseTime": 2,
+          "timestamp": 1758008486783
+        },
+        "context": "static_files",
+        "playerId": 2
+      },
+      {
+        "timestamp": 1758008486824,
+        "error": {
+          "code": "EPERM",
+          "responseTime": 3,
+          "timestamp": 1758008486821
+        },
+        "context": "login",
+        "playerId": 5
+      },
+      {
+        "timestamp": 1758008486888,
+        "error": {
+          "code": "EPERM",
+          "responseTime": 2,
+          "timestamp": 1758008486886
+        },
+        "context": "login",
+        "playerId": 2
+      }
+    ]
+  },
+  "timeline": [],
+  "responseTimes": {
+    "staticFiles": [],
+    "login": [],
+    "challenges": [],
+    "submit": [],
+    "websocket": []
+  },
+  "staticFileBreakdown": {
+    "index.html": [],
+    "CSS": [],
+    "banner image": [],
+    "app.js": []
+  }
+}

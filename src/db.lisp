@@ -5,66 +5,6 @@
 
 (in-package :ctfg)
 
-;;;; --------------------------------------------------------------------------
-;;;;  Thread-safe connection pool
-;;;; --------------------------------------------------------------------------
-
-;; Use thread ID as key for connection mapping
-(defvar *thread-connections*
-  (make-hash-table :test #'equal :synchronized t)
-  "Thread-safe hash table mapping thread IDs to SQLite connections.")
-
-(defvar *connection-lock* (bt:make-lock "sqlite-connection-lock")
-  "Lock to protect connection creation/cleanup.")
-
-(defun get-thread-id ()
-  "Get a unique identifier for the current thread."
-  #+sbcl (sb-thread:thread-name sb-thread:*current-thread*)
-  #+ccl (ccl:process-name ccl:*current-process*)
-  #-(or sbcl ccl) (bt:thread-name (bt:current-thread)))
-
-(defun %connect-sqlite (path &key (busy-timeout 30000))
-  "Get or create a SQLite connection for the current thread.
-Each thread gets its own connection to avoid corruption under concurrent access.
-Busy-timeout is expressed in milliseconds."
-  (let ((thread-id (get-thread-id))
-        (path-string (namestring path)))
-    (bt:with-lock-held (*connection-lock*)
-      (let* ((key (format nil "~A:~A" thread-id path-string))
-             (existing-conn (gethash key *thread-connections*)))
-        (if existing-conn
-            existing-conn
-            (let ((new-conn (sqlite:connect path :busy-timeout busy-timeout)))
-              (setf (gethash key *thread-connections*) new-conn)
-              new-conn))))))
-
-(defun close-thread-db-connection (&optional thread-id path)
-  "Close SQLite connections for a specific thread, or current thread if not specified."
-  (let ((tid (or thread-id (get-thread-id))))
-    (bt:with-lock-held (*connection-lock*)
-      (if path
-          ;; Close specific connection
-          (let* ((path-string (namestring path))
-                 (key (format nil "~A:~A" tid path-string))
-                 (conn (gethash key *thread-connections*)))
-            (when conn
-              (ignore-errors (sqlite:disconnect conn))
-              (remhash key *thread-connections*)))
-          ;; Close all connections for this thread
-          (let ((keys-to-remove '()))
-            (maphash (lambda (key conn)
-                       (when (string-prefix-p (format nil "~A:" tid) key)
-                         (ignore-errors (sqlite:disconnect conn))
-                         (push key keys-to-remove)))
-                     *thread-connections*)
-            (dolist (key keys-to-remove)
-              (remhash key *thread-connections*)))))))
-
-(defun string-prefix-p (prefix string)
-  "Check if STRING starts with PREFIX."
-  (and (<= (length prefix) (length string))
-       (string= prefix string :end2 (length prefix))))
-
 (defclass db/sqlite (db-backend)
   ((sqlite-db-filename :initarg :filename :reader filename))
   (:default-initargs
@@ -73,9 +13,6 @@ Busy-timeout is expressed in milliseconds."
                                       username TEXT NOT NULL UNIQUE,
                                       displayname TEXT);"
    :filename (error "Must supply a filename.")))
-
-(defmethod connect-cached ((db db/sqlite))
-  (%connect-sqlite (filename db)))
 
 ;;;; --------------------------------------------------------------------------
 ;;;;  µs-precision timestamp
@@ -88,29 +25,121 @@ Busy-timeout is expressed in milliseconds."
                   (/ internal-time-units-per-second 1000000)))))
 
 ;;;; --------------------------------------------------------------------------
-;;;;  Convenience macro (kept the same surface API)
+;;;;  Connection macros (fresh per operation)
 ;;;; --------------------------------------------------------------------------
 
-(defmacro with-open-connection ((var db) &body body)
-  "Bind VAR to a live cl-sqlite handle, then execute BODY.
-The handle is *not* closed afterwards – it is kept in the process-wide cache,
-mirroring the behaviour of dbi:connect-cached."
-  (let ((db-sym (gensym "DB")))
-    `(let* ((,db-sym ,db)
-            (,var   (connect-cached ,db-sym)))
-       ,@body)))
+;; Limit concurrent SQLite connections to avoid file descriptor exhaustion
+;; and transient CANTOPEN errors when many threads try to open at once.
+(defparameter *sqlite-max-connections* 128)
+
+;; Simple counting gate implemented with a lock + condition variable
+(defstruct (conn-gate (:constructor %make-conn-gate))
+  (count 0 :type fixnum)
+  (lock (bt:make-lock "conn-gate") :read-only t)
+  (cv   (bt:make-condition-variable) :read-only t))
+
+(defun make-conn-gate (count &key (name "conn-gate"))
+  (declare (ignore name))
+  (%make-conn-gate :count (or count 0)))
+
+(defun conn-gate-acquire (g)
+  (when g
+    (bt:with-lock-held ((conn-gate-lock g))
+      (loop while (<= (conn-gate-count g) 0) do
+           (bt:condition-wait (conn-gate-cv g) (conn-gate-lock g)))
+      (decf (conn-gate-count g))
+      g)))
+
+(defun conn-gate-release (g)
+  (when g
+    (bt:with-lock-held ((conn-gate-lock g))
+      (incf (conn-gate-count g))
+      (bt:condition-notify (conn-gate-cv g)))
+    t))
+
+(defvar *sqlite-connection-gate*
+  (and *sqlite-max-connections* (make-conn-gate *sqlite-max-connections*)))
 
 (defmacro with-fresh-connection ((var db) &body body)
-  "Bind VAR to a fresh cl-sqlite handle (not cached), then execute BODY.
-The handle is closed after BODY completes. Use for atomic transactions."
+  "Bind VAR to a fresh cl-sqlite handle, execute BODY, then disconnect.
+Use this for any DB operation; opening/closing is cheap and avoids FD leaks."
   (let ((db-sym (gensym "DB"))
         (conn-sym (gensym "CONN")))
     `(let* ((,db-sym ,db)
-            (,conn-sym (sqlite:connect (filename ,db-sym) :busy-timeout 30000)))
+            (,conn-sym nil))
+       (conn-gate-acquire *sqlite-connection-gate*)
        (unwind-protect
-           (let ((,var ,conn-sym))
-             ,@body)
-         (sqlite:disconnect ,conn-sym)))))
+            (progn
+              (setf ,conn-sym (connect-sqlite-with-retry (filename ,db-sym) :busy-timeout 30000))
+              (let ((,var ,conn-sym))
+                ,@body))
+         (ignore-errors (when ,conn-sym (sqlite:disconnect ,conn-sym)))
+         (conn-gate-release *sqlite-connection-gate*)))))
+
+(defmacro with-open-connection ((var db) &body body)
+  "Compatibility macro: open a fresh connection for BODY and close it.
+  All existing call sites that used a cached connection now get a fresh one."
+  `(with-fresh-connection (,var ,db)
+     ,@body))
+
+;;;; --------------------------------------------------------------------------
+;;;;  Busy handling helpers
+;;;; --------------------------------------------------------------------------
+
+(defun %busy-error-p (e)
+  "Return T if condition E represents an SQLITE BUSY lock error."
+  (when e
+    (or
+     (and (typep e 'sqlite:sqlite-error)
+          (let ((s (princ-to-string e)))
+            (or (search "SQLITE_BUSY" s)
+           (search ":BUSY" s)
+           (search "database is locked" s))))
+     (let ((s (princ-to-string e)))
+       (or (search "SQLITE_BUSY" s)
+           (search ":BUSY" s)
+           (search "database is locked" s))))))
+
+(defun %cantopen-error-p (e)
+  "Return T if condition E represents an SQLITE CANTOPEN error."
+  (when e
+    (let ((s (princ-to-string e)))
+      (or (search "SQLITE_CANTOPEN" s)
+          (search ":CANTOPEN" s)
+          (search "Could not open sqlite3 database" s)))))
+
+(defun connect-sqlite-with-retry (path &key (busy-timeout 30000) (max-wait-ms 2000))
+  "Open a SQLite connection with short retries on CANTOPEN (e.g., transient FD exhaustion)."
+  (let* ((deadline (+ (now-micros) (* 1000 max-wait-ms)))
+         (sleep-ms 5))
+    (loop
+      (handler-case
+          (return (sqlite:connect path :busy-timeout busy-timeout))
+        (error (e)
+          (if (%cantopen-error-p e)
+              (if (< (now-micros) deadline)
+                  (progn (sleep (/ sleep-ms 1000.0))
+                         (setf sleep-ms (min (* sleep-ms 2) 100)))
+                  (error e))
+              (error e)))))))
+
+(defun begin-immediate-with-retry (conn &key (max-wait-ms 15000))
+  "Execute BEGIN IMMEDIATE with retries on SQLITE_BUSY up to MAX-WAIT-MS."
+  (let* ((deadline (+ (now-micros) (* 1000 max-wait-ms)))
+         (sleep-ms 5))
+    (loop
+      (handler-case
+          (progn
+            (sqlite:execute-non-query conn "BEGIN IMMEDIATE")
+            (return-from begin-immediate-with-retry t))
+        (error (e)
+          (if (%busy-error-p e)
+              (if (< (now-micros) deadline)
+                  (progn
+                    (sleep (/ sleep-ms 1000.0))
+                    (setf sleep-ms (min (* sleep-ms 2) 250)))
+                  (error e))
+              (error e)))))))
 
 ;;;; --------------------------------------------------------------------------
 ;;;;  Backend definitions
@@ -177,7 +206,44 @@ The handle is closed after BODY completes. Use for atomic transactions."
     (sqlite:execute-non-query
      dbc
      "CREATE INDEX IF NOT EXISTS events_ts
-      ON events(ts);")))
+      ON events(ts);"))
+
+  ;; Concurrency-safety constraints
+  (with-open-connection (dbc db)
+    ;; Deduplicate any legacy rows that would violate new unique indexes
+    (sqlite:execute-non-query
+     dbc
+     "DELETE FROM events
+        WHERE event_type = 1
+          AND rowid NOT IN (
+            SELECT MIN(rowid)
+              FROM events
+             WHERE event_type = 1
+             GROUP BY user_id, challenge_id);")
+
+    (sqlite:execute-non-query
+     dbc
+     "DELETE FROM events
+        WHERE event_type = 2
+          AND rowid NOT IN (
+            SELECT MIN(rowid)
+              FROM events
+             WHERE event_type = 2
+             GROUP BY user_id, challenge_id, hint_number);")
+
+    ;; Ensure a user can only have one SUBMIT per challenge
+    (sqlite:execute-non-query
+     dbc
+     "CREATE UNIQUE INDEX IF NOT EXISTS uniq_submit
+        ON events(user_id, challenge_id)
+        WHERE event_type = 1;")
+
+    ;; Ensure a user can only buy the same hint once
+    (sqlite:execute-non-query
+     dbc
+     "CREATE UNIQUE INDEX IF NOT EXISTS uniq_hint
+        ON events(user_id, challenge_id, hint_number)
+        WHERE event_type = 2;")))
 
 (defmethod preload-users ((db db-backend))
   "Pre-load users from credentials.csv into the database to avoid INSERT race conditions during login"
@@ -232,38 +298,23 @@ The handle is closed after BODY completes. Use for atomic transactions."
    • the event ID (or NIL)"
   (let ((ts (now-micros)))
     (with-fresh-connection (conn db)
-      ;; Start a transaction for atomicity
-      (sqlite:execute-non-query conn "BEGIN IMMEDIATE")
-      (handler-case
-          (let* ((already-solved
-                   (sqlite:execute-single
-                    conn
-                    "SELECT 1 FROM events
-                     WHERE user_id = ? AND challenge_id = ? AND event_type = 1
-                     LIMIT 1"
-                    (user-id user)
-                    (challenge-id challenge))))
-            (if already-solved
-                (progn
-                  (sqlite:execute-non-query conn "ROLLBACK")
-                  (values nil nil nil))
-                (progn
-                  ;; Not solved yet, record it
-                  (sqlite:execute-non-query
-                   conn
-                   "INSERT INTO events
-                      (ts, user_id, challenge_id, event_type, points)
-                    VALUES (?, ?, ?, 1, ?)"
-                   ts
-                   (user-id user)
-                   (challenge-id challenge)
-                   (challenge-points challenge))
-                  (let ((row-id (sqlite:last-insert-rowid conn)))
-                    (sqlite:execute-non-query conn "COMMIT")
-                    (values t ts row-id)))))
-        (error (e)
-          (sqlite:execute-non-query conn "ROLLBACK")
-          (error e))))))
+      ;; Single-statement idempotent insert using a UNIQUE partial index
+      (sqlite:execute-non-query
+       conn
+       "INSERT OR IGNORE INTO events
+          (ts, user_id, challenge_id, event_type, points)
+        VALUES (?, ?, ?, 1, ?)"
+       ts
+       (user-id user)
+       (challenge-id challenge)
+       (challenge-points challenge))
+
+      ;; Did we insert a row?
+      (let* ((changes-row (sqlite:execute-to-list conn "SELECT changes()"))
+             (changes (or (caar changes-row) 0)))
+        (if (> changes 0)
+            (values t ts (sqlite:last-insert-rowid conn))
+            (values nil nil nil))))))
 
 (defun record-hint (db user challenge hint-number cost)
   "Store a HINT purchase (negative points).
@@ -296,8 +347,8 @@ Returns two values: timestamp µs and new event-id."
    • the event ID (or NIL)"
   (let ((ts (now-micros)))
     (with-fresh-connection (conn db)
-      ;; Start a transaction for atomicity
-      (sqlite:execute-non-query conn "BEGIN IMMEDIATE")
+      ;; Start a transaction for atomicity (robust to BUSY contention)
+      (begin-immediate-with-retry conn :max-wait-ms 20000)
       (handler-case
           (let* ((already-purchased
                    (sqlite:execute-single

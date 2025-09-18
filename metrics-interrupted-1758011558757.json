@@ -1,0 +1,1866 @@
+{
+  "startTime": 1758011555188,
+  "endTime": 1758011558756,
+  "players": [
+    {
+      "id": 1,
+      "username": "player2",
+      "password": "iNAk7p82",
+      "displayName": "Player_player2_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 2,
+      "username": "player3",
+      "password": "qoomBnlP",
+      "displayName": "Player_player3_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 3,
+      "username": "player4",
+      "password": "09wTiwd4",
+      "displayName": "Player_player4_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 4,
+      "username": "player5",
+      "password": "zB8K4VYA",
+      "displayName": "Player_player5_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 5,
+      "username": "player6",
+      "password": "otE3tMY8",
+      "displayName": "Player_player6_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 6,
+      "username": "player7",
+      "password": "c25FmQ5K",
+      "displayName": "Player_player7_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 7,
+      "username": "player8",
+      "password": "AFg8BQN2",
+      "displayName": "Player_player8_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": [
+          {
+            "timestamp": 1758011557854,
+            "error": "Login failed: 500",
+            "context": "login"
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "username": "player9",
+      "password": "egq1CWwK",
+      "displayName": "Player_player9_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 9,
+      "username": "player10",
+      "password": "9Mjqwln9",
+      "displayName": "Player_player10_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 10,
+      "username": "player11",
+      "password": "IV2gsWdg",
+      "displayName": "Player_player11_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 11,
+      "username": "player12",
+      "password": "wtnsLYGu",
+      "displayName": "Player_player12_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 12,
+      "username": "player13",
+      "password": "qU7hfAac",
+      "displayName": "Player_player13_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 13,
+      "username": "player14",
+      "password": "EeZP5gNw",
+      "displayName": "Player_player14_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 14,
+      "username": "player15",
+      "password": "qmlnHhc7",
+      "displayName": "Player_player15_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 15,
+      "username": "player16",
+      "password": "6pu1F9Ru",
+      "displayName": "Player_player16_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 16,
+      "username": "player17",
+      "password": "TXV9FycM",
+      "displayName": "Player_player17_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": [
+          {
+            "timestamp": 1758011557412,
+            "error": "Login failed: 500",
+            "context": "login"
+          }
+        ]
+      }
+    },
+    {
+      "id": 17,
+      "username": "player18",
+      "password": "XHkFdcNr",
+      "displayName": "Player_player18_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 18,
+      "username": "player19",
+      "password": "7pdlkrn1",
+      "displayName": "Player_player19_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 19,
+      "username": "player20",
+      "password": "PFENy7Nq",
+      "displayName": "Player_player20_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 20,
+      "username": "player21",
+      "password": "ozL1Lato",
+      "displayName": "Player_player21_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 21,
+      "username": "player22",
+      "password": "tS3cNQOz",
+      "displayName": "Player_player22_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 22,
+      "username": "player23",
+      "password": "jvd94uM2",
+      "displayName": "Player_player23_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 23,
+      "username": "player24",
+      "password": "bAbGtcED",
+      "displayName": "Player_player24_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 24,
+      "username": "player25",
+      "password": "1T7viNg8",
+      "displayName": "Player_player25_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 25,
+      "username": "player26",
+      "password": "er0cTqZr",
+      "displayName": "Player_player26_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 26,
+      "username": "player27",
+      "password": "AYDJxaMS",
+      "displayName": "Player_player27_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 27,
+      "username": "player28",
+      "password": "YHPQvLc5",
+      "displayName": "Player_player28_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 28,
+      "username": "player29",
+      "password": "Yuj1nQda",
+      "displayName": "Player_player29_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 29,
+      "username": "player30",
+      "password": "z3ddOka9",
+      "displayName": "Player_player30_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 30,
+      "username": "player31",
+      "password": "qnMjHxJD",
+      "displayName": "Player_player31_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 31,
+      "username": "player32",
+      "password": "3Q9kYxQs",
+      "displayName": "Player_player32_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": [
+          {
+            "timestamp": 1758011555972,
+            "error": "Login failed: 500",
+            "context": "login"
+          }
+        ]
+      }
+    },
+    {
+      "id": 32,
+      "username": "player33",
+      "password": "u01mfjek",
+      "displayName": "Player_player33_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 33,
+      "username": "player34",
+      "password": "oJeBOK36",
+      "displayName": "Player_player34_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 34,
+      "username": "player35",
+      "password": "8DuI092V",
+      "displayName": "Player_player35_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 35,
+      "username": "player36",
+      "password": "qO3s8LCX",
+      "displayName": "Player_player36_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 36,
+      "username": "player37",
+      "password": "oe8lEXfF",
+      "displayName": "Player_player37_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 37,
+      "username": "player38",
+      "password": "Sj1JbIat",
+      "displayName": "Player_player38_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 38,
+      "username": "player39",
+      "password": "H5SZiKv7",
+      "displayName": "Player_player39_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 39,
+      "username": "player40",
+      "password": "6JTLuJgK",
+      "displayName": "Player_player40_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 40,
+      "username": "player41",
+      "password": "9PRXT8DO",
+      "displayName": "Player_player41_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 41,
+      "username": "player42",
+      "password": "YdYI38t7",
+      "displayName": "Player_player42_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 42,
+      "username": "player43",
+      "password": "fzb7Neig",
+      "displayName": "Player_player43_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": [
+          {
+            "timestamp": 1758011558075,
+            "error": "Login failed: 500",
+            "context": "login"
+          }
+        ]
+      }
+    },
+    {
+      "id": 43,
+      "username": "player44",
+      "password": "VvRFfraz",
+      "displayName": "Player_player44_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 44,
+      "username": "player45",
+      "password": "KuqKhXze",
+      "displayName": "Player_player45_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 45,
+      "username": "player46",
+      "password": "NKedt2xr",
+      "displayName": "Player_player46_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": [
+          {
+            "timestamp": 1758011556703,
+            "error": "Login failed: 500",
+            "context": "login"
+          }
+        ]
+      }
+    },
+    {
+      "id": 46,
+      "username": "player47",
+      "password": "tP3npMpB",
+      "displayName": "Player_player47_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 47,
+      "username": "player48",
+      "password": "qWHWffYl",
+      "displayName": "Player_player48_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 48,
+      "username": "player49",
+      "password": "6eheWDh9",
+      "displayName": "Player_player49_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 49,
+      "username": "player50",
+      "password": "AUDhPLt5",
+      "displayName": "Player_player50_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 50,
+      "username": "player51",
+      "password": "gBtwWGNV",
+      "displayName": "Player_player51_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 51,
+      "username": "player52",
+      "password": "JXnetsxY",
+      "displayName": "Player_player52_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 52,
+      "username": "player53",
+      "password": "NeKvuEhw",
+      "displayName": "Player_player53_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 53,
+      "username": "player54",
+      "password": "bZbOdtO5",
+      "displayName": "Player_player54_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 54,
+      "username": "player55",
+      "password": "FVgMLoZu",
+      "displayName": "Player_player55_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 55,
+      "username": "player56",
+      "password": "fcamGiOQ",
+      "displayName": "Player_player56_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 56,
+      "username": "player57",
+      "password": "0QAnpFhq",
+      "displayName": "Player_player57_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 57,
+      "username": "player58",
+      "password": "JbvG9vZr",
+      "displayName": "Player_player58_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 58,
+      "username": "player59",
+      "password": "sKsjRqDY",
+      "displayName": "Player_player59_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 59,
+      "username": "player60",
+      "password": "zedmL6Jt",
+      "displayName": "Player_player60_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 60,
+      "username": "player61",
+      "password": "tP3rs0Ic",
+      "displayName": "Player_player61_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 61,
+      "username": "player62",
+      "password": "3sf6XNEB",
+      "displayName": "Player_player62_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 62,
+      "username": "player63",
+      "password": "0f6G8KyQ",
+      "displayName": "Player_player63_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": [
+          {
+            "timestamp": 1758011556418,
+            "error": "Login failed: 500",
+            "context": "login"
+          }
+        ]
+      }
+    },
+    {
+      "id": 63,
+      "username": "player64",
+      "password": "FdleQ8ZC",
+      "displayName": "Player_player64_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 64,
+      "username": "player65",
+      "password": "W7UBBqdP",
+      "displayName": "Player_player65_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 65,
+      "username": "player66",
+      "password": "j09PE3oj",
+      "displayName": "Player_player66_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 66,
+      "username": "player67",
+      "password": "KkSaye43",
+      "displayName": "Player_player67_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 67,
+      "username": "player68",
+      "password": "jx2UHkUg",
+      "displayName": "Player_player68_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 68,
+      "username": "player69",
+      "password": "URQsPEQe",
+      "displayName": "Player_player69_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": 69,
+      "username": "player70",
+      "password": "IZCxOCus",
+      "displayName": "Player_player70_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": [
+          {
+            "timestamp": 1758011555973,
+            "error": "Login failed: 500",
+            "context": "login"
+          }
+        ]
+      }
+    },
+    {
+      "id": 70,
+      "username": "player71",
+      "password": "UPxgYLMn",
+      "displayName": "Player_player71_194",
+      "sessionCookie": null,
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [],
+      "metrics": {
+        "startTime": 1758011555194,
+        "loginTime": null,
+        "wsConnectTime": null,
+        "firstChallengeTime": null,
+        "challengesSolved": 0,
+        "flagsSubmitted": 0,
+        "errors": []
+      }
+    }
+  ],
+  "totals": {
+    "loginAttempts": 7,
+    "loginSuccess": 0,
+    "wsConnections": 0,
+    "wsSuccessful": 0,
+    "flagSubmissions": 0,
+    "flagsCorrect": 0,
+    "challengesLoaded": 0,
+    "staticFilesLoaded": 28,
+    "errors": [
+      {
+        "timestamp": 1758011555972,
+        "error": "Login failed: 500",
+        "context": "login",
+        "playerId": 31
+      },
+      {
+        "timestamp": 1758011555973,
+        "error": "Login failed: 500",
+        "context": "login",
+        "playerId": 69
+      },
+      {
+        "timestamp": 1758011556418,
+        "error": "Login failed: 500",
+        "context": "login",
+        "playerId": 62
+      },
+      {
+        "timestamp": 1758011556703,
+        "error": "Login failed: 500",
+        "context": "login",
+        "playerId": 45
+      },
+      {
+        "timestamp": 1758011557412,
+        "error": "Login failed: 500",
+        "context": "login",
+        "playerId": 16
+      },
+      {
+        "timestamp": 1758011557854,
+        "error": "Login failed: 500",
+        "context": "login",
+        "playerId": 7
+      },
+      {
+        "timestamp": 1758011558075,
+        "error": "Login failed: 500",
+        "context": "login",
+        "playerId": 42
+      }
+    ]
+  },
+  "timeline": [
+    {
+      "timestamp": 1758011555766,
+      "category": "static_file_loaded",
+      "value": 165,
+      "playerId": 69
+    },
+    {
+      "timestamp": 1758011555767,
+      "category": "static_file_loaded",
+      "value": 50,
+      "playerId": 31
+    },
+    {
+      "timestamp": 1758011555769,
+      "category": "static_file_loaded",
+      "value": 2,
+      "playerId": 69
+    },
+    {
+      "timestamp": 1758011555770,
+      "category": "static_file_loaded",
+      "value": 1,
+      "playerId": 31
+    },
+    {
+      "timestamp": 1758011555797,
+      "category": "static_file_loaded",
+      "value": 26,
+      "playerId": 31
+    },
+    {
+      "timestamp": 1758011555800,
+      "category": "static_file_loaded",
+      "value": 31,
+      "playerId": 69
+    },
+    {
+      "timestamp": 1758011555802,
+      "category": "static_file_loaded",
+      "value": 5,
+      "playerId": 31
+    },
+    {
+      "timestamp": 1758011555845,
+      "category": "static_file_loaded",
+      "value": 43,
+      "playerId": 69
+    },
+    {
+      "timestamp": 1758011555972,
+      "category": "login_attempt",
+      "value": 67,
+      "playerId": 31
+    },
+    {
+      "timestamp": 1758011555973,
+      "category": "login_attempt",
+      "value": 28,
+      "playerId": 69
+    },
+    {
+      "timestamp": 1758011556248,
+      "category": "static_file_loaded",
+      "value": 7,
+      "playerId": 62
+    },
+    {
+      "timestamp": 1758011556250,
+      "category": "static_file_loaded",
+      "value": 1,
+      "playerId": 62
+    },
+    {
+      "timestamp": 1758011556265,
+      "category": "static_file_loaded",
+      "value": 15,
+      "playerId": 62
+    },
+    {
+      "timestamp": 1758011556309,
+      "category": "static_file_loaded",
+      "value": 43,
+      "playerId": 62
+    },
+    {
+      "timestamp": 1758011556418,
+      "category": "login_attempt",
+      "value": 9,
+      "playerId": 62
+    },
+    {
+      "timestamp": 1758011556522,
+      "category": "static_file_loaded",
+      "value": 7,
+      "playerId": 45
+    },
+    {
+      "timestamp": 1758011556524,
+      "category": "static_file_loaded",
+      "value": 2,
+      "playerId": 45
+    },
+    {
+      "timestamp": 1758011556541,
+      "category": "static_file_loaded",
+      "value": 17,
+      "playerId": 45
+    },
+    {
+      "timestamp": 1758011556584,
+      "category": "static_file_loaded",
+      "value": 43,
+      "playerId": 45
+    },
+    {
+      "timestamp": 1758011556702,
+      "category": "login_attempt",
+      "value": 18,
+      "playerId": 45
+    },
+    {
+      "timestamp": 1758011557233,
+      "category": "static_file_loaded",
+      "value": 7,
+      "playerId": 16
+    },
+    {
+      "timestamp": 1758011557234,
+      "category": "static_file_loaded",
+      "value": 1,
+      "playerId": 16
+    },
+    {
+      "timestamp": 1758011557249,
+      "category": "static_file_loaded",
+      "value": 14,
+      "playerId": 16
+    },
+    {
+      "timestamp": 1758011557292,
+      "category": "static_file_loaded",
+      "value": 43,
+      "playerId": 16
+    },
+    {
+      "timestamp": 1758011557412,
+      "category": "login_attempt",
+      "value": 18,
+      "playerId": 16
+    },
+    {
+      "timestamp": 1758011557677,
+      "category": "static_file_loaded",
+      "value": 5,
+      "playerId": 7
+    },
+    {
+      "timestamp": 1758011557679,
+      "category": "static_file_loaded",
+      "value": 2,
+      "playerId": 7
+    },
+    {
+      "timestamp": 1758011557693,
+      "category": "static_file_loaded",
+      "value": 13,
+      "playerId": 7
+    },
+    {
+      "timestamp": 1758011557736,
+      "category": "static_file_loaded",
+      "value": 43,
+      "playerId": 7
+    },
+    {
+      "timestamp": 1758011557854,
+      "category": "login_attempt",
+      "value": 17,
+      "playerId": 7
+    },
+    {
+      "timestamp": 1758011557893,
+      "category": "static_file_loaded",
+      "value": 5,
+      "playerId": 42
+    },
+    {
+      "timestamp": 1758011557895,
+      "category": "static_file_loaded",
+      "value": 2,
+      "playerId": 42
+    },
+    {
+      "timestamp": 1758011557910,
+      "category": "static_file_loaded",
+      "value": 15,
+      "playerId": 42
+    },
+    {
+      "timestamp": 1758011557954,
+      "category": "static_file_loaded",
+      "value": 44,
+      "playerId": 42
+    },
+    {
+      "timestamp": 1758011558075,
+      "category": "login_attempt",
+      "value": 20,
+      "playerId": 42
+    }
+  ],
+  "responseTimes": {
+    "staticFiles": [
+      165,
+      50,
+      2,
+      1,
+      26,
+      31,
+      5,
+      43,
+      7,
+      1,
+      15,
+      43,
+      7,
+      2,
+      17,
+      43,
+      7,
+      1,
+      14,
+      43,
+      5,
+      2,
+      13,
+      43,
+      5,
+      2,
+      15,
+      44
+    ],
+    "login": [
+      67,
+      28,
+      9,
+      18,
+      18,
+      17,
+      20
+    ],
+    "challenges": [],
+    "submit": [],
+    "websocket": []
+  },
+  "staticFileBreakdown": {
+    "index.html": [
+      165,
+      50,
+      7,
+      7,
+      7,
+      5,
+      5
+    ],
+    "CSS": [
+      2,
+      1,
+      1,
+      2,
+      1,
+      2,
+      2
+    ],
+    "banner image": [
+      26,
+      31,
+      15,
+      17,
+      14,
+      13,
+      15
+    ],
+    "app.js": [
+      5,
+      43,
+      43,
+      43,
+      43,
+      43,
+      44
+    ]
+  }
+}

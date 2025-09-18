@@ -307,7 +307,10 @@ class Player {
             const wsUrl = this.wsUrl.endsWith('/scorestream')
                 ? this.wsUrl
                 : `${this.wsUrl}/scorestream`;
-            this.log(`Connecting to WebSocket: ${wsUrl}`);
+
+            // Normalize localhost to IPv4 to avoid IPv6 resolution issues
+            const normalizedUrl = wsUrl.replace('ws://localhost', 'ws://127.0.0.1');
+            this.log(`Connecting to WebSocket: ${normalizedUrl}`);
 
             METRICS.totals.wsConnections++;
             const wsConnectStart = Date.now();
@@ -324,7 +327,20 @@ class Player {
                 }
             }, 15000); // 15 second timeout
 
-            this.ws = new WebSocket(wsUrl);
+            // Use conservative options to maximize compatibility
+            this.ws = new WebSocket(normalizedUrl, {
+                // Avoid extension negotiation that some servers mishandle
+                perMessageDeflate: false,
+                // Ensure IPv4 resolution for localhost (avoids ::1 issues)
+                family: 4,
+                // Reasonable handshake timeout
+                handshakeTimeout: 15000,
+                // Be explicit (Node adds these anyway, but clarity helps diagnostics)
+                headers: {
+                    'Connection': 'Upgrade',
+                    'Upgrade': 'websocket'
+                }
+            });
 
             this.ws.on('open', () => {
                 clearTimeout(wsTimeout); // Clear timeout on successful connection
@@ -345,6 +361,18 @@ class Player {
                 }, 30000);
 
                 resolve();
+            });
+
+            // Ensure we respond to protocol-level pings immediately
+            this.ws.on('ping', (data) => {
+                try {
+                    this.ws.pong(data, false, true);
+                } catch (_) { /* ignore */ }
+            });
+
+            // Optional: observe pongs from server (for diagnostics)
+            this.ws.on('pong', (data) => {
+                // no-op; could log latency if we embed a timestamp
             });
 
             this.ws.on('message', (data) => {

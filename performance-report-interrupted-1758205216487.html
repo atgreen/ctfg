@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTFG Performance Test Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        .subtitle {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .metric-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .metric-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .chart-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .chart-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+        .error-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #fff5f5;
+            border-radius: 8px;
+            border-left: 4px solid #ef4444;
+        }
+        .error-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #dc2626;
+            margin-bottom: 15px;
+        }
+        .error-list {
+            list-style: none;
+            padding: 0;
+        }
+        .error-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #fee2e2;
+        }
+        .timestamp {
+            color: #666;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        .success { color: #059669; }
+        .warning { color: #d97706; }
+        .error { color: #dc2626; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 CTFG Performance Test Report</h1>
+            <div class="subtitle">Generated on 2025-09-18, 10:20:16 a.m.</div>
+        </div>
+
+        <div class="content">
+            <!-- Key Metrics -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">200</div>
+                    <div class="metric-label">Total Players</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">44s</div>
+                    <div class="metric-label">Test Duration</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value warning">94.0%</div>
+                    <div class="metric-label">Login Success Rate</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value warning">87.2%</div>
+                    <div class="metric-label">WebSocket Success Rate</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">4.27</div>
+                    <div class="metric-label">Logins/Second</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">40.20</div>
+                    <div class="metric-label">Flags/Second</div>
+                </div>
+            </div>
+
+            <!-- Response Time Charts -->
+            <div class="chart-container">
+                <div class="chart-title">📊 Response Times Over Time</div>
+                <div class="chart-wrapper">
+                    <canvas id="responseTimeChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">⚡ Throughput Over Time</div>
+                <div class="chart-wrapper">
+                    <canvas id="throughputChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Response Time Statistics -->
+            <div class="chart-container">
+                <div class="chart-title">📈 Response Time Statistics</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Mean</th>
+                            <th>Median</th>
+                            <th>95th %ile</th>
+                            <th>99th %ile</th>
+                            <th>Min</th>
+                            <th>Max</th>
+                            <th>Std Dev</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Login</td>
+                            <td>496ms</td>
+                            <td><strong>298ms</strong></td>
+                            <td>1281ms</td>
+                            <td>1721ms</td>
+                            <td>12ms</td>
+                            <td>1725ms</td>
+                            <td>421ms</td>
+                        </tr>
+                        <tr>
+                            <td>Flag Submit</td>
+                            <td>2942ms</td>
+                            <td><strong>1106ms</strong></td>
+                            <td>11288ms</td>
+                            <td>19165ms</td>
+                            <td>28ms</td>
+                            <td>26710ms</td>
+                            <td>4084ms</td>
+                        </tr>
+                        <tr>
+                            <td>Challenges API</td>
+                            <td>0ms</td>
+                            <td colspan="6" style="text-align: center; color: #666;"><em>Individual timing data not collected</em></td>
+                        </tr>
+                        <tr>
+                            <td>Static Files</td>
+                            <td>376ms</td>
+                            <td colspan="6" style="text-align: center; color: #666;"><em>Individual timing data not collected</em></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            
+            <!-- Static File Performance Breakdown -->
+            <div class="chart-container">
+                <div class="chart-title">📁 Static File Performance Breakdown</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Mean</th>
+                            <th>Median</th>
+                            <th>95th %ile</th>
+                            <th>99th %ile</th>
+                            <th>Min</th>
+                            <th>Max</th>
+                            <th>Std Dev</th>
+                            <th>Requests</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                                <td>index.html</td>
+                                <td>435ms</td>
+                                <td><strong>223ms</strong></td>
+                                <td>1463ms</td>
+                                <td>1586ms</td>
+                                <td>1ms</td>
+                                <td>1591ms</td>
+                                <td>481ms</td>
+                                <td>200</td>
+                            </tr><tr>
+                                <td>CSS</td>
+                                <td>222ms</td>
+                                <td><strong>190ms</strong></td>
+                                <td>467ms</td>
+                                <td>488ms</td>
+                                <td>1ms</td>
+                                <td>488ms</td>
+                                <td>166ms</td>
+                                <td>200</td>
+                            </tr><tr>
+                                <td>banner image</td>
+                                <td>617ms</td>
+                                <td><strong>605ms</strong></td>
+                                <td>1322ms</td>
+                                <td>1361ms</td>
+                                <td>15ms</td>
+                                <td>1386ms</td>
+                                <td>470ms</td>
+                                <td>200</td>
+                            </tr><tr>
+                                <td>app.js</td>
+                                <td>231ms</td>
+                                <td><strong>204ms</strong></td>
+                                <td>505ms</td>
+                                <td>598ms</td>
+                                <td>4ms</td>
+                                <td>604ms</td>
+                                <td>167ms</td>
+                                <td>200</td>
+                            </tr>
+                    </tbody>
+                </table>
+                <p style="margin-top: 15px; color: #666; font-size: 0.9em;">
+                    <strong>💡 Tip:</strong> Look for files with high mean/median times or high standard deviation (indicating inconsistent performance).
+                    Large images or JavaScript files often take the longest to serve.
+                </p>
+            </div>
+            
+
+            <!-- User Experience Metrics -->
+            <div class="chart-container">
+                <div class="chart-title">👤 User Experience Metrics</div>
+
+                <!-- UX Summary Cards -->
+                <div class="metrics-grid" style="margin-bottom: 20px;">
+                    <div class="metric-card">
+                        <div class="metric-value">5s</div>
+                        <div class="metric-label">Time to First Login (Median)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">4s</div>
+                        <div class="metric-label">Login to First Flag (Median)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value warning">94.0%</div>
+                        <div class="metric-label">Login Success Rate</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value success">96.0%</div>
+                        <div class="metric-label">Challenge Completion</div>
+                    </div>
+                </div>
+
+                <!-- User Journey Breakdown -->
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User Journey Stage</th>
+                            <th>Count</th>
+                            <th>Mean</th>
+                            <th>Median</th>
+                            <th>95th %ile</th>
+                            <th>Min</th>
+                            <th>Max</th>
+                            <th>Interpretation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>🚪 Time to First Login</td>
+                            <td>188</td>
+                            <td>5s</td>
+                            <td><strong>5s</strong></td>
+                            <td>8s</td>
+                            <td>1s</td>
+                            <td>8s</td>
+                            <td>From player start to successful login</td>
+                        </tr>
+                        <tr>
+                            <td>🎯 Login to First Flag</td>
+                            <td>180</td>
+                            <td>6s</td>
+                            <td><strong>4s</strong></td>
+                            <td>32s</td>
+                            <td>1s</td>
+                            <td>35s</td>
+                            <td>Time from successful login to first solve</td>
+                        </tr>
+                        <tr>
+                            <td>🏃 Complete User Journey</td>
+                            <td>180</td>
+                            <td>11s</td>
+                            <td><strong>10s</strong></td>
+                            <td>40s</td>
+                            <td>1s</td>
+                            <td>43s</td>
+                            <td>Total time from player start to first solve</td>
+                        </tr>
+                        <tr>
+                            <td>⏱️ Session Duration</td>
+                            <td>200</td>
+                            <td>13s</td>
+                            <td><strong>10s</strong></td>
+                            <td>44s</td>
+                            <td>1s</td>
+                            <td>44s</td>
+                            <td>How long players stay engaged</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Test Performance Insights -->
+                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
+                    <h4 style="margin: 0 0 10px 0; color: #333;">🎯 Test Performance Insights</h4>
+                    <ul style="margin: 0; padding-left: 20px; color: #666;">
+                        <li><strong>Median Journey:</strong> Typical player takes 5s to login and 4s to reach first flag</li>
+                        <li><strong>Login Success:</strong> 94.0% of players successfully logged in (12 failures)</li>
+                        <li><strong>Test Completion:</strong> 96.0% of players completed challenge solving</li>
+                        <li style="color: #dc2626;"><strong>⚠️ Login Failures:</strong> Server may be struggling with authentication load</li>
+                        
+                        
+                        <li style="color: #d97706;"><strong>⚠️ Short Sessions:</strong> Median session under 30s - possible early failures</li>
+                    </ul>
+                </div>
+            </div>
+
+            
+            <!-- Errors Section -->
+            <div class="error-section">
+                <div class="error-title">⚠️ Errors (106 total)</div>
+                <div class="chart-container">
+                    <div class="chart-title">Error Distribution</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Error Type</th>
+                                <th>Count</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                    <td>websocket</td>
+                                    <td>24</td>
+                                    <td>22.6%</td>
+                                </tr><tr>
+                                    <td>login</td>
+                                    <td>12</td>
+                                    <td>11.3%</td>
+                                </tr><tr>
+                                    <td>submit</td>
+                                    <td>70</td>
+                                    <td>66.0%</td>
+                                </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="error-title">Recent Errors</div>
+                <ul class="error-list">
+                    <li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>websocket:</strong> read ECONNRESET
+                             (Player 32)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>websocket:</strong> read ECONNRESET
+                             (Player 27)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>websocket:</strong> read ECONNRESET
+                             (Player 143)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>websocket:</strong> read ECONNRESET
+                             (Player 45)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>websocket:</strong> read ECONNRESET
+                             (Player 90)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>websocket:</strong> read ECONNRESET
+                             (Player 149)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>websocket:</strong> read ECONNRESET
+                             (Player 150)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>websocket:</strong> read ECONNRESET
+                             (Player 82)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>websocket:</strong> read ECONNRESET
+                             (Player 43)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>websocket:</strong> read ECONNRESET
+                             (Player 58)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>websocket:</strong> read ECONNRESET
+                             (Player 25)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>websocket:</strong> read ECONNRESET
+                             (Player 151)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>websocket:</strong> read ECONNRESET
+                             (Player 136)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>login:</strong> Login failed: 500
+                             (Player 100)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>login:</strong> Login failed: 500
+                             (Player 185)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>submit:</strong> Unexpected token '<', "<html><hea"... is not valid JSON
+                             (Player 76)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>submit:</strong> Unexpected token '<', "<html><hea"... is not valid JSON
+                             (Player 77)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>submit:</strong> Unexpected token '<', "<html><hea"... is not valid JSON
+                             (Player 2)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>submit:</strong> Unexpected token '<', "<html><hea"... is not valid JSON
+                             (Player 197)
+                        </li><li class="error-item">
+                            <span class="timestamp">[10:19:40 a.m.]</span>
+                            <strong>submit:</strong> Unexpected token '<', "<html><hea"... is not valid JSON
+                             (Player 30)
+                        </li>
+                </ul>
+                <p><em>... and 86 more errors</em></p>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        // Response Time Chart
+        const ctx1 = document.getElementById('responseTimeChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ["10:19:32 a.m.","10:19:34 a.m.","10:19:36 a.m.","10:19:38 a.m.","10:19:41 a.m.","10:19:43 a.m.","10:19:45 a.m.","10:19:47 a.m.","10:19:49 a.m.","10:19:52 a.m.","10:19:54 a.m.","10:19:56 a.m.","10:19:58 a.m.","10:20:00 a.m.","10:20:03 a.m.","10:20:05 a.m.","10:20:07 a.m.","10:20:09 a.m.","10:20:11 a.m.","10:20:14 a.m."],
+                datasets: [
+                    {
+                        label: 'Login Response Time',
+                        data: [96,319,943,634,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Submit Response Time',
+                        data: [210,724,1114,1311,820,1253,4458,4099,1816,2397,2686,3550,3352,3922,5337,4400,4034,4176,3126,5132],
+                        borderColor: '#f093fb',
+                        backgroundColor: 'rgba(240, 147, 251, 0.1)',
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Response Time (ms)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Throughput Chart
+        const ctx2 = document.getElementById('throughputChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: ["10:19:32 a.m.","10:19:34 a.m.","10:19:36 a.m.","10:19:38 a.m.","10:19:41 a.m.","10:19:43 a.m.","10:19:45 a.m.","10:19:47 a.m.","10:19:49 a.m.","10:19:52 a.m.","10:19:54 a.m.","10:19:56 a.m.","10:19:58 a.m.","10:20:00 a.m.","10:20:03 a.m.","10:20:05 a.m.","10:20:07 a.m.","10:20:09 a.m.","10:20:11 a.m.","10:20:14 a.m."],
+                datasets: [
+                    {
+                        label: 'Active Players',
+                        data: [74,139,181,171,57,43,93,129,12,60,53,62,57,54,56,59,56,45,64,52],
+                        borderColor: '#48bb78',
+                        backgroundColor: 'rgba(72, 187, 120, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Requests/Second',
+                        data: [234,253,248,244,84,80,117,189,13,63,76,81,81,73,65,75,74,56,83,70],
+                        borderColor: '#ed8936',
+                        backgroundColor: 'rgba(237, 137, 54, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Active Players'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Requests/Second'
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

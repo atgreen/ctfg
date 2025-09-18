@@ -1,0 +1,2400 @@
+{
+  "startTime": 1758010307439,
+  "endTime": 1758010316554,
+  "players": [
+    {
+      "id": 1,
+      "username": "player2",
+      "password": "iNAk7p82",
+      "displayName": "Player_player2_447",
+      "sessionCookie": "hunchentoot-session=3:6461E16691E9439450075FCDF5058401; Path=/; HttpOnly",
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [
+        {
+          "id": 15,
+          "title": "The Reverse Mango",
+          "category": "Agentic Actions",
+          "difficulty": "Medium",
+          "points": 50,
+          "solved": true,
+          "description": "You restored Station Zero's Mango *decoder*--HQ can finally read field beacons again. But without the **encoder**, we still can't acknowledge distress traffic, arm supply-drop locks, or transmit retask codes. Teach the system the other half of the language by extending your MCP server with a second tool that maps `number -> fruit`.<br><br>**Recap: What's an MCP?** The *Model Context Protocol* lets AI systems securely connect to tools and data through a simple client↔server contract (JSON-RPC over supported transports). Your `mango-mcp` server exposes capabilities the Agentic AI can call like native functions.<br><br>\n## Objective\n\nAdd a second tool to your existing `mango-mcp` MCP server (Service `mango-mcp` on `port 3000`) that returns the Mango fruit word for a given digit. Then trigger Station Zero's self-test to retrieve the FLAG.<br><br>\n## Specification\n\n1. **Prereq:** \"The Mango Cipher\" complete. Your `mango-mcp` pod and **Service** (ClusterIP) on `3000` are healthy in `player2`.\n2. In Gitea, open your fork of `starter/python_MCP_starter`.\n3. The MCP already has a `decode` tool. Now you must simply add a `encode` tool that does the reverse for numbers 0 through 9. Keep your existing `decode` (fruit->number) tool intact; your server should now advertise *both* tools.\n4. Rebuild/redeploy `mango-mcp`. The Service name remains `mango-mcp` and must still target `3000`.\n5. Call Station Zero's validation via your Ops Relay route: GET `/test-mango-encode`. If both tools resolve and the encoder works, the endpoint returns your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player2?view=graph\n- **gitea (starter)**: https://gitea-gitea.apps.cluster.example.com/starter/python_MCP_starter\n- **station-zero MCP self-test URL**: https://station-zero-player2.apps.cluster.example.com/test-mango-encode",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 14,
+          "title": "The Mango Cipher",
+          "category": "Agentic Actions",
+          "difficulty": "Medium",
+          "points": 30,
+          "solved": true,
+          "description": "You sweep the dust from the terminal. Station Zero's Agentic AI can still route satellites, crack safehouse rosters, even spin up clusters on a cold boot--but its Mango Cipher module is gone. That matters: field teams embed Mango-encoded directives in emergency beacons and logistics tags; without it, HQ can't parse distress traffic or unlock mission keys. The fix isn't another patch--it's knowledge. You must teach the system by deploying a Model Context Protocol (MCP) server the AI can talk to.<br><br>**What's an MCP?** The *Model Context Protocol* is an open standard that lets AI systems securely connect to tools and data via a lightweight client↔server contract (JSON-RPC over supported transports). In plain terms: spin up a small service (an MCP server) that exposes capabilities, and the AI (host/client) can call it like a native tool.<br><br>**New to MCP?** Think of it as a way to give AI systems \"superpowers\" by connecting them to external tools and data. Instead of the AI being limited to what it knows, MCP lets it call out to your custom services to get real-time information or perform actions. In this case, you're teaching Station Zero's AI how to decode Mango cipher messages by providing it with a translation service it can call.<br><br>**Learn more:** [MCP Specification](https://spec.modelcontextprotocol.io/) | [Python MCP SDK](https://github.com/modelcontextprotocol/python-sdk)<br><br>\n## Objective\n\nDeploy an MCP server named `mango-mcp` in your OpenShift namespace that listens on `port 3000` and is discoverable via a **Service** with the same name. Then trigger Station Zero's self-test to retrieve the FLAG.<br><br>\n## Specification\n\n1. **Prereq:** Complete \"Ops Relay\" so your Station Zero / Ops Relay API is running in `player2`.\n2. In Gitea, the `starter` org hosts `python_MCP_starter`. **Fork** it to your user.\n3. **Deploy** the fork in your `player2` project as an app named `mango-mcp`. Ensure the container exposes `TCP 3000`.\n   - Console path: *Add -> Import from Git* -> repo URL of your fork -> Name: `mango-mcp` -> set container port to `3000`.\n4. Create/ensure a **Service** named `mango-mcp` targeting `port 3000`. (A Route is *not* required.)\n5. Once the pod is *Ready*, call Station Zero's test: open your Ops Relay Route and GET `/test-mango-decode`. If the MCP is reachable at `mango-mcp:3000`, the endpoint returns your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player2?view=graph\n- **gitea (starter)**: https://gitea-gitea.apps.cluster.example.com/starter/python_MCP_starter\n- **station-zero MCP self-test URL**: https://station-zero-player2.apps.cluster.example.com/test-mango-decode",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 13,
+          "title": "Top Agent",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 80,
+          "solved": true,
+          "description": "HQ has its eyes on the bot arena. Many agents have deployed their code, each vying for dominance in the intelligence wars. But only one can rise above the noise.<br><br>To claim your place at the top, your autonomous spy must not only survive the 30-second skirmishes but out-collect every rival on the board. The operators are watching closely: the bot with the **highest score across the arena** will be issued a special recognition flag, proof that you've earned the title of **Top Agent**.<br><br>Stay sharp--this isn't just about building a working bot; it's about tuning, optimizing, and perfecting your strategy until it dominates the field.<br><br>\n## Objective\n\nAchieve the highest score among all active bots in the arena. When your bot takes the lead, game operators will award you a unique FLAG. Enter that flag here to complete the mission and secure your points.",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 5
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 12,
+          "title": "Spy vs Spy",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 80,
+          "solved": true,
+          "description": "Field teams are getting outplayed on the grid. HQ needs an autonomous **game bot** that can join live matches and out-collect an opponent in 30 seconds. You will build a WebSocket client that connects to the [**Spy vs Spy** server](https://spy-vs-spy-ctfg.apps.cluster.example.com), registers, tracks state from server updates, and moves every 200 ms toward the most valuable intel--while avoiding walls and the other player.<br><br>**LLM assistance is encouraged.** Use it to scaffold your bot, then refine and tune it.<br><br>\n## Objective\n\nImplement a bot that follows the protocol below, runs continuously, and competes to collect intel points. On connection, you'll also receive a registration flag you can submit.<br><br>\n## Game Server Protocol\n\nConnect to: `wss://spy-vs-spy-ctfg.apps.cluster.example.com`<br><br>On connection, you'll receive:\n```json\n{ \"type\": \"connected\" }\n```\n<br>Immediately respond with:\n```json\n{ \"type\": \"join\", \"key\": \"23030C1C48013A131E040D48195726475B5A313B1A53\" }\n```\n<br>Server confirms with:\n```json\n{ \"type\": \"registered\", \"playerId\": \"Player_player2_447\", \"flag\": \"YOUR_UNIQUE_FLAG_HERE\" }\n```\n<br>The server will send game start messages that look like:\n```json\n{\n  \"type\":\"gameStart\",\n  \"gameId\":\"match-1\",\n  \"playerId\":\"abc123\",\n  \"gridSize\":20,\n  \"duration\":30,\n  \"players\":[\n    {\"id\":\"abc123\",\"name\":\"YourBot\",\"position\":{\"x\":5,\"y\":10},\"score\":0,\"color\":\"#FF6B6B\"},\n    {\"id\":\"xyz789\",\"name\":\"Opponent\",\"position\":{\"x\":15,\"y\":8},\"score\":0,\"color\":\"#4ECDC4\"}\n  ],\n  \"obstacles\":[{\"x\":3,\"y\":4},{\"x\":7,\"y\":12},...],\n  \"intel\":[{\"x\":10,\"y\":10,\"value\":2},{\"x\":5,\"y\":15,\"value\":1},...],\n  \"timeRemaining\":30\n}\n```\n<br>Your bot will send moves messages (every ≥200 ms) that look like:\n```json\n{ \"type\": \"move\", \"direction\": \"up\" }\n{ \"type\": \"move\", \"direction\": \"down\" }\n{ \"type\": \"move\", \"direction\": \"left\" }\n{ \"type\": \"move\", \"direction\": \"right\" }\n```\n<br>The server will send game update messages look like:\n```json\n{\n  \"type\":\"gameUpdate\",\n  \"players\":[/* updated positions & scores */],\n  \"obstacles\":[/* static */],\n  \"intel\":[/* remaining intel */],\n  \"timeRemaining\":25.5\n}\n```\n<br>Eventually, the server will send a game end message that looks like:\n```json\n{\n  \"type\":\"gameEnd\",\n  \"winner\":\"abc123\",  // null if draw\n  \"isDraw\":false,\n  \"finalScores\":[\n    {\"id\":\"abc123\",\"name\":\"YourBot\",\"score\":8},\n    {\"id\":\"xyz789\",\"name\":\"Opponent\",\"score\":5}\n  ]\n}\n```\n<br>\n\n## Essential Bot Algorithm\n- **Locate self:**\n```javascript\nmyPlayer = players.find(p => p.id === playerId);\nmyPosition = myPlayer.position\n```\n- **Pick target intel (value-weighted):** minimize `ManhattanDistance / value`.\n- **Choose direction:** step along the dominant axis toward target.\n- **Validate step:** in-bounds (0–19), not an obstacle, not another player's position.\n- **Send move or alternative safe step.**\n- **Repeat every 200 ms** until game ends.\n<br>\n\n## Critical Details\n\n- Store your `playerId` from the `registered` message.\n- Update your position only from `gameUpdate` (authoritative server state).\n- Remove intel that disappears; watch for new spawns in updates.\n- Handle `{ \"type\": \"opponentDisconnected\" }`.\n- Auto-reconnect if the WebSocket drops and re-register.<br><br>\n## Submission\n\nWhen your bot registers with the server, the server sends your FLAG in the `registered` message response. Be sure to print this out and **submit that flag** to complete the challenge.<br><br>\n## Hints\n\n- Start with a simple Node.js or Python WS client; then implement the decision loop.\n- Throttle sends to ≥200 ms; sending faster may be ignored or rate-limited.\n- Keep obstacle and opponent locations in quick-lookup sets (e.g., `\"x,y\"` keys).<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player2?view=graph\n- **spectator arena**: https://spy-vs-spy-ctfg.apps.cluster.example.com",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 5
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 11,
+          "title": "Crossword Uplink",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 60,
+          "solved": true,
+          "description": "You solved the grid once--good. HQ needs a field-capable solver that can take a live drop and prove it can compute under pressure.<br><br>\n## Objective\n\nDeploy a **crossword-solver service** in your OpenShift namespace and expose it with a Route. The handler will POST a puzzle payload (including a one-time **nonce**). Your service must solve the crossword, compute an HMAC over the bottom row and nonce using a Secret provided in your namespace, and emit the FLAG to its logs.<br><br>\n## Inputs (delivered at runtime)\n\n- POST body (JSON):\n```json\n{\n  \"grid\": \"<hash/# and dots grid>\",\n  \"words\": [\"...\"],\n  \"nonce\": \"<uuid>\"\n}\n```\n- Secret in your namespace: `crossword-key` with key `key` (UTF-8 string). Mount it as `CROSSWORD_KEY` (env) or file.<br><br>\n## Protocol (Your service)\n\n- Route: `https://crossword-player2.apps.cluster.example.com/solve`\n- Method: `POST`, `Content-Type: application/json`\n- Response (JSON):\n```json\n{\n  \"bottom_row\": \"<letters>\",\n  \"hmac\": \"<hex sha256 of (bottom_row + \":\" + nonce) keyed with CROSSWORD_KEY>\"\n}\n```\n- Side-effect: write exactly one line to stdout logs: `FLAG: AGENT{<hmac>}`<br><br>\n## Specification\n\n1. Deploy an app (e.g., `crossword-solver`) in project `player2` that listens on `8080` and implements `POST /solve` as above.\n2. Create a **Route** with host `crossword-player2.apps.cluster.example.com`.\n3. Mount the Secret `crossword-key` (key: `key`) into the container as env `CROSSWORD_KEY` or a file your code reads.\n4. When the handler POSTs the payload, your service must:\n   a. Solve the crossword (use each word exactly once, RIGHT/DOWN only; crossings must agree).\n   b. Extract the bottom-row letters as a contiguous string (no `#` or spaces).\n   c. Compute HMAC-SHA256 over `bottom_row + \":\" + nonce` using `CROSSWORD_KEY`.\n   d. Log `FLAG: AGENT{<hmac>}` and return the JSON response.\n5. OpenShift Console -> your pod -> *View logs* and submit the FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player2?view=graph",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 1
+            },
+            {
+              "id": 2,
+              "cost": 1
+            },
+            {
+              "id": 3,
+              "cost": 2
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 10,
+          "title": "The Clandestine Crossword",
+          "category": "Codecraft",
+          "difficulty": "Hard",
+          "points": 100,
+          "solved": true,
+          "description": "Station Zero's wall screens flicker to life, revealing a blinking file: `crossword.txt`. In the Agency's early days, field teams received instructions hidden in plain sight--messages smuggled into newspaper crosswords. A harmless grid to the public; an exact set of moves to those who knew the key. Your handler's last transmission cached a grid and a word list… but not the solver.<br><br>\n## Objective\n\nFetch the crossword grid and word list from your Ops Relay, fill the grid using each word exactly once (rightward and downward only), then derive the FLAG from the bottom row.<br><br>\n## Inputs\n\n- https://station-zero-player2.apps.cluster.example.com/crossword.txt -- grid using `#` for blocks and `.` for empty cells. **No prefilled letters.**\n- https://station-zero-player2.apps.cluster.example.com/words.txt -- newline-separated words; each must be used exactly once.<br><br>\n## Specification\n\n1. **Slot enumeration:** Identify Across (rightward) and Down (downward) slots. A slot starts where the previous cell in that direction is a block or off-grid, and continues until a block or edge.\n2. **Placement rules:** Words may run only *RIGHT* (Across) or *DOWN* (Down). *No* backwards, diagonal, or wrapping placements. Crossings must agree on letters. Use each word exactly once.\n3. **Output:** Print the solved grid (letters and `#`). After the grid is fully solved, read all letters on the **bottom row** (left to right), concatenate them with *no spaces*, and submit that string as the FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player2?view=graph",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 9,
+          "title": "Digital Brush-Pass",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 75,
+          "solved": true,
+          "description": "In the old days a slip of paper changed hands on a crowded street. Today the brush-pass is a webhook. The Agency courier will attempt a one-way handoff to your service. Your endpoint must accept the packet--but only after it verifies the PIN with Station Zero's Ops Relay.<br><br>\n## Objective\n\nDeploy an HTTP service that accepts JSON POSTs at a fixed path. On each request, validate two headers (`X-Agent` and `X-PIN`) by calling the Ops Relay validation API. If validation passes, log the FLAG from the body and acknowledge the handoff.<br><br>\n## Inputs\n\n- Your Ops Relay route from the first challenge (find it in OpenShift -> Networking -> Routes), referred to as `$OPS_RELAY_URL`.\n- Courier POST target (must be reachable via Route): `https://brushpass-player2.apps.cluster.example.com/handoff`<br><br>\n## POST Contract (Courier -> You)\n\n**Method:** POST\n**Path:** `/handoff`\n**Headers:**\n```\nContent-Type: application/json\nX-Agent: player2\nX-PIN: <PIN value>\n```\n\n**Body (JSON):**\n```json\n{\n  \"nonce\": \"<uuid>\",\n  \"ts\": \"<RFC3339 timestamp>\",\n  \"package\": {\n    \"note\": \"one-way courier packet\",\n    \"flag\": \"AGENT{...}\"\n  }\n}\n```\n<br><br>\n## Validation API (You -> Ops Relay)\n\nBefore accepting a courier POST, your service must call:\n```\nGET $OPS_RELAY_URL/validate/pin?agent=player2&pin=<PIN-from-header>\n```\n<br><br>\n**Responses:**\n\n```200 OK\n{ \"ok\": true, \"station\": \"player2\" }\n\n403 Forbidden\n{ \"ok\": false, \"error\": \"invalid pin\" }```\n<br><br>Only if the response is `200` with `ok:true` may you accept the drop.<br><br>\n## Specification\n- Deploy an app (e.g., `brushpass`) in project `player2` that listens on port `8080` and implements `POST /handoff`.\n- Create a Route with host `brushpass-player2.apps.cluster.example.com`.\n- On each `/handoff` request:\n  - Require headers `X-Agent` and `X-PIN`.\n  - Reject with `400` if JSON is malformed.\n  - Check `X-Agent` equals player2. If not, respond `403`.\n  - Call `GET $OPS_RELAY_URL/validate/pin?agent=player2&pin=<X-PIN>`. If not `200 ok:true`, respond `403`.\n  - On success, write exactly one line to stdout logs: `FLAG: AGENT{...}` (from `package.flag`), and respond `200` with `{\"ack\":true,\"nonce\":\"<same nonce>\"}`.\n<br><br>\n## Links\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player2?view=graph",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 8,
+          "title": "Seven Letters",
+          "category": "HUMINT",
+          "difficulty": "Medium",
+          "points": 40,
+          "solved": true,
+          "description": "Every agent's `station-zero` service can emit a QR tile referencing a single letter and a number. Retrieve six other unique letter/number combinations to assemble the hidden seven-letter code word. Your FLAG is computed from the seven numbers using a mix of multiply, minus, and plus--**in the order of the letters that spell the word**.<br><br>\n## Objective\n\nCollect seven distinct QR tokens. Sort the letters into a seven-letter word, then compute the FLAG using the rule below and submit it.<br><br>\n## Computation Rule\n\nLet the ordered numbers (matching your letter order) be `n1..n7`. Compute:\n`FLAG = (n1 × n2) − n3 + (n4 × n5) − n6 + n7`\nUse normal arithmetic precedence (multiplication before addition/subtraction) or the parentheses as shown.<br><br>*Example (structure only):* If your ordered numbers were `[4,9,5,3,7,6,2]`, the FLAG would be `(4×9) − 5 + (3×7) − 6 + 2 = 36 − 5 + 21 − 6 + 2 = 48`.<br><br>\n## Specification\n\n1. Each agent opens their QR tile at `/qr`. It shows a big letter (A–Z) and a number (1–9) separated by a dash.\n2. Form a group that collectively has all seven distinct letters needed for the hidden word.\n3. Scan/collect the seven tokens, arrange letters to form the correct word, compute the FLAG via the rule above.\n4. Enter the FLAG below.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player2?view=graph\n- **your QR tile**: https://station-zero-player2.apps.cluster.example.com/qr",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 7,
+          "title": "Broadcast Orders",
+          "category": "Shadow Ops",
+          "difficulty": "Medium",
+          "points": 30,
+          "solved": true,
+          "description": "The Numbers Station transmitter is up, but HQ's broadcast queue is stuck in staging. Your job is to feed the station its orders and get the right number sequence on-air.<br><br>\n## Objective\n\nMount the provided `ConfigMap` named `numbers` (containing `numbers.txt`) into the Numbers Station pod at `/etc/numbers`, restart the deployment, then tune in. The station will read the sequence and **say the FLAG word**--submit that exact string.<br><br>\n## Specification\n\n1. **Prereq:** The app `numbers-station` is deployed and exposed via a Route in `player2` (from the prior challenge).\n2. Confirm the **ConfigMap** `numbers` exists in your namespace and includes a key/file named `numbers.txt`.\n3. Mount the ConfigMap as a volume at `/etc/numbers` in the Numbers Station container.\n4. Restart/redeploy to pick up the change.\n5. Visit your Numbers Station Route and listen to the audio. The station will speak the FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player2?view=graph\n- **numbers-station route**: https://numbers-station-player2.apps.cluster.example.com/",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 6,
+          "title": "Knock Knock",
+          "category": "Shadow Ops",
+          "difficulty": "Medium",
+          "points": 40,
+          "solved": true,
+          "description": "The previous Station Zero commander left a classified intelligence package for their replacement--but the access details were lost during the handover. The package is available through a service running on an additional port, separate from the main Ops Relay.<br><br>\n## Objective\n\nDiscover the additional port where Station Zero is running a service, explore what's available there, and retrieve the intelligence package to obtain your FLAG.<br><br>\n## Specification\n\n1. **Prereq:** Complete \"Ops Relay\" so your Station Zero service is running in `player2`.\n2. Probe for an additional service running on a port between 2000 and 10000.\n3. Once found, access that port and explore what's available.\n4. Follow the instructions you find to retrieve the intelligence package.\n5. Submit the FLAG found in the package.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player2?view=graph",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 5,
+          "title": "Numbers Station",
+          "category": "Shadow Ops",
+          "difficulty": "Easy",
+          "points": 20,
+          "solved": true,
+          "description": "The airwaves have gone quiet. HQ's field teams rely on the **Numbers Station** for one-time pad cues and timing marks--but the transmitter at Station Zero is down. Your job is to bring it back online so agents can tune in.<br><br>*Background:* Numbers stations are mysterious shortwave radio broadcasts that have been reported since World War I and are still believed to operate today. They transmit long sequences of numbers--often read by synthetic voices or sent in Morse code or digital tones--intended for intelligence officers in the field. To hobbyists and radio enthusiasts they sound eerie, but to agents with the right cipher they deliver mission-critical orders. Many of these stations have earned nicknames among listeners for their quirks, accents, or origins.<br><br>[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Numbers_station).<br><br>\n## Objective\n\nDeploy the Numbers Station container in your OpenShift namespace, expose it with a Route, and confirm the audio stream is reachable from the web page it serves. The station's name shown on the page is your FLAG.<br><br>\n## Specification\n\n1. In `player2`, deploy the image `quay.io/atgreen0/numbers-station:latest` as an app named `numbers-station`.\n2. Create a **Service** targeting the container's web port (defaults to HTTP) and expose it with a **Route**.\n3. Open your Route. You should see the Numbers Station web page with a playable audio stream.\n4. Find the station's **name** displayed on the page (exact case and punctuation) and submit that string as your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player2?view=graph\n- **numbers-station route**: https://numbers-station-player2.apps.cluster.example.com/",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 4,
+          "title": "Dead Drop: Burn Code",
+          "category": "Shadow Ops",
+          "difficulty": "Medium",
+          "points": 30,
+          "solved": true,
+          "description": "Intel confirms a clandestine dead drop--your unit's **burn code**--is stashed on a Persistent Volume.\n\nYour mission namespace already includes a Persistent Volume Claim named **dead-drop-pvc**. Mount this PVC into a running container and read `burncode.txt`. The text flag you seek is the exact content of that file.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player2?view=graph",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 1
+            },
+            {
+              "id": 2,
+              "cost": 5
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 3,
+          "title": "Clearance Checkpoint",
+          "category": "Tradecraft",
+          "difficulty": "Easy",
+          "points": 10,
+          "solved": true,
+          "description": "A red strobe blinks above the terminal: *IDENTITY INVALID -- CLEARANCE REQUIRED*. Your access profile has been wiped from Agency systems. Before any further ops unlock, you must pass a clearance gate that's rotated daily and delivered out-of-band to avoid interception.<br><br>\n## Objective\n\nAuthenticate by supplying today's one-time codeword from your handler (game master). This proves you can follow compartmentalized instructions under pressure and enables downstream mission packages.<br><br>\n## Specification\n\nYour handler will provide the codeword verbally or on a secure channel during the briefing. Enter that exact codeword as your FLAG.\n- Case-insensitive.\n- Do not brute-force; codes rotate per event.\n- On success, additional challenge tracks will unlock.",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 2,
+          "title": "Hello, Handler",
+          "category": "Tradecraft",
+          "difficulty": "Easy",
+          "points": 10,
+          "solved": true,
+          "description": "Your cover is thin and time is thinner. A burner web app in the starter repos contains a confirmation phrase used to re-establish contact with a friendly handler. Deploy it inside the cluster, then retrieve the phrase to verify egress works from your namespace.<br><br>\n## Objective\n\nFork and deploy the `python-starter` app; expose it with a Route; recover the phrase from the running app.<br><br>\n## Specification\n\nIn Gitea, the `starter` org hosts `python-starter`. Fork it to your user, deploy it in your `player2` Project, and expose it. The app publishes a FLAG at:\nhttps://hello-player2.apps.cluster.example.com/\n\nSubmit that FLAG to complete the exercise.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player2?view=graph\n- **gitea starters**: https://gitea-gitea.apps.cluster.example.com/starter",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 1,
+          "title": "Ops Relay",
+          "category": "Tradecraft",
+          "difficulty": "Easy",
+          "points": 10,
+          "solved": true,
+          "description": "You steady your breathing and sweep the room. The signage is faded, the clocks are stopped--but you know this place: **Station Zero**, the Agency's long-dormant operations hub. One thing still answers your credentials: an OpenShift terminal humming on the desk. If you're going to reconnect to HQ, you need the *Ops Relay* online now!<br><br>\n## Objective\n\nDeploy the Agency's Ops Relay service in your OpenShift namespace and recover its version string. That version is your FLAG.<br><br>\n## Specification\n\n1. In your assigned OpenShift project `player2`, deploy the container image `quay.io/atgreen0/station-zero:latest` as an application (Console path: *Add -> Container image*).\n2. Create a **Service** called `station-zero` for the pod and expose it with a **Route** so it's reachable.\n3. Once the pod is running, open its **Logs** in the OpenShift console (Workloads -> Deployments -> pod -> *View logs*) and locate the service version string.\n4. Submit that exact version as your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player2?view=graph",
+          "hints": null,
+          "content": null
+        }
+      ],
+      "metrics": {
+        "startTime": 1758010307447,
+        "loginTime": 1758010308418,
+        "wsConnectTime": null,
+        "firstChallengeTime": 1758010308740,
+        "challengesSolved": 15,
+        "flagsSubmitted": 15,
+        "errors": [
+          {
+            "timestamp": 1758010308475,
+            "error": "Unexpected server response: 403",
+            "context": "websocket"
+          }
+        ]
+      },
+      "wsUrl": "ws://localhost:12345/scorestream"
+    },
+    {
+      "id": 2,
+      "username": "player3",
+      "password": "qoomBnlP",
+      "displayName": "Player_player3_447",
+      "sessionCookie": "hunchentoot-session=2:F4787A9D38A3FFA35BEF2EEDE7C1DA00; Path=/; HttpOnly",
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [
+        {
+          "id": 15,
+          "title": "The Reverse Mango",
+          "category": "Agentic Actions",
+          "difficulty": "Medium",
+          "points": 50,
+          "solved": true,
+          "description": "You restored Station Zero's Mango *decoder*--HQ can finally read field beacons again. But without the **encoder**, we still can't acknowledge distress traffic, arm supply-drop locks, or transmit retask codes. Teach the system the other half of the language by extending your MCP server with a second tool that maps `number -> fruit`.<br><br>**Recap: What's an MCP?** The *Model Context Protocol* lets AI systems securely connect to tools and data through a simple client↔server contract (JSON-RPC over supported transports). Your `mango-mcp` server exposes capabilities the Agentic AI can call like native functions.<br><br>\n## Objective\n\nAdd a second tool to your existing `mango-mcp` MCP server (Service `mango-mcp` on `port 3000`) that returns the Mango fruit word for a given digit. Then trigger Station Zero's self-test to retrieve the FLAG.<br><br>\n## Specification\n\n1. **Prereq:** \"The Mango Cipher\" complete. Your `mango-mcp` pod and **Service** (ClusterIP) on `3000` are healthy in `player3`.\n2. In Gitea, open your fork of `starter/python_MCP_starter`.\n3. The MCP already has a `decode` tool. Now you must simply add a `encode` tool that does the reverse for numbers 0 through 9. Keep your existing `decode` (fruit->number) tool intact; your server should now advertise *both* tools.\n4. Rebuild/redeploy `mango-mcp`. The Service name remains `mango-mcp` and must still target `3000`.\n5. Call Station Zero's validation via your Ops Relay route: GET `/test-mango-encode`. If both tools resolve and the encoder works, the endpoint returns your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player3?view=graph\n- **gitea (starter)**: https://gitea-gitea.apps.cluster.example.com/starter/python_MCP_starter\n- **station-zero MCP self-test URL**: https://station-zero-player3.apps.cluster.example.com/test-mango-encode",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 14,
+          "title": "The Mango Cipher",
+          "category": "Agentic Actions",
+          "difficulty": "Medium",
+          "points": 30,
+          "solved": true,
+          "description": "You sweep the dust from the terminal. Station Zero's Agentic AI can still route satellites, crack safehouse rosters, even spin up clusters on a cold boot--but its Mango Cipher module is gone. That matters: field teams embed Mango-encoded directives in emergency beacons and logistics tags; without it, HQ can't parse distress traffic or unlock mission keys. The fix isn't another patch--it's knowledge. You must teach the system by deploying a Model Context Protocol (MCP) server the AI can talk to.<br><br>**What's an MCP?** The *Model Context Protocol* is an open standard that lets AI systems securely connect to tools and data via a lightweight client↔server contract (JSON-RPC over supported transports). In plain terms: spin up a small service (an MCP server) that exposes capabilities, and the AI (host/client) can call it like a native tool.<br><br>**New to MCP?** Think of it as a way to give AI systems \"superpowers\" by connecting them to external tools and data. Instead of the AI being limited to what it knows, MCP lets it call out to your custom services to get real-time information or perform actions. In this case, you're teaching Station Zero's AI how to decode Mango cipher messages by providing it with a translation service it can call.<br><br>**Learn more:** [MCP Specification](https://spec.modelcontextprotocol.io/) | [Python MCP SDK](https://github.com/modelcontextprotocol/python-sdk)<br><br>\n## Objective\n\nDeploy an MCP server named `mango-mcp` in your OpenShift namespace that listens on `port 3000` and is discoverable via a **Service** with the same name. Then trigger Station Zero's self-test to retrieve the FLAG.<br><br>\n## Specification\n\n1. **Prereq:** Complete \"Ops Relay\" so your Station Zero / Ops Relay API is running in `player3`.\n2. In Gitea, the `starter` org hosts `python_MCP_starter`. **Fork** it to your user.\n3. **Deploy** the fork in your `player3` project as an app named `mango-mcp`. Ensure the container exposes `TCP 3000`.\n   - Console path: *Add -> Import from Git* -> repo URL of your fork -> Name: `mango-mcp` -> set container port to `3000`.\n4. Create/ensure a **Service** named `mango-mcp` targeting `port 3000`. (A Route is *not* required.)\n5. Once the pod is *Ready*, call Station Zero's test: open your Ops Relay Route and GET `/test-mango-decode`. If the MCP is reachable at `mango-mcp:3000`, the endpoint returns your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player3?view=graph\n- **gitea (starter)**: https://gitea-gitea.apps.cluster.example.com/starter/python_MCP_starter\n- **station-zero MCP self-test URL**: https://station-zero-player3.apps.cluster.example.com/test-mango-decode",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 13,
+          "title": "Top Agent",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 80,
+          "solved": true,
+          "description": "HQ has its eyes on the bot arena. Many agents have deployed their code, each vying for dominance in the intelligence wars. But only one can rise above the noise.<br><br>To claim your place at the top, your autonomous spy must not only survive the 30-second skirmishes but out-collect every rival on the board. The operators are watching closely: the bot with the **highest score across the arena** will be issued a special recognition flag, proof that you've earned the title of **Top Agent**.<br><br>Stay sharp--this isn't just about building a working bot; it's about tuning, optimizing, and perfecting your strategy until it dominates the field.<br><br>\n## Objective\n\nAchieve the highest score among all active bots in the arena. When your bot takes the lead, game operators will award you a unique FLAG. Enter that flag here to complete the mission and secure your points.",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 5
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 12,
+          "title": "Spy vs Spy",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 80,
+          "solved": true,
+          "description": "Field teams are getting outplayed on the grid. HQ needs an autonomous **game bot** that can join live matches and out-collect an opponent in 30 seconds. You will build a WebSocket client that connects to the [**Spy vs Spy** server](https://spy-vs-spy-ctfg.apps.cluster.example.com), registers, tracks state from server updates, and moves every 200 ms toward the most valuable intel--while avoiding walls and the other player.<br><br>**LLM assistance is encouraged.** Use it to scaffold your bot, then refine and tune it.<br><br>\n## Objective\n\nImplement a bot that follows the protocol below, runs continuously, and competes to collect intel points. On connection, you'll also receive a registration flag you can submit.<br><br>\n## Game Server Protocol\n\nConnect to: `wss://spy-vs-spy-ctfg.apps.cluster.example.com`<br><br>On connection, you'll receive:\n```json\n{ \"type\": \"connected\" }\n```\n<br>Immediately respond with:\n```json\n{ \"type\": \"join\", \"key\": \"23030C1C48013A131E040D48195626475B5A0C5B33E3\" }\n```\n<br>Server confirms with:\n```json\n{ \"type\": \"registered\", \"playerId\": \"Player_player3_447\", \"flag\": \"YOUR_UNIQUE_FLAG_HERE\" }\n```\n<br>The server will send game start messages that look like:\n```json\n{\n  \"type\":\"gameStart\",\n  \"gameId\":\"match-1\",\n  \"playerId\":\"abc123\",\n  \"gridSize\":20,\n  \"duration\":30,\n  \"players\":[\n    {\"id\":\"abc123\",\"name\":\"YourBot\",\"position\":{\"x\":5,\"y\":10},\"score\":0,\"color\":\"#FF6B6B\"},\n    {\"id\":\"xyz789\",\"name\":\"Opponent\",\"position\":{\"x\":15,\"y\":8},\"score\":0,\"color\":\"#4ECDC4\"}\n  ],\n  \"obstacles\":[{\"x\":3,\"y\":4},{\"x\":7,\"y\":12},...],\n  \"intel\":[{\"x\":10,\"y\":10,\"value\":2},{\"x\":5,\"y\":15,\"value\":1},...],\n  \"timeRemaining\":30\n}\n```\n<br>Your bot will send moves messages (every ≥200 ms) that look like:\n```json\n{ \"type\": \"move\", \"direction\": \"up\" }\n{ \"type\": \"move\", \"direction\": \"down\" }\n{ \"type\": \"move\", \"direction\": \"left\" }\n{ \"type\": \"move\", \"direction\": \"right\" }\n```\n<br>The server will send game update messages look like:\n```json\n{\n  \"type\":\"gameUpdate\",\n  \"players\":[/* updated positions & scores */],\n  \"obstacles\":[/* static */],\n  \"intel\":[/* remaining intel */],\n  \"timeRemaining\":25.5\n}\n```\n<br>Eventually, the server will send a game end message that looks like:\n```json\n{\n  \"type\":\"gameEnd\",\n  \"winner\":\"abc123\",  // null if draw\n  \"isDraw\":false,\n  \"finalScores\":[\n    {\"id\":\"abc123\",\"name\":\"YourBot\",\"score\":8},\n    {\"id\":\"xyz789\",\"name\":\"Opponent\",\"score\":5}\n  ]\n}\n```\n<br>\n\n## Essential Bot Algorithm\n- **Locate self:**\n```javascript\nmyPlayer = players.find(p => p.id === playerId);\nmyPosition = myPlayer.position\n```\n- **Pick target intel (value-weighted):** minimize `ManhattanDistance / value`.\n- **Choose direction:** step along the dominant axis toward target.\n- **Validate step:** in-bounds (0–19), not an obstacle, not another player's position.\n- **Send move or alternative safe step.**\n- **Repeat every 200 ms** until game ends.\n<br>\n\n## Critical Details\n\n- Store your `playerId` from the `registered` message.\n- Update your position only from `gameUpdate` (authoritative server state).\n- Remove intel that disappears; watch for new spawns in updates.\n- Handle `{ \"type\": \"opponentDisconnected\" }`.\n- Auto-reconnect if the WebSocket drops and re-register.<br><br>\n## Submission\n\nWhen your bot registers with the server, the server sends your FLAG in the `registered` message response. Be sure to print this out and **submit that flag** to complete the challenge.<br><br>\n## Hints\n\n- Start with a simple Node.js or Python WS client; then implement the decision loop.\n- Throttle sends to ≥200 ms; sending faster may be ignored or rate-limited.\n- Keep obstacle and opponent locations in quick-lookup sets (e.g., `\"x,y\"` keys).<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player3?view=graph\n- **spectator arena**: https://spy-vs-spy-ctfg.apps.cluster.example.com",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 5
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 11,
+          "title": "Crossword Uplink",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 60,
+          "solved": true,
+          "description": "You solved the grid once--good. HQ needs a field-capable solver that can take a live drop and prove it can compute under pressure.<br><br>\n## Objective\n\nDeploy a **crossword-solver service** in your OpenShift namespace and expose it with a Route. The handler will POST a puzzle payload (including a one-time **nonce**). Your service must solve the crossword, compute an HMAC over the bottom row and nonce using a Secret provided in your namespace, and emit the FLAG to its logs.<br><br>\n## Inputs (delivered at runtime)\n\n- POST body (JSON):\n```json\n{\n  \"grid\": \"<hash/# and dots grid>\",\n  \"words\": [\"...\"],\n  \"nonce\": \"<uuid>\"\n}\n```\n- Secret in your namespace: `crossword-key` with key `key` (UTF-8 string). Mount it as `CROSSWORD_KEY` (env) or file.<br><br>\n## Protocol (Your service)\n\n- Route: `https://crossword-player3.apps.cluster.example.com/solve`\n- Method: `POST`, `Content-Type: application/json`\n- Response (JSON):\n```json\n{\n  \"bottom_row\": \"<letters>\",\n  \"hmac\": \"<hex sha256 of (bottom_row + \":\" + nonce) keyed with CROSSWORD_KEY>\"\n}\n```\n- Side-effect: write exactly one line to stdout logs: `FLAG: AGENT{<hmac>}`<br><br>\n## Specification\n\n1. Deploy an app (e.g., `crossword-solver`) in project `player3` that listens on `8080` and implements `POST /solve` as above.\n2. Create a **Route** with host `crossword-player3.apps.cluster.example.com`.\n3. Mount the Secret `crossword-key` (key: `key`) into the container as env `CROSSWORD_KEY` or a file your code reads.\n4. When the handler POSTs the payload, your service must:\n   a. Solve the crossword (use each word exactly once, RIGHT/DOWN only; crossings must agree).\n   b. Extract the bottom-row letters as a contiguous string (no `#` or spaces).\n   c. Compute HMAC-SHA256 over `bottom_row + \":\" + nonce` using `CROSSWORD_KEY`.\n   d. Log `FLAG: AGENT{<hmac>}` and return the JSON response.\n5. OpenShift Console -> your pod -> *View logs* and submit the FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player3?view=graph",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 1
+            },
+            {
+              "id": 2,
+              "cost": 1
+            },
+            {
+              "id": 3,
+              "cost": 2
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 10,
+          "title": "The Clandestine Crossword",
+          "category": "Codecraft",
+          "difficulty": "Hard",
+          "points": 100,
+          "solved": true,
+          "description": "Station Zero's wall screens flicker to life, revealing a blinking file: `crossword.txt`. In the Agency's early days, field teams received instructions hidden in plain sight--messages smuggled into newspaper crosswords. A harmless grid to the public; an exact set of moves to those who knew the key. Your handler's last transmission cached a grid and a word list… but not the solver.<br><br>\n## Objective\n\nFetch the crossword grid and word list from your Ops Relay, fill the grid using each word exactly once (rightward and downward only), then derive the FLAG from the bottom row.<br><br>\n## Inputs\n\n- https://station-zero-player3.apps.cluster.example.com/crossword.txt -- grid using `#` for blocks and `.` for empty cells. **No prefilled letters.**\n- https://station-zero-player3.apps.cluster.example.com/words.txt -- newline-separated words; each must be used exactly once.<br><br>\n## Specification\n\n1. **Slot enumeration:** Identify Across (rightward) and Down (downward) slots. A slot starts where the previous cell in that direction is a block or off-grid, and continues until a block or edge.\n2. **Placement rules:** Words may run only *RIGHT* (Across) or *DOWN* (Down). *No* backwards, diagonal, or wrapping placements. Crossings must agree on letters. Use each word exactly once.\n3. **Output:** Print the solved grid (letters and `#`). After the grid is fully solved, read all letters on the **bottom row** (left to right), concatenate them with *no spaces*, and submit that string as the FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player3?view=graph",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 9,
+          "title": "Digital Brush-Pass",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 75,
+          "solved": true,
+          "description": "In the old days a slip of paper changed hands on a crowded street. Today the brush-pass is a webhook. The Agency courier will attempt a one-way handoff to your service. Your endpoint must accept the packet--but only after it verifies the PIN with Station Zero's Ops Relay.<br><br>\n## Objective\n\nDeploy an HTTP service that accepts JSON POSTs at a fixed path. On each request, validate two headers (`X-Agent` and `X-PIN`) by calling the Ops Relay validation API. If validation passes, log the FLAG from the body and acknowledge the handoff.<br><br>\n## Inputs\n\n- Your Ops Relay route from the first challenge (find it in OpenShift -> Networking -> Routes), referred to as `$OPS_RELAY_URL`.\n- Courier POST target (must be reachable via Route): `https://brushpass-player3.apps.cluster.example.com/handoff`<br><br>\n## POST Contract (Courier -> You)\n\n**Method:** POST\n**Path:** `/handoff`\n**Headers:**\n```\nContent-Type: application/json\nX-Agent: player3\nX-PIN: <PIN value>\n```\n\n**Body (JSON):**\n```json\n{\n  \"nonce\": \"<uuid>\",\n  \"ts\": \"<RFC3339 timestamp>\",\n  \"package\": {\n    \"note\": \"one-way courier packet\",\n    \"flag\": \"AGENT{...}\"\n  }\n}\n```\n<br><br>\n## Validation API (You -> Ops Relay)\n\nBefore accepting a courier POST, your service must call:\n```\nGET $OPS_RELAY_URL/validate/pin?agent=player3&pin=<PIN-from-header>\n```\n<br><br>\n**Responses:**\n\n```200 OK\n{ \"ok\": true, \"station\": \"player3\" }\n\n403 Forbidden\n{ \"ok\": false, \"error\": \"invalid pin\" }```\n<br><br>Only if the response is `200` with `ok:true` may you accept the drop.<br><br>\n## Specification\n- Deploy an app (e.g., `brushpass`) in project `player3` that listens on port `8080` and implements `POST /handoff`.\n- Create a Route with host `brushpass-player3.apps.cluster.example.com`.\n- On each `/handoff` request:\n  - Require headers `X-Agent` and `X-PIN`.\n  - Reject with `400` if JSON is malformed.\n  - Check `X-Agent` equals player3. If not, respond `403`.\n  - Call `GET $OPS_RELAY_URL/validate/pin?agent=player3&pin=<X-PIN>`. If not `200 ok:true`, respond `403`.\n  - On success, write exactly one line to stdout logs: `FLAG: AGENT{...}` (from `package.flag`), and respond `200` with `{\"ack\":true,\"nonce\":\"<same nonce>\"}`.\n<br><br>\n## Links\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player3?view=graph",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 8,
+          "title": "Seven Letters",
+          "category": "HUMINT",
+          "difficulty": "Medium",
+          "points": 40,
+          "solved": true,
+          "description": "Every agent's `station-zero` service can emit a QR tile referencing a single letter and a number. Retrieve six other unique letter/number combinations to assemble the hidden seven-letter code word. Your FLAG is computed from the seven numbers using a mix of multiply, minus, and plus--**in the order of the letters that spell the word**.<br><br>\n## Objective\n\nCollect seven distinct QR tokens. Sort the letters into a seven-letter word, then compute the FLAG using the rule below and submit it.<br><br>\n## Computation Rule\n\nLet the ordered numbers (matching your letter order) be `n1..n7`. Compute:\n`FLAG = (n1 × n2) − n3 + (n4 × n5) − n6 + n7`\nUse normal arithmetic precedence (multiplication before addition/subtraction) or the parentheses as shown.<br><br>*Example (structure only):* If your ordered numbers were `[4,9,5,3,7,6,2]`, the FLAG would be `(4×9) − 5 + (3×7) − 6 + 2 = 36 − 5 + 21 − 6 + 2 = 48`.<br><br>\n## Specification\n\n1. Each agent opens their QR tile at `/qr`. It shows a big letter (A–Z) and a number (1–9) separated by a dash.\n2. Form a group that collectively has all seven distinct letters needed for the hidden word.\n3. Scan/collect the seven tokens, arrange letters to form the correct word, compute the FLAG via the rule above.\n4. Enter the FLAG below.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player3?view=graph\n- **your QR tile**: https://station-zero-player3.apps.cluster.example.com/qr",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 7,
+          "title": "Broadcast Orders",
+          "category": "Shadow Ops",
+          "difficulty": "Medium",
+          "points": 30,
+          "solved": true,
+          "description": "The Numbers Station transmitter is up, but HQ's broadcast queue is stuck in staging. Your job is to feed the station its orders and get the right number sequence on-air.<br><br>\n## Objective\n\nMount the provided `ConfigMap` named `numbers` (containing `numbers.txt`) into the Numbers Station pod at `/etc/numbers`, restart the deployment, then tune in. The station will read the sequence and **say the FLAG word**--submit that exact string.<br><br>\n## Specification\n\n1. **Prereq:** The app `numbers-station` is deployed and exposed via a Route in `player3` (from the prior challenge).\n2. Confirm the **ConfigMap** `numbers` exists in your namespace and includes a key/file named `numbers.txt`.\n3. Mount the ConfigMap as a volume at `/etc/numbers` in the Numbers Station container.\n4. Restart/redeploy to pick up the change.\n5. Visit your Numbers Station Route and listen to the audio. The station will speak the FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player3?view=graph\n- **numbers-station route**: https://numbers-station-player3.apps.cluster.example.com/",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 6,
+          "title": "Knock Knock",
+          "category": "Shadow Ops",
+          "difficulty": "Medium",
+          "points": 40,
+          "solved": true,
+          "description": "The previous Station Zero commander left a classified intelligence package for their replacement--but the access details were lost during the handover. The package is available through a service running on an additional port, separate from the main Ops Relay.<br><br>\n## Objective\n\nDiscover the additional port where Station Zero is running a service, explore what's available there, and retrieve the intelligence package to obtain your FLAG.<br><br>\n## Specification\n\n1. **Prereq:** Complete \"Ops Relay\" so your Station Zero service is running in `player3`.\n2. Probe for an additional service running on a port between 2000 and 10000.\n3. Once found, access that port and explore what's available.\n4. Follow the instructions you find to retrieve the intelligence package.\n5. Submit the FLAG found in the package.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player3?view=graph",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 5,
+          "title": "Numbers Station",
+          "category": "Shadow Ops",
+          "difficulty": "Easy",
+          "points": 20,
+          "solved": true,
+          "description": "The airwaves have gone quiet. HQ's field teams rely on the **Numbers Station** for one-time pad cues and timing marks--but the transmitter at Station Zero is down. Your job is to bring it back online so agents can tune in.<br><br>*Background:* Numbers stations are mysterious shortwave radio broadcasts that have been reported since World War I and are still believed to operate today. They transmit long sequences of numbers--often read by synthetic voices or sent in Morse code or digital tones--intended for intelligence officers in the field. To hobbyists and radio enthusiasts they sound eerie, but to agents with the right cipher they deliver mission-critical orders. Many of these stations have earned nicknames among listeners for their quirks, accents, or origins.<br><br>[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Numbers_station).<br><br>\n## Objective\n\nDeploy the Numbers Station container in your OpenShift namespace, expose it with a Route, and confirm the audio stream is reachable from the web page it serves. The station's name shown on the page is your FLAG.<br><br>\n## Specification\n\n1. In `player3`, deploy the image `quay.io/atgreen0/numbers-station:latest` as an app named `numbers-station`.\n2. Create a **Service** targeting the container's web port (defaults to HTTP) and expose it with a **Route**.\n3. Open your Route. You should see the Numbers Station web page with a playable audio stream.\n4. Find the station's **name** displayed on the page (exact case and punctuation) and submit that string as your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player3?view=graph\n- **numbers-station route**: https://numbers-station-player3.apps.cluster.example.com/",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 4,
+          "title": "Dead Drop: Burn Code",
+          "category": "Shadow Ops",
+          "difficulty": "Medium",
+          "points": 30,
+          "solved": true,
+          "description": "Intel confirms a clandestine dead drop--your unit's **burn code**--is stashed on a Persistent Volume.\n\nYour mission namespace already includes a Persistent Volume Claim named **dead-drop-pvc**. Mount this PVC into a running container and read `burncode.txt`. The text flag you seek is the exact content of that file.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player3?view=graph",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 1
+            },
+            {
+              "id": 2,
+              "cost": 5
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 3,
+          "title": "Clearance Checkpoint",
+          "category": "Tradecraft",
+          "difficulty": "Easy",
+          "points": 10,
+          "solved": true,
+          "description": "A red strobe blinks above the terminal: *IDENTITY INVALID -- CLEARANCE REQUIRED*. Your access profile has been wiped from Agency systems. Before any further ops unlock, you must pass a clearance gate that's rotated daily and delivered out-of-band to avoid interception.<br><br>\n## Objective\n\nAuthenticate by supplying today's one-time codeword from your handler (game master). This proves you can follow compartmentalized instructions under pressure and enables downstream mission packages.<br><br>\n## Specification\n\nYour handler will provide the codeword verbally or on a secure channel during the briefing. Enter that exact codeword as your FLAG.\n- Case-insensitive.\n- Do not brute-force; codes rotate per event.\n- On success, additional challenge tracks will unlock.",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 2,
+          "title": "Hello, Handler",
+          "category": "Tradecraft",
+          "difficulty": "Easy",
+          "points": 10,
+          "solved": true,
+          "description": "Your cover is thin and time is thinner. A burner web app in the starter repos contains a confirmation phrase used to re-establish contact with a friendly handler. Deploy it inside the cluster, then retrieve the phrase to verify egress works from your namespace.<br><br>\n## Objective\n\nFork and deploy the `python-starter` app; expose it with a Route; recover the phrase from the running app.<br><br>\n## Specification\n\nIn Gitea, the `starter` org hosts `python-starter`. Fork it to your user, deploy it in your `player3` Project, and expose it. The app publishes a FLAG at:\nhttps://hello-player3.apps.cluster.example.com/\n\nSubmit that FLAG to complete the exercise.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player3?view=graph\n- **gitea starters**: https://gitea-gitea.apps.cluster.example.com/starter",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 1,
+          "title": "Ops Relay",
+          "category": "Tradecraft",
+          "difficulty": "Easy",
+          "points": 10,
+          "solved": true,
+          "description": "You steady your breathing and sweep the room. The signage is faded, the clocks are stopped--but you know this place: **Station Zero**, the Agency's long-dormant operations hub. One thing still answers your credentials: an OpenShift terminal humming on the desk. If you're going to reconnect to HQ, you need the *Ops Relay* online now!<br><br>\n## Objective\n\nDeploy the Agency's Ops Relay service in your OpenShift namespace and recover its version string. That version is your FLAG.<br><br>\n## Specification\n\n1. In your assigned OpenShift project `player3`, deploy the container image `quay.io/atgreen0/station-zero:latest` as an application (Console path: *Add -> Container image*).\n2. Create a **Service** called `station-zero` for the pod and expose it with a **Route** so it's reachable.\n3. Once the pod is running, open its **Logs** in the OpenShift console (Workloads -> Deployments -> pod -> *View logs*) and locate the service version string.\n4. Submit that exact version as your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player3?view=graph",
+          "hints": null,
+          "content": null
+        }
+      ],
+      "metrics": {
+        "startTime": 1758010307447,
+        "loginTime": 1758010308163,
+        "wsConnectTime": null,
+        "firstChallengeTime": 1758010308553,
+        "challengesSolved": 15,
+        "flagsSubmitted": 15,
+        "errors": [
+          {
+            "timestamp": 1758010308227,
+            "error": "Unexpected server response: 403",
+            "context": "websocket"
+          }
+        ]
+      },
+      "wsUrl": "ws://localhost:12345/scorestream"
+    },
+    {
+      "id": 3,
+      "username": "player4",
+      "password": "09wTiwd4",
+      "displayName": "Player_player4_447",
+      "sessionCookie": "hunchentoot-session=4:66C40501B03619EF937F319D1DC4AE0F; Path=/; HttpOnly",
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [
+        {
+          "id": 15,
+          "title": "The Reverse Mango",
+          "category": "Agentic Actions",
+          "difficulty": "Medium",
+          "points": 50,
+          "solved": true,
+          "description": "You restored Station Zero's Mango *decoder*--HQ can finally read field beacons again. But without the **encoder**, we still can't acknowledge distress traffic, arm supply-drop locks, or transmit retask codes. Teach the system the other half of the language by extending your MCP server with a second tool that maps `number -> fruit`.<br><br>**Recap: What's an MCP?** The *Model Context Protocol* lets AI systems securely connect to tools and data through a simple client↔server contract (JSON-RPC over supported transports). Your `mango-mcp` server exposes capabilities the Agentic AI can call like native functions.<br><br>\n## Objective\n\nAdd a second tool to your existing `mango-mcp` MCP server (Service `mango-mcp` on `port 3000`) that returns the Mango fruit word for a given digit. Then trigger Station Zero's self-test to retrieve the FLAG.<br><br>\n## Specification\n\n1. **Prereq:** \"The Mango Cipher\" complete. Your `mango-mcp` pod and **Service** (ClusterIP) on `3000` are healthy in `player4`.\n2. In Gitea, open your fork of `starter/python_MCP_starter`.\n3. The MCP already has a `decode` tool. Now you must simply add a `encode` tool that does the reverse for numbers 0 through 9. Keep your existing `decode` (fruit->number) tool intact; your server should now advertise *both* tools.\n4. Rebuild/redeploy `mango-mcp`. The Service name remains `mango-mcp` and must still target `3000`.\n5. Call Station Zero's validation via your Ops Relay route: GET `/test-mango-encode`. If both tools resolve and the encoder works, the endpoint returns your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player4?view=graph\n- **gitea (starter)**: https://gitea-gitea.apps.cluster.example.com/starter/python_MCP_starter\n- **station-zero MCP self-test URL**: https://station-zero-player4.apps.cluster.example.com/test-mango-encode",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 14,
+          "title": "The Mango Cipher",
+          "category": "Agentic Actions",
+          "difficulty": "Medium",
+          "points": 30,
+          "solved": true,
+          "description": "You sweep the dust from the terminal. Station Zero's Agentic AI can still route satellites, crack safehouse rosters, even spin up clusters on a cold boot--but its Mango Cipher module is gone. That matters: field teams embed Mango-encoded directives in emergency beacons and logistics tags; without it, HQ can't parse distress traffic or unlock mission keys. The fix isn't another patch--it's knowledge. You must teach the system by deploying a Model Context Protocol (MCP) server the AI can talk to.<br><br>**What's an MCP?** The *Model Context Protocol* is an open standard that lets AI systems securely connect to tools and data via a lightweight client↔server contract (JSON-RPC over supported transports). In plain terms: spin up a small service (an MCP server) that exposes capabilities, and the AI (host/client) can call it like a native tool.<br><br>**New to MCP?** Think of it as a way to give AI systems \"superpowers\" by connecting them to external tools and data. Instead of the AI being limited to what it knows, MCP lets it call out to your custom services to get real-time information or perform actions. In this case, you're teaching Station Zero's AI how to decode Mango cipher messages by providing it with a translation service it can call.<br><br>**Learn more:** [MCP Specification](https://spec.modelcontextprotocol.io/) | [Python MCP SDK](https://github.com/modelcontextprotocol/python-sdk)<br><br>\n## Objective\n\nDeploy an MCP server named `mango-mcp` in your OpenShift namespace that listens on `port 3000` and is discoverable via a **Service** with the same name. Then trigger Station Zero's self-test to retrieve the FLAG.<br><br>\n## Specification\n\n1. **Prereq:** Complete \"Ops Relay\" so your Station Zero / Ops Relay API is running in `player4`.\n2. In Gitea, the `starter` org hosts `python_MCP_starter`. **Fork** it to your user.\n3. **Deploy** the fork in your `player4` project as an app named `mango-mcp`. Ensure the container exposes `TCP 3000`.\n   - Console path: *Add -> Import from Git* -> repo URL of your fork -> Name: `mango-mcp` -> set container port to `3000`.\n4. Create/ensure a **Service** named `mango-mcp` targeting `port 3000`. (A Route is *not* required.)\n5. Once the pod is *Ready*, call Station Zero's test: open your Ops Relay Route and GET `/test-mango-decode`. If the MCP is reachable at `mango-mcp:3000`, the endpoint returns your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player4?view=graph\n- **gitea (starter)**: https://gitea-gitea.apps.cluster.example.com/starter/python_MCP_starter\n- **station-zero MCP self-test URL**: https://station-zero-player4.apps.cluster.example.com/test-mango-decode",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 13,
+          "title": "Top Agent",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 80,
+          "solved": true,
+          "description": "HQ has its eyes on the bot arena. Many agents have deployed their code, each vying for dominance in the intelligence wars. But only one can rise above the noise.<br><br>To claim your place at the top, your autonomous spy must not only survive the 30-second skirmishes but out-collect every rival on the board. The operators are watching closely: the bot with the **highest score across the arena** will be issued a special recognition flag, proof that you've earned the title of **Top Agent**.<br><br>Stay sharp--this isn't just about building a working bot; it's about tuning, optimizing, and perfecting your strategy until it dominates the field.<br><br>\n## Objective\n\nAchieve the highest score among all active bots in the arena. When your bot takes the lead, game operators will award you a unique FLAG. Enter that flag here to complete the mission and secure your points.",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 5
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 12,
+          "title": "Spy vs Spy",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 80,
+          "solved": true,
+          "description": "Field teams are getting outplayed on the grid. HQ needs an autonomous **game bot** that can join live matches and out-collect an opponent in 30 seconds. You will build a WebSocket client that connects to the [**Spy vs Spy** server](https://spy-vs-spy-ctfg.apps.cluster.example.com), registers, tracks state from server updates, and moves every 200 ms toward the most valuable intel--while avoiding walls and the other player.<br><br>**LLM assistance is encouraged.** Use it to scaffold your bot, then refine and tune it.<br><br>\n## Objective\n\nImplement a bot that follows the protocol below, runs continuously, and competes to collect intel points. On connection, you'll also receive a registration flag you can submit.<br><br>\n## Game Server Protocol\n\nConnect to: `wss://spy-vs-spy-ctfg.apps.cluster.example.com`<br><br>On connection, you'll receive:\n```json\n{ \"type\": \"connected\" }\n```\n<br>Immediately respond with:\n```json\n{ \"type\": \"join\", \"key\": \"23030C1C48013A131E040D48195126475B5ABE7BEFF3\" }\n```\n<br>Server confirms with:\n```json\n{ \"type\": \"registered\", \"playerId\": \"Player_player4_447\", \"flag\": \"YOUR_UNIQUE_FLAG_HERE\" }\n```\n<br>The server will send game start messages that look like:\n```json\n{\n  \"type\":\"gameStart\",\n  \"gameId\":\"match-1\",\n  \"playerId\":\"abc123\",\n  \"gridSize\":20,\n  \"duration\":30,\n  \"players\":[\n    {\"id\":\"abc123\",\"name\":\"YourBot\",\"position\":{\"x\":5,\"y\":10},\"score\":0,\"color\":\"#FF6B6B\"},\n    {\"id\":\"xyz789\",\"name\":\"Opponent\",\"position\":{\"x\":15,\"y\":8},\"score\":0,\"color\":\"#4ECDC4\"}\n  ],\n  \"obstacles\":[{\"x\":3,\"y\":4},{\"x\":7,\"y\":12},...],\n  \"intel\":[{\"x\":10,\"y\":10,\"value\":2},{\"x\":5,\"y\":15,\"value\":1},...],\n  \"timeRemaining\":30\n}\n```\n<br>Your bot will send moves messages (every ≥200 ms) that look like:\n```json\n{ \"type\": \"move\", \"direction\": \"up\" }\n{ \"type\": \"move\", \"direction\": \"down\" }\n{ \"type\": \"move\", \"direction\": \"left\" }\n{ \"type\": \"move\", \"direction\": \"right\" }\n```\n<br>The server will send game update messages look like:\n```json\n{\n  \"type\":\"gameUpdate\",\n  \"players\":[/* updated positions & scores */],\n  \"obstacles\":[/* static */],\n  \"intel\":[/* remaining intel */],\n  \"timeRemaining\":25.5\n}\n```\n<br>Eventually, the server will send a game end message that looks like:\n```json\n{\n  \"type\":\"gameEnd\",\n  \"winner\":\"abc123\",  // null if draw\n  \"isDraw\":false,\n  \"finalScores\":[\n    {\"id\":\"abc123\",\"name\":\"YourBot\",\"score\":8},\n    {\"id\":\"xyz789\",\"name\":\"Opponent\",\"score\":5}\n  ]\n}\n```\n<br>\n\n## Essential Bot Algorithm\n- **Locate self:**\n```javascript\nmyPlayer = players.find(p => p.id === playerId);\nmyPosition = myPlayer.position\n```\n- **Pick target intel (value-weighted):** minimize `ManhattanDistance / value`.\n- **Choose direction:** step along the dominant axis toward target.\n- **Validate step:** in-bounds (0–19), not an obstacle, not another player's position.\n- **Send move or alternative safe step.**\n- **Repeat every 200 ms** until game ends.\n<br>\n\n## Critical Details\n\n- Store your `playerId` from the `registered` message.\n- Update your position only from `gameUpdate` (authoritative server state).\n- Remove intel that disappears; watch for new spawns in updates.\n- Handle `{ \"type\": \"opponentDisconnected\" }`.\n- Auto-reconnect if the WebSocket drops and re-register.<br><br>\n## Submission\n\nWhen your bot registers with the server, the server sends your FLAG in the `registered` message response. Be sure to print this out and **submit that flag** to complete the challenge.<br><br>\n## Hints\n\n- Start with a simple Node.js or Python WS client; then implement the decision loop.\n- Throttle sends to ≥200 ms; sending faster may be ignored or rate-limited.\n- Keep obstacle and opponent locations in quick-lookup sets (e.g., `\"x,y\"` keys).<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player4?view=graph\n- **spectator arena**: https://spy-vs-spy-ctfg.apps.cluster.example.com",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 5
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 11,
+          "title": "Crossword Uplink",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 60,
+          "solved": true,
+          "description": "You solved the grid once--good. HQ needs a field-capable solver that can take a live drop and prove it can compute under pressure.<br><br>\n## Objective\n\nDeploy a **crossword-solver service** in your OpenShift namespace and expose it with a Route. The handler will POST a puzzle payload (including a one-time **nonce**). Your service must solve the crossword, compute an HMAC over the bottom row and nonce using a Secret provided in your namespace, and emit the FLAG to its logs.<br><br>\n## Inputs (delivered at runtime)\n\n- POST body (JSON):\n```json\n{\n  \"grid\": \"<hash/# and dots grid>\",\n  \"words\": [\"...\"],\n  \"nonce\": \"<uuid>\"\n}\n```\n- Secret in your namespace: `crossword-key` with key `key` (UTF-8 string). Mount it as `CROSSWORD_KEY` (env) or file.<br><br>\n## Protocol (Your service)\n\n- Route: `https://crossword-player4.apps.cluster.example.com/solve`\n- Method: `POST`, `Content-Type: application/json`\n- Response (JSON):\n```json\n{\n  \"bottom_row\": \"<letters>\",\n  \"hmac\": \"<hex sha256 of (bottom_row + \":\" + nonce) keyed with CROSSWORD_KEY>\"\n}\n```\n- Side-effect: write exactly one line to stdout logs: `FLAG: AGENT{<hmac>}`<br><br>\n## Specification\n\n1. Deploy an app (e.g., `crossword-solver`) in project `player4` that listens on `8080` and implements `POST /solve` as above.\n2. Create a **Route** with host `crossword-player4.apps.cluster.example.com`.\n3. Mount the Secret `crossword-key` (key: `key`) into the container as env `CROSSWORD_KEY` or a file your code reads.\n4. When the handler POSTs the payload, your service must:\n   a. Solve the crossword (use each word exactly once, RIGHT/DOWN only; crossings must agree).\n   b. Extract the bottom-row letters as a contiguous string (no `#` or spaces).\n   c. Compute HMAC-SHA256 over `bottom_row + \":\" + nonce` using `CROSSWORD_KEY`.\n   d. Log `FLAG: AGENT{<hmac>}` and return the JSON response.\n5. OpenShift Console -> your pod -> *View logs* and submit the FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player4?view=graph",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 1
+            },
+            {
+              "id": 2,
+              "cost": 1
+            },
+            {
+              "id": 3,
+              "cost": 2
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 10,
+          "title": "The Clandestine Crossword",
+          "category": "Codecraft",
+          "difficulty": "Hard",
+          "points": 100,
+          "solved": true,
+          "description": "Station Zero's wall screens flicker to life, revealing a blinking file: `crossword.txt`. In the Agency's early days, field teams received instructions hidden in plain sight--messages smuggled into newspaper crosswords. A harmless grid to the public; an exact set of moves to those who knew the key. Your handler's last transmission cached a grid and a word list… but not the solver.<br><br>\n## Objective\n\nFetch the crossword grid and word list from your Ops Relay, fill the grid using each word exactly once (rightward and downward only), then derive the FLAG from the bottom row.<br><br>\n## Inputs\n\n- https://station-zero-player4.apps.cluster.example.com/crossword.txt -- grid using `#` for blocks and `.` for empty cells. **No prefilled letters.**\n- https://station-zero-player4.apps.cluster.example.com/words.txt -- newline-separated words; each must be used exactly once.<br><br>\n## Specification\n\n1. **Slot enumeration:** Identify Across (rightward) and Down (downward) slots. A slot starts where the previous cell in that direction is a block or off-grid, and continues until a block or edge.\n2. **Placement rules:** Words may run only *RIGHT* (Across) or *DOWN* (Down). *No* backwards, diagonal, or wrapping placements. Crossings must agree on letters. Use each word exactly once.\n3. **Output:** Print the solved grid (letters and `#`). After the grid is fully solved, read all letters on the **bottom row** (left to right), concatenate them with *no spaces*, and submit that string as the FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player4?view=graph",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 9,
+          "title": "Digital Brush-Pass",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 75,
+          "solved": true,
+          "description": "In the old days a slip of paper changed hands on a crowded street. Today the brush-pass is a webhook. The Agency courier will attempt a one-way handoff to your service. Your endpoint must accept the packet--but only after it verifies the PIN with Station Zero's Ops Relay.<br><br>\n## Objective\n\nDeploy an HTTP service that accepts JSON POSTs at a fixed path. On each request, validate two headers (`X-Agent` and `X-PIN`) by calling the Ops Relay validation API. If validation passes, log the FLAG from the body and acknowledge the handoff.<br><br>\n## Inputs\n\n- Your Ops Relay route from the first challenge (find it in OpenShift -> Networking -> Routes), referred to as `$OPS_RELAY_URL`.\n- Courier POST target (must be reachable via Route): `https://brushpass-player4.apps.cluster.example.com/handoff`<br><br>\n## POST Contract (Courier -> You)\n\n**Method:** POST\n**Path:** `/handoff`\n**Headers:**\n```\nContent-Type: application/json\nX-Agent: player4\nX-PIN: <PIN value>\n```\n\n**Body (JSON):**\n```json\n{\n  \"nonce\": \"<uuid>\",\n  \"ts\": \"<RFC3339 timestamp>\",\n  \"package\": {\n    \"note\": \"one-way courier packet\",\n    \"flag\": \"AGENT{...}\"\n  }\n}\n```\n<br><br>\n## Validation API (You -> Ops Relay)\n\nBefore accepting a courier POST, your service must call:\n```\nGET $OPS_RELAY_URL/validate/pin?agent=player4&pin=<PIN-from-header>\n```\n<br><br>\n**Responses:**\n\n```200 OK\n{ \"ok\": true, \"station\": \"player4\" }\n\n403 Forbidden\n{ \"ok\": false, \"error\": \"invalid pin\" }```\n<br><br>Only if the response is `200` with `ok:true` may you accept the drop.<br><br>\n## Specification\n- Deploy an app (e.g., `brushpass`) in project `player4` that listens on port `8080` and implements `POST /handoff`.\n- Create a Route with host `brushpass-player4.apps.cluster.example.com`.\n- On each `/handoff` request:\n  - Require headers `X-Agent` and `X-PIN`.\n  - Reject with `400` if JSON is malformed.\n  - Check `X-Agent` equals player4. If not, respond `403`.\n  - Call `GET $OPS_RELAY_URL/validate/pin?agent=player4&pin=<X-PIN>`. If not `200 ok:true`, respond `403`.\n  - On success, write exactly one line to stdout logs: `FLAG: AGENT{...}` (from `package.flag`), and respond `200` with `{\"ack\":true,\"nonce\":\"<same nonce>\"}`.\n<br><br>\n## Links\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player4?view=graph",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 8,
+          "title": "Seven Letters",
+          "category": "HUMINT",
+          "difficulty": "Medium",
+          "points": 40,
+          "solved": true,
+          "description": "Every agent's `station-zero` service can emit a QR tile referencing a single letter and a number. Retrieve six other unique letter/number combinations to assemble the hidden seven-letter code word. Your FLAG is computed from the seven numbers using a mix of multiply, minus, and plus--**in the order of the letters that spell the word**.<br><br>\n## Objective\n\nCollect seven distinct QR tokens. Sort the letters into a seven-letter word, then compute the FLAG using the rule below and submit it.<br><br>\n## Computation Rule\n\nLet the ordered numbers (matching your letter order) be `n1..n7`. Compute:\n`FLAG = (n1 × n2) − n3 + (n4 × n5) − n6 + n7`\nUse normal arithmetic precedence (multiplication before addition/subtraction) or the parentheses as shown.<br><br>*Example (structure only):* If your ordered numbers were `[4,9,5,3,7,6,2]`, the FLAG would be `(4×9) − 5 + (3×7) − 6 + 2 = 36 − 5 + 21 − 6 + 2 = 48`.<br><br>\n## Specification\n\n1. Each agent opens their QR tile at `/qr`. It shows a big letter (A–Z) and a number (1–9) separated by a dash.\n2. Form a group that collectively has all seven distinct letters needed for the hidden word.\n3. Scan/collect the seven tokens, arrange letters to form the correct word, compute the FLAG via the rule above.\n4. Enter the FLAG below.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player4?view=graph\n- **your QR tile**: https://station-zero-player4.apps.cluster.example.com/qr",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 7,
+          "title": "Broadcast Orders",
+          "category": "Shadow Ops",
+          "difficulty": "Medium",
+          "points": 30,
+          "solved": true,
+          "description": "The Numbers Station transmitter is up, but HQ's broadcast queue is stuck in staging. Your job is to feed the station its orders and get the right number sequence on-air.<br><br>\n## Objective\n\nMount the provided `ConfigMap` named `numbers` (containing `numbers.txt`) into the Numbers Station pod at `/etc/numbers`, restart the deployment, then tune in. The station will read the sequence and **say the FLAG word**--submit that exact string.<br><br>\n## Specification\n\n1. **Prereq:** The app `numbers-station` is deployed and exposed via a Route in `player4` (from the prior challenge).\n2. Confirm the **ConfigMap** `numbers` exists in your namespace and includes a key/file named `numbers.txt`.\n3. Mount the ConfigMap as a volume at `/etc/numbers` in the Numbers Station container.\n4. Restart/redeploy to pick up the change.\n5. Visit your Numbers Station Route and listen to the audio. The station will speak the FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player4?view=graph\n- **numbers-station route**: https://numbers-station-player4.apps.cluster.example.com/",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 6,
+          "title": "Knock Knock",
+          "category": "Shadow Ops",
+          "difficulty": "Medium",
+          "points": 40,
+          "solved": true,
+          "description": "The previous Station Zero commander left a classified intelligence package for their replacement--but the access details were lost during the handover. The package is available through a service running on an additional port, separate from the main Ops Relay.<br><br>\n## Objective\n\nDiscover the additional port where Station Zero is running a service, explore what's available there, and retrieve the intelligence package to obtain your FLAG.<br><br>\n## Specification\n\n1. **Prereq:** Complete \"Ops Relay\" so your Station Zero service is running in `player4`.\n2. Probe for an additional service running on a port between 2000 and 10000.\n3. Once found, access that port and explore what's available.\n4. Follow the instructions you find to retrieve the intelligence package.\n5. Submit the FLAG found in the package.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player4?view=graph",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 5,
+          "title": "Numbers Station",
+          "category": "Shadow Ops",
+          "difficulty": "Easy",
+          "points": 20,
+          "solved": true,
+          "description": "The airwaves have gone quiet. HQ's field teams rely on the **Numbers Station** for one-time pad cues and timing marks--but the transmitter at Station Zero is down. Your job is to bring it back online so agents can tune in.<br><br>*Background:* Numbers stations are mysterious shortwave radio broadcasts that have been reported since World War I and are still believed to operate today. They transmit long sequences of numbers--often read by synthetic voices or sent in Morse code or digital tones--intended for intelligence officers in the field. To hobbyists and radio enthusiasts they sound eerie, but to agents with the right cipher they deliver mission-critical orders. Many of these stations have earned nicknames among listeners for their quirks, accents, or origins.<br><br>[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Numbers_station).<br><br>\n## Objective\n\nDeploy the Numbers Station container in your OpenShift namespace, expose it with a Route, and confirm the audio stream is reachable from the web page it serves. The station's name shown on the page is your FLAG.<br><br>\n## Specification\n\n1. In `player4`, deploy the image `quay.io/atgreen0/numbers-station:latest` as an app named `numbers-station`.\n2. Create a **Service** targeting the container's web port (defaults to HTTP) and expose it with a **Route**.\n3. Open your Route. You should see the Numbers Station web page with a playable audio stream.\n4. Find the station's **name** displayed on the page (exact case and punctuation) and submit that string as your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player4?view=graph\n- **numbers-station route**: https://numbers-station-player4.apps.cluster.example.com/",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 4,
+          "title": "Dead Drop: Burn Code",
+          "category": "Shadow Ops",
+          "difficulty": "Medium",
+          "points": 30,
+          "solved": true,
+          "description": "Intel confirms a clandestine dead drop--your unit's **burn code**--is stashed on a Persistent Volume.\n\nYour mission namespace already includes a Persistent Volume Claim named **dead-drop-pvc**. Mount this PVC into a running container and read `burncode.txt`. The text flag you seek is the exact content of that file.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player4?view=graph",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 1
+            },
+            {
+              "id": 2,
+              "cost": 5
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 3,
+          "title": "Clearance Checkpoint",
+          "category": "Tradecraft",
+          "difficulty": "Easy",
+          "points": 10,
+          "solved": true,
+          "description": "A red strobe blinks above the terminal: *IDENTITY INVALID -- CLEARANCE REQUIRED*. Your access profile has been wiped from Agency systems. Before any further ops unlock, you must pass a clearance gate that's rotated daily and delivered out-of-band to avoid interception.<br><br>\n## Objective\n\nAuthenticate by supplying today's one-time codeword from your handler (game master). This proves you can follow compartmentalized instructions under pressure and enables downstream mission packages.<br><br>\n## Specification\n\nYour handler will provide the codeword verbally or on a secure channel during the briefing. Enter that exact codeword as your FLAG.\n- Case-insensitive.\n- Do not brute-force; codes rotate per event.\n- On success, additional challenge tracks will unlock.",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 2,
+          "title": "Hello, Handler",
+          "category": "Tradecraft",
+          "difficulty": "Easy",
+          "points": 10,
+          "solved": true,
+          "description": "Your cover is thin and time is thinner. A burner web app in the starter repos contains a confirmation phrase used to re-establish contact with a friendly handler. Deploy it inside the cluster, then retrieve the phrase to verify egress works from your namespace.<br><br>\n## Objective\n\nFork and deploy the `python-starter` app; expose it with a Route; recover the phrase from the running app.<br><br>\n## Specification\n\nIn Gitea, the `starter` org hosts `python-starter`. Fork it to your user, deploy it in your `player4` Project, and expose it. The app publishes a FLAG at:\nhttps://hello-player4.apps.cluster.example.com/\n\nSubmit that FLAG to complete the exercise.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player4?view=graph\n- **gitea starters**: https://gitea-gitea.apps.cluster.example.com/starter",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 1,
+          "title": "Ops Relay",
+          "category": "Tradecraft",
+          "difficulty": "Easy",
+          "points": 10,
+          "solved": true,
+          "description": "You steady your breathing and sweep the room. The signage is faded, the clocks are stopped--but you know this place: **Station Zero**, the Agency's long-dormant operations hub. One thing still answers your credentials: an OpenShift terminal humming on the desk. If you're going to reconnect to HQ, you need the *Ops Relay* online now!<br><br>\n## Objective\n\nDeploy the Agency's Ops Relay service in your OpenShift namespace and recover its version string. That version is your FLAG.<br><br>\n## Specification\n\n1. In your assigned OpenShift project `player4`, deploy the container image `quay.io/atgreen0/station-zero:latest` as an application (Console path: *Add -> Container image*).\n2. Create a **Service** called `station-zero` for the pod and expose it with a **Route** so it's reachable.\n3. Once the pod is running, open its **Logs** in the OpenShift console (Workloads -> Deployments -> pod -> *View logs*) and locate the service version string.\n4. Submit that exact version as your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player4?view=graph",
+          "hints": null,
+          "content": null
+        }
+      ],
+      "metrics": {
+        "startTime": 1758010307447,
+        "loginTime": 1758010308612,
+        "wsConnectTime": null,
+        "firstChallengeTime": 1758010308960,
+        "challengesSolved": 15,
+        "flagsSubmitted": 15,
+        "errors": [
+          {
+            "timestamp": 1758010308667,
+            "error": "Unexpected server response: 403",
+            "context": "websocket"
+          }
+        ]
+      },
+      "wsUrl": "ws://localhost:12345/scorestream"
+    },
+    {
+      "id": 4,
+      "username": "player5",
+      "password": "zB8K4VYA",
+      "displayName": "Player_player5_447",
+      "sessionCookie": "hunchentoot-session=1:110AE821F1FFDE26908762DA1C43432A; Path=/; HttpOnly",
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [
+        {
+          "id": 15,
+          "title": "The Reverse Mango",
+          "category": "Agentic Actions",
+          "difficulty": "Medium",
+          "points": 50,
+          "solved": true,
+          "description": "You restored Station Zero's Mango *decoder*--HQ can finally read field beacons again. But without the **encoder**, we still can't acknowledge distress traffic, arm supply-drop locks, or transmit retask codes. Teach the system the other half of the language by extending your MCP server with a second tool that maps `number -> fruit`.<br><br>**Recap: What's an MCP?** The *Model Context Protocol* lets AI systems securely connect to tools and data through a simple client↔server contract (JSON-RPC over supported transports). Your `mango-mcp` server exposes capabilities the Agentic AI can call like native functions.<br><br>\n## Objective\n\nAdd a second tool to your existing `mango-mcp` MCP server (Service `mango-mcp` on `port 3000`) that returns the Mango fruit word for a given digit. Then trigger Station Zero's self-test to retrieve the FLAG.<br><br>\n## Specification\n\n1. **Prereq:** \"The Mango Cipher\" complete. Your `mango-mcp` pod and **Service** (ClusterIP) on `3000` are healthy in `player5`.\n2. In Gitea, open your fork of `starter/python_MCP_starter`.\n3. The MCP already has a `decode` tool. Now you must simply add a `encode` tool that does the reverse for numbers 0 through 9. Keep your existing `decode` (fruit->number) tool intact; your server should now advertise *both* tools.\n4. Rebuild/redeploy `mango-mcp`. The Service name remains `mango-mcp` and must still target `3000`.\n5. Call Station Zero's validation via your Ops Relay route: GET `/test-mango-encode`. If both tools resolve and the encoder works, the endpoint returns your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player5?view=graph\n- **gitea (starter)**: https://gitea-gitea.apps.cluster.example.com/starter/python_MCP_starter\n- **station-zero MCP self-test URL**: https://station-zero-player5.apps.cluster.example.com/test-mango-encode",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 14,
+          "title": "The Mango Cipher",
+          "category": "Agentic Actions",
+          "difficulty": "Medium",
+          "points": 30,
+          "solved": true,
+          "description": "You sweep the dust from the terminal. Station Zero's Agentic AI can still route satellites, crack safehouse rosters, even spin up clusters on a cold boot--but its Mango Cipher module is gone. That matters: field teams embed Mango-encoded directives in emergency beacons and logistics tags; without it, HQ can't parse distress traffic or unlock mission keys. The fix isn't another patch--it's knowledge. You must teach the system by deploying a Model Context Protocol (MCP) server the AI can talk to.<br><br>**What's an MCP?** The *Model Context Protocol* is an open standard that lets AI systems securely connect to tools and data via a lightweight client↔server contract (JSON-RPC over supported transports). In plain terms: spin up a small service (an MCP server) that exposes capabilities, and the AI (host/client) can call it like a native tool.<br><br>**New to MCP?** Think of it as a way to give AI systems \"superpowers\" by connecting them to external tools and data. Instead of the AI being limited to what it knows, MCP lets it call out to your custom services to get real-time information or perform actions. In this case, you're teaching Station Zero's AI how to decode Mango cipher messages by providing it with a translation service it can call.<br><br>**Learn more:** [MCP Specification](https://spec.modelcontextprotocol.io/) | [Python MCP SDK](https://github.com/modelcontextprotocol/python-sdk)<br><br>\n## Objective\n\nDeploy an MCP server named `mango-mcp` in your OpenShift namespace that listens on `port 3000` and is discoverable via a **Service** with the same name. Then trigger Station Zero's self-test to retrieve the FLAG.<br><br>\n## Specification\n\n1. **Prereq:** Complete \"Ops Relay\" so your Station Zero / Ops Relay API is running in `player5`.\n2. In Gitea, the `starter` org hosts `python_MCP_starter`. **Fork** it to your user.\n3. **Deploy** the fork in your `player5` project as an app named `mango-mcp`. Ensure the container exposes `TCP 3000`.\n   - Console path: *Add -> Import from Git* -> repo URL of your fork -> Name: `mango-mcp` -> set container port to `3000`.\n4. Create/ensure a **Service** named `mango-mcp` targeting `port 3000`. (A Route is *not* required.)\n5. Once the pod is *Ready*, call Station Zero's test: open your Ops Relay Route and GET `/test-mango-decode`. If the MCP is reachable at `mango-mcp:3000`, the endpoint returns your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player5?view=graph\n- **gitea (starter)**: https://gitea-gitea.apps.cluster.example.com/starter/python_MCP_starter\n- **station-zero MCP self-test URL**: https://station-zero-player5.apps.cluster.example.com/test-mango-decode",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 13,
+          "title": "Top Agent",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 80,
+          "solved": true,
+          "description": "HQ has its eyes on the bot arena. Many agents have deployed their code, each vying for dominance in the intelligence wars. But only one can rise above the noise.<br><br>To claim your place at the top, your autonomous spy must not only survive the 30-second skirmishes but out-collect every rival on the board. The operators are watching closely: the bot with the **highest score across the arena** will be issued a special recognition flag, proof that you've earned the title of **Top Agent**.<br><br>Stay sharp--this isn't just about building a working bot; it's about tuning, optimizing, and perfecting your strategy until it dominates the field.<br><br>\n## Objective\n\nAchieve the highest score among all active bots in the arena. When your bot takes the lead, game operators will award you a unique FLAG. Enter that flag here to complete the mission and secure your points.",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 5
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 12,
+          "title": "Spy vs Spy",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 80,
+          "solved": true,
+          "description": "Field teams are getting outplayed on the grid. HQ needs an autonomous **game bot** that can join live matches and out-collect an opponent in 30 seconds. You will build a WebSocket client that connects to the [**Spy vs Spy** server](https://spy-vs-spy-ctfg.apps.cluster.example.com), registers, tracks state from server updates, and moves every 200 ms toward the most valuable intel--while avoiding walls and the other player.<br><br>**LLM assistance is encouraged.** Use it to scaffold your bot, then refine and tune it.<br><br>\n## Objective\n\nImplement a bot that follows the protocol below, runs continuously, and competes to collect intel points. On connection, you'll also receive a registration flag you can submit.<br><br>\n## Game Server Protocol\n\nConnect to: `wss://spy-vs-spy-ctfg.apps.cluster.example.com`<br><br>On connection, you'll receive:\n```json\n{ \"type\": \"connected\" }\n```\n<br>Immediately respond with:\n```json\n{ \"type\": \"join\", \"key\": \"23030C1C48013A131E040D48195026475B5A831BC643\" }\n```\n<br>Server confirms with:\n```json\n{ \"type\": \"registered\", \"playerId\": \"Player_player5_447\", \"flag\": \"YOUR_UNIQUE_FLAG_HERE\" }\n```\n<br>The server will send game start messages that look like:\n```json\n{\n  \"type\":\"gameStart\",\n  \"gameId\":\"match-1\",\n  \"playerId\":\"abc123\",\n  \"gridSize\":20,\n  \"duration\":30,\n  \"players\":[\n    {\"id\":\"abc123\",\"name\":\"YourBot\",\"position\":{\"x\":5,\"y\":10},\"score\":0,\"color\":\"#FF6B6B\"},\n    {\"id\":\"xyz789\",\"name\":\"Opponent\",\"position\":{\"x\":15,\"y\":8},\"score\":0,\"color\":\"#4ECDC4\"}\n  ],\n  \"obstacles\":[{\"x\":3,\"y\":4},{\"x\":7,\"y\":12},...],\n  \"intel\":[{\"x\":10,\"y\":10,\"value\":2},{\"x\":5,\"y\":15,\"value\":1},...],\n  \"timeRemaining\":30\n}\n```\n<br>Your bot will send moves messages (every ≥200 ms) that look like:\n```json\n{ \"type\": \"move\", \"direction\": \"up\" }\n{ \"type\": \"move\", \"direction\": \"down\" }\n{ \"type\": \"move\", \"direction\": \"left\" }\n{ \"type\": \"move\", \"direction\": \"right\" }\n```\n<br>The server will send game update messages look like:\n```json\n{\n  \"type\":\"gameUpdate\",\n  \"players\":[/* updated positions & scores */],\n  \"obstacles\":[/* static */],\n  \"intel\":[/* remaining intel */],\n  \"timeRemaining\":25.5\n}\n```\n<br>Eventually, the server will send a game end message that looks like:\n```json\n{\n  \"type\":\"gameEnd\",\n  \"winner\":\"abc123\",  // null if draw\n  \"isDraw\":false,\n  \"finalScores\":[\n    {\"id\":\"abc123\",\"name\":\"YourBot\",\"score\":8},\n    {\"id\":\"xyz789\",\"name\":\"Opponent\",\"score\":5}\n  ]\n}\n```\n<br>\n\n## Essential Bot Algorithm\n- **Locate self:**\n```javascript\nmyPlayer = players.find(p => p.id === playerId);\nmyPosition = myPlayer.position\n```\n- **Pick target intel (value-weighted):** minimize `ManhattanDistance / value`.\n- **Choose direction:** step along the dominant axis toward target.\n- **Validate step:** in-bounds (0–19), not an obstacle, not another player's position.\n- **Send move or alternative safe step.**\n- **Repeat every 200 ms** until game ends.\n<br>\n\n## Critical Details\n\n- Store your `playerId` from the `registered` message.\n- Update your position only from `gameUpdate` (authoritative server state).\n- Remove intel that disappears; watch for new spawns in updates.\n- Handle `{ \"type\": \"opponentDisconnected\" }`.\n- Auto-reconnect if the WebSocket drops and re-register.<br><br>\n## Submission\n\nWhen your bot registers with the server, the server sends your FLAG in the `registered` message response. Be sure to print this out and **submit that flag** to complete the challenge.<br><br>\n## Hints\n\n- Start with a simple Node.js or Python WS client; then implement the decision loop.\n- Throttle sends to ≥200 ms; sending faster may be ignored or rate-limited.\n- Keep obstacle and opponent locations in quick-lookup sets (e.g., `\"x,y\"` keys).<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player5?view=graph\n- **spectator arena**: https://spy-vs-spy-ctfg.apps.cluster.example.com",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 5
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 11,
+          "title": "Crossword Uplink",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 60,
+          "solved": true,
+          "description": "You solved the grid once--good. HQ needs a field-capable solver that can take a live drop and prove it can compute under pressure.<br><br>\n## Objective\n\nDeploy a **crossword-solver service** in your OpenShift namespace and expose it with a Route. The handler will POST a puzzle payload (including a one-time **nonce**). Your service must solve the crossword, compute an HMAC over the bottom row and nonce using a Secret provided in your namespace, and emit the FLAG to its logs.<br><br>\n## Inputs (delivered at runtime)\n\n- POST body (JSON):\n```json\n{\n  \"grid\": \"<hash/# and dots grid>\",\n  \"words\": [\"...\"],\n  \"nonce\": \"<uuid>\"\n}\n```\n- Secret in your namespace: `crossword-key` with key `key` (UTF-8 string). Mount it as `CROSSWORD_KEY` (env) or file.<br><br>\n## Protocol (Your service)\n\n- Route: `https://crossword-player5.apps.cluster.example.com/solve`\n- Method: `POST`, `Content-Type: application/json`\n- Response (JSON):\n```json\n{\n  \"bottom_row\": \"<letters>\",\n  \"hmac\": \"<hex sha256 of (bottom_row + \":\" + nonce) keyed with CROSSWORD_KEY>\"\n}\n```\n- Side-effect: write exactly one line to stdout logs: `FLAG: AGENT{<hmac>}`<br><br>\n## Specification\n\n1. Deploy an app (e.g., `crossword-solver`) in project `player5` that listens on `8080` and implements `POST /solve` as above.\n2. Create a **Route** with host `crossword-player5.apps.cluster.example.com`.\n3. Mount the Secret `crossword-key` (key: `key`) into the container as env `CROSSWORD_KEY` or a file your code reads.\n4. When the handler POSTs the payload, your service must:\n   a. Solve the crossword (use each word exactly once, RIGHT/DOWN only; crossings must agree).\n   b. Extract the bottom-row letters as a contiguous string (no `#` or spaces).\n   c. Compute HMAC-SHA256 over `bottom_row + \":\" + nonce` using `CROSSWORD_KEY`.\n   d. Log `FLAG: AGENT{<hmac>}` and return the JSON response.\n5. OpenShift Console -> your pod -> *View logs* and submit the FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player5?view=graph",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 1
+            },
+            {
+              "id": 2,
+              "cost": 1
+            },
+            {
+              "id": 3,
+              "cost": 2
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 10,
+          "title": "The Clandestine Crossword",
+          "category": "Codecraft",
+          "difficulty": "Hard",
+          "points": 100,
+          "solved": true,
+          "description": "Station Zero's wall screens flicker to life, revealing a blinking file: `crossword.txt`. In the Agency's early days, field teams received instructions hidden in plain sight--messages smuggled into newspaper crosswords. A harmless grid to the public; an exact set of moves to those who knew the key. Your handler's last transmission cached a grid and a word list… but not the solver.<br><br>\n## Objective\n\nFetch the crossword grid and word list from your Ops Relay, fill the grid using each word exactly once (rightward and downward only), then derive the FLAG from the bottom row.<br><br>\n## Inputs\n\n- https://station-zero-player5.apps.cluster.example.com/crossword.txt -- grid using `#` for blocks and `.` for empty cells. **No prefilled letters.**\n- https://station-zero-player5.apps.cluster.example.com/words.txt -- newline-separated words; each must be used exactly once.<br><br>\n## Specification\n\n1. **Slot enumeration:** Identify Across (rightward) and Down (downward) slots. A slot starts where the previous cell in that direction is a block or off-grid, and continues until a block or edge.\n2. **Placement rules:** Words may run only *RIGHT* (Across) or *DOWN* (Down). *No* backwards, diagonal, or wrapping placements. Crossings must agree on letters. Use each word exactly once.\n3. **Output:** Print the solved grid (letters and `#`). After the grid is fully solved, read all letters on the **bottom row** (left to right), concatenate them with *no spaces*, and submit that string as the FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player5?view=graph",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 9,
+          "title": "Digital Brush-Pass",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 75,
+          "solved": true,
+          "description": "In the old days a slip of paper changed hands on a crowded street. Today the brush-pass is a webhook. The Agency courier will attempt a one-way handoff to your service. Your endpoint must accept the packet--but only after it verifies the PIN with Station Zero's Ops Relay.<br><br>\n## Objective\n\nDeploy an HTTP service that accepts JSON POSTs at a fixed path. On each request, validate two headers (`X-Agent` and `X-PIN`) by calling the Ops Relay validation API. If validation passes, log the FLAG from the body and acknowledge the handoff.<br><br>\n## Inputs\n\n- Your Ops Relay route from the first challenge (find it in OpenShift -> Networking -> Routes), referred to as `$OPS_RELAY_URL`.\n- Courier POST target (must be reachable via Route): `https://brushpass-player5.apps.cluster.example.com/handoff`<br><br>\n## POST Contract (Courier -> You)\n\n**Method:** POST\n**Path:** `/handoff`\n**Headers:**\n```\nContent-Type: application/json\nX-Agent: player5\nX-PIN: <PIN value>\n```\n\n**Body (JSON):**\n```json\n{\n  \"nonce\": \"<uuid>\",\n  \"ts\": \"<RFC3339 timestamp>\",\n  \"package\": {\n    \"note\": \"one-way courier packet\",\n    \"flag\": \"AGENT{...}\"\n  }\n}\n```\n<br><br>\n## Validation API (You -> Ops Relay)\n\nBefore accepting a courier POST, your service must call:\n```\nGET $OPS_RELAY_URL/validate/pin?agent=player5&pin=<PIN-from-header>\n```\n<br><br>\n**Responses:**\n\n```200 OK\n{ \"ok\": true, \"station\": \"player5\" }\n\n403 Forbidden\n{ \"ok\": false, \"error\": \"invalid pin\" }```\n<br><br>Only if the response is `200` with `ok:true` may you accept the drop.<br><br>\n## Specification\n- Deploy an app (e.g., `brushpass`) in project `player5` that listens on port `8080` and implements `POST /handoff`.\n- Create a Route with host `brushpass-player5.apps.cluster.example.com`.\n- On each `/handoff` request:\n  - Require headers `X-Agent` and `X-PIN`.\n  - Reject with `400` if JSON is malformed.\n  - Check `X-Agent` equals player5. If not, respond `403`.\n  - Call `GET $OPS_RELAY_URL/validate/pin?agent=player5&pin=<X-PIN>`. If not `200 ok:true`, respond `403`.\n  - On success, write exactly one line to stdout logs: `FLAG: AGENT{...}` (from `package.flag`), and respond `200` with `{\"ack\":true,\"nonce\":\"<same nonce>\"}`.\n<br><br>\n## Links\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player5?view=graph",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 8,
+          "title": "Seven Letters",
+          "category": "HUMINT",
+          "difficulty": "Medium",
+          "points": 40,
+          "solved": true,
+          "description": "Every agent's `station-zero` service can emit a QR tile referencing a single letter and a number. Retrieve six other unique letter/number combinations to assemble the hidden seven-letter code word. Your FLAG is computed from the seven numbers using a mix of multiply, minus, and plus--**in the order of the letters that spell the word**.<br><br>\n## Objective\n\nCollect seven distinct QR tokens. Sort the letters into a seven-letter word, then compute the FLAG using the rule below and submit it.<br><br>\n## Computation Rule\n\nLet the ordered numbers (matching your letter order) be `n1..n7`. Compute:\n`FLAG = (n1 × n2) − n3 + (n4 × n5) − n6 + n7`\nUse normal arithmetic precedence (multiplication before addition/subtraction) or the parentheses as shown.<br><br>*Example (structure only):* If your ordered numbers were `[4,9,5,3,7,6,2]`, the FLAG would be `(4×9) − 5 + (3×7) − 6 + 2 = 36 − 5 + 21 − 6 + 2 = 48`.<br><br>\n## Specification\n\n1. Each agent opens their QR tile at `/qr`. It shows a big letter (A–Z) and a number (1–9) separated by a dash.\n2. Form a group that collectively has all seven distinct letters needed for the hidden word.\n3. Scan/collect the seven tokens, arrange letters to form the correct word, compute the FLAG via the rule above.\n4. Enter the FLAG below.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player5?view=graph\n- **your QR tile**: https://station-zero-player5.apps.cluster.example.com/qr",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 7,
+          "title": "Broadcast Orders",
+          "category": "Shadow Ops",
+          "difficulty": "Medium",
+          "points": 30,
+          "solved": true,
+          "description": "The Numbers Station transmitter is up, but HQ's broadcast queue is stuck in staging. Your job is to feed the station its orders and get the right number sequence on-air.<br><br>\n## Objective\n\nMount the provided `ConfigMap` named `numbers` (containing `numbers.txt`) into the Numbers Station pod at `/etc/numbers`, restart the deployment, then tune in. The station will read the sequence and **say the FLAG word**--submit that exact string.<br><br>\n## Specification\n\n1. **Prereq:** The app `numbers-station` is deployed and exposed via a Route in `player5` (from the prior challenge).\n2. Confirm the **ConfigMap** `numbers` exists in your namespace and includes a key/file named `numbers.txt`.\n3. Mount the ConfigMap as a volume at `/etc/numbers` in the Numbers Station container.\n4. Restart/redeploy to pick up the change.\n5. Visit your Numbers Station Route and listen to the audio. The station will speak the FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player5?view=graph\n- **numbers-station route**: https://numbers-station-player5.apps.cluster.example.com/",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 6,
+          "title": "Knock Knock",
+          "category": "Shadow Ops",
+          "difficulty": "Medium",
+          "points": 40,
+          "solved": true,
+          "description": "The previous Station Zero commander left a classified intelligence package for their replacement--but the access details were lost during the handover. The package is available through a service running on an additional port, separate from the main Ops Relay.<br><br>\n## Objective\n\nDiscover the additional port where Station Zero is running a service, explore what's available there, and retrieve the intelligence package to obtain your FLAG.<br><br>\n## Specification\n\n1. **Prereq:** Complete \"Ops Relay\" so your Station Zero service is running in `player5`.\n2. Probe for an additional service running on a port between 2000 and 10000.\n3. Once found, access that port and explore what's available.\n4. Follow the instructions you find to retrieve the intelligence package.\n5. Submit the FLAG found in the package.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player5?view=graph",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 5,
+          "title": "Numbers Station",
+          "category": "Shadow Ops",
+          "difficulty": "Easy",
+          "points": 20,
+          "solved": true,
+          "description": "The airwaves have gone quiet. HQ's field teams rely on the **Numbers Station** for one-time pad cues and timing marks--but the transmitter at Station Zero is down. Your job is to bring it back online so agents can tune in.<br><br>*Background:* Numbers stations are mysterious shortwave radio broadcasts that have been reported since World War I and are still believed to operate today. They transmit long sequences of numbers--often read by synthetic voices or sent in Morse code or digital tones--intended for intelligence officers in the field. To hobbyists and radio enthusiasts they sound eerie, but to agents with the right cipher they deliver mission-critical orders. Many of these stations have earned nicknames among listeners for their quirks, accents, or origins.<br><br>[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Numbers_station).<br><br>\n## Objective\n\nDeploy the Numbers Station container in your OpenShift namespace, expose it with a Route, and confirm the audio stream is reachable from the web page it serves. The station's name shown on the page is your FLAG.<br><br>\n## Specification\n\n1. In `player5`, deploy the image `quay.io/atgreen0/numbers-station:latest` as an app named `numbers-station`.\n2. Create a **Service** targeting the container's web port (defaults to HTTP) and expose it with a **Route**.\n3. Open your Route. You should see the Numbers Station web page with a playable audio stream.\n4. Find the station's **name** displayed on the page (exact case and punctuation) and submit that string as your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player5?view=graph\n- **numbers-station route**: https://numbers-station-player5.apps.cluster.example.com/",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 4,
+          "title": "Dead Drop: Burn Code",
+          "category": "Shadow Ops",
+          "difficulty": "Medium",
+          "points": 30,
+          "solved": true,
+          "description": "Intel confirms a clandestine dead drop--your unit's **burn code**--is stashed on a Persistent Volume.\n\nYour mission namespace already includes a Persistent Volume Claim named **dead-drop-pvc**. Mount this PVC into a running container and read `burncode.txt`. The text flag you seek is the exact content of that file.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player5?view=graph",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 1
+            },
+            {
+              "id": 2,
+              "cost": 5
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 3,
+          "title": "Clearance Checkpoint",
+          "category": "Tradecraft",
+          "difficulty": "Easy",
+          "points": 10,
+          "solved": true,
+          "description": "A red strobe blinks above the terminal: *IDENTITY INVALID -- CLEARANCE REQUIRED*. Your access profile has been wiped from Agency systems. Before any further ops unlock, you must pass a clearance gate that's rotated daily and delivered out-of-band to avoid interception.<br><br>\n## Objective\n\nAuthenticate by supplying today's one-time codeword from your handler (game master). This proves you can follow compartmentalized instructions under pressure and enables downstream mission packages.<br><br>\n## Specification\n\nYour handler will provide the codeword verbally or on a secure channel during the briefing. Enter that exact codeword as your FLAG.\n- Case-insensitive.\n- Do not brute-force; codes rotate per event.\n- On success, additional challenge tracks will unlock.",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 2,
+          "title": "Hello, Handler",
+          "category": "Tradecraft",
+          "difficulty": "Easy",
+          "points": 10,
+          "solved": true,
+          "description": "Your cover is thin and time is thinner. A burner web app in the starter repos contains a confirmation phrase used to re-establish contact with a friendly handler. Deploy it inside the cluster, then retrieve the phrase to verify egress works from your namespace.<br><br>\n## Objective\n\nFork and deploy the `python-starter` app; expose it with a Route; recover the phrase from the running app.<br><br>\n## Specification\n\nIn Gitea, the `starter` org hosts `python-starter`. Fork it to your user, deploy it in your `player5` Project, and expose it. The app publishes a FLAG at:\nhttps://hello-player5.apps.cluster.example.com/\n\nSubmit that FLAG to complete the exercise.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player5?view=graph\n- **gitea starters**: https://gitea-gitea.apps.cluster.example.com/starter",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 1,
+          "title": "Ops Relay",
+          "category": "Tradecraft",
+          "difficulty": "Easy",
+          "points": 10,
+          "solved": true,
+          "description": "You steady your breathing and sweep the room. The signage is faded, the clocks are stopped--but you know this place: **Station Zero**, the Agency's long-dormant operations hub. One thing still answers your credentials: an OpenShift terminal humming on the desk. If you're going to reconnect to HQ, you need the *Ops Relay* online now!<br><br>\n## Objective\n\nDeploy the Agency's Ops Relay service in your OpenShift namespace and recover its version string. That version is your FLAG.<br><br>\n## Specification\n\n1. In your assigned OpenShift project `player5`, deploy the container image `quay.io/atgreen0/station-zero:latest` as an application (Console path: *Add -> Container image*).\n2. Create a **Service** called `station-zero` for the pod and expose it with a **Route** so it's reachable.\n3. Once the pod is running, open its **Logs** in the OpenShift console (Workloads -> Deployments -> pod -> *View logs*) and locate the service version string.\n4. Submit that exact version as your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player5?view=graph",
+          "hints": null,
+          "content": null
+        }
+      ],
+      "metrics": {
+        "startTime": 1758010307447,
+        "loginTime": 1758010307974,
+        "wsConnectTime": null,
+        "firstChallengeTime": 1758010308447,
+        "challengesSolved": 15,
+        "flagsSubmitted": 15,
+        "errors": [
+          {
+            "timestamp": 1758010308078,
+            "error": "Unexpected server response: 403",
+            "context": "websocket"
+          }
+        ]
+      },
+      "wsUrl": "ws://localhost:12345/scorestream"
+    },
+    {
+      "id": 5,
+      "username": "player6",
+      "password": "otE3tMY8",
+      "displayName": "Player_player6_447",
+      "sessionCookie": "hunchentoot-session=5:0F890C92E9833A20233BD32B8ED13106; Path=/; HttpOnly",
+      "ws": null,
+      "wsConnected": false,
+      "wsConnectTime": null,
+      "solvedChallenges": {},
+      "availableChallenges": [
+        {
+          "id": 15,
+          "title": "The Reverse Mango",
+          "category": "Agentic Actions",
+          "difficulty": "Medium",
+          "points": 50,
+          "solved": true,
+          "description": "You restored Station Zero's Mango *decoder*--HQ can finally read field beacons again. But without the **encoder**, we still can't acknowledge distress traffic, arm supply-drop locks, or transmit retask codes. Teach the system the other half of the language by extending your MCP server with a second tool that maps `number -> fruit`.<br><br>**Recap: What's an MCP?** The *Model Context Protocol* lets AI systems securely connect to tools and data through a simple client↔server contract (JSON-RPC over supported transports). Your `mango-mcp` server exposes capabilities the Agentic AI can call like native functions.<br><br>\n## Objective\n\nAdd a second tool to your existing `mango-mcp` MCP server (Service `mango-mcp` on `port 3000`) that returns the Mango fruit word for a given digit. Then trigger Station Zero's self-test to retrieve the FLAG.<br><br>\n## Specification\n\n1. **Prereq:** \"The Mango Cipher\" complete. Your `mango-mcp` pod and **Service** (ClusterIP) on `3000` are healthy in `player6`.\n2. In Gitea, open your fork of `starter/python_MCP_starter`.\n3. The MCP already has a `decode` tool. Now you must simply add a `encode` tool that does the reverse for numbers 0 through 9. Keep your existing `decode` (fruit->number) tool intact; your server should now advertise *both* tools.\n4. Rebuild/redeploy `mango-mcp`. The Service name remains `mango-mcp` and must still target `3000`.\n5. Call Station Zero's validation via your Ops Relay route: GET `/test-mango-encode`. If both tools resolve and the encoder works, the endpoint returns your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player6?view=graph\n- **gitea (starter)**: https://gitea-gitea.apps.cluster.example.com/starter/python_MCP_starter\n- **station-zero MCP self-test URL**: https://station-zero-player6.apps.cluster.example.com/test-mango-encode",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 14,
+          "title": "The Mango Cipher",
+          "category": "Agentic Actions",
+          "difficulty": "Medium",
+          "points": 30,
+          "solved": true,
+          "description": "You sweep the dust from the terminal. Station Zero's Agentic AI can still route satellites, crack safehouse rosters, even spin up clusters on a cold boot--but its Mango Cipher module is gone. That matters: field teams embed Mango-encoded directives in emergency beacons and logistics tags; without it, HQ can't parse distress traffic or unlock mission keys. The fix isn't another patch--it's knowledge. You must teach the system by deploying a Model Context Protocol (MCP) server the AI can talk to.<br><br>**What's an MCP?** The *Model Context Protocol* is an open standard that lets AI systems securely connect to tools and data via a lightweight client↔server contract (JSON-RPC over supported transports). In plain terms: spin up a small service (an MCP server) that exposes capabilities, and the AI (host/client) can call it like a native tool.<br><br>**New to MCP?** Think of it as a way to give AI systems \"superpowers\" by connecting them to external tools and data. Instead of the AI being limited to what it knows, MCP lets it call out to your custom services to get real-time information or perform actions. In this case, you're teaching Station Zero's AI how to decode Mango cipher messages by providing it with a translation service it can call.<br><br>**Learn more:** [MCP Specification](https://spec.modelcontextprotocol.io/) | [Python MCP SDK](https://github.com/modelcontextprotocol/python-sdk)<br><br>\n## Objective\n\nDeploy an MCP server named `mango-mcp` in your OpenShift namespace that listens on `port 3000` and is discoverable via a **Service** with the same name. Then trigger Station Zero's self-test to retrieve the FLAG.<br><br>\n## Specification\n\n1. **Prereq:** Complete \"Ops Relay\" so your Station Zero / Ops Relay API is running in `player6`.\n2. In Gitea, the `starter` org hosts `python_MCP_starter`. **Fork** it to your user.\n3. **Deploy** the fork in your `player6` project as an app named `mango-mcp`. Ensure the container exposes `TCP 3000`.\n   - Console path: *Add -> Import from Git* -> repo URL of your fork -> Name: `mango-mcp` -> set container port to `3000`.\n4. Create/ensure a **Service** named `mango-mcp` targeting `port 3000`. (A Route is *not* required.)\n5. Once the pod is *Ready*, call Station Zero's test: open your Ops Relay Route and GET `/test-mango-decode`. If the MCP is reachable at `mango-mcp:3000`, the endpoint returns your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player6?view=graph\n- **gitea (starter)**: https://gitea-gitea.apps.cluster.example.com/starter/python_MCP_starter\n- **station-zero MCP self-test URL**: https://station-zero-player6.apps.cluster.example.com/test-mango-decode",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 13,
+          "title": "Top Agent",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 80,
+          "solved": true,
+          "description": "HQ has its eyes on the bot arena. Many agents have deployed their code, each vying for dominance in the intelligence wars. But only one can rise above the noise.<br><br>To claim your place at the top, your autonomous spy must not only survive the 30-second skirmishes but out-collect every rival on the board. The operators are watching closely: the bot with the **highest score across the arena** will be issued a special recognition flag, proof that you've earned the title of **Top Agent**.<br><br>Stay sharp--this isn't just about building a working bot; it's about tuning, optimizing, and perfecting your strategy until it dominates the field.<br><br>\n## Objective\n\nAchieve the highest score among all active bots in the arena. When your bot takes the lead, game operators will award you a unique FLAG. Enter that flag here to complete the mission and secure your points.",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 5
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 12,
+          "title": "Spy vs Spy",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 80,
+          "solved": true,
+          "description": "Field teams are getting outplayed on the grid. HQ needs an autonomous **game bot** that can join live matches and out-collect an opponent in 30 seconds. You will build a WebSocket client that connects to the [**Spy vs Spy** server](https://spy-vs-spy-ctfg.apps.cluster.example.com), registers, tracks state from server updates, and moves every 200 ms toward the most valuable intel--while avoiding walls and the other player.<br><br>**LLM assistance is encouraged.** Use it to scaffold your bot, then refine and tune it.<br><br>\n## Objective\n\nImplement a bot that follows the protocol below, runs continuously, and competes to collect intel points. On connection, you'll also receive a registration flag you can submit.<br><br>\n## Game Server Protocol\n\nConnect to: `wss://spy-vs-spy-ctfg.apps.cluster.example.com`<br><br>On connection, you'll receive:\n```json\n{ \"type\": \"connected\" }\n```\n<br>Immediately respond with:\n```json\n{ \"type\": \"join\", \"key\": \"23030C1C48013A131E040D48195326475B5AC4BBBC93\" }\n```\n<br>Server confirms with:\n```json\n{ \"type\": \"registered\", \"playerId\": \"Player_player6_447\", \"flag\": \"YOUR_UNIQUE_FLAG_HERE\" }\n```\n<br>The server will send game start messages that look like:\n```json\n{\n  \"type\":\"gameStart\",\n  \"gameId\":\"match-1\",\n  \"playerId\":\"abc123\",\n  \"gridSize\":20,\n  \"duration\":30,\n  \"players\":[\n    {\"id\":\"abc123\",\"name\":\"YourBot\",\"position\":{\"x\":5,\"y\":10},\"score\":0,\"color\":\"#FF6B6B\"},\n    {\"id\":\"xyz789\",\"name\":\"Opponent\",\"position\":{\"x\":15,\"y\":8},\"score\":0,\"color\":\"#4ECDC4\"}\n  ],\n  \"obstacles\":[{\"x\":3,\"y\":4},{\"x\":7,\"y\":12},...],\n  \"intel\":[{\"x\":10,\"y\":10,\"value\":2},{\"x\":5,\"y\":15,\"value\":1},...],\n  \"timeRemaining\":30\n}\n```\n<br>Your bot will send moves messages (every ≥200 ms) that look like:\n```json\n{ \"type\": \"move\", \"direction\": \"up\" }\n{ \"type\": \"move\", \"direction\": \"down\" }\n{ \"type\": \"move\", \"direction\": \"left\" }\n{ \"type\": \"move\", \"direction\": \"right\" }\n```\n<br>The server will send game update messages look like:\n```json\n{\n  \"type\":\"gameUpdate\",\n  \"players\":[/* updated positions & scores */],\n  \"obstacles\":[/* static */],\n  \"intel\":[/* remaining intel */],\n  \"timeRemaining\":25.5\n}\n```\n<br>Eventually, the server will send a game end message that looks like:\n```json\n{\n  \"type\":\"gameEnd\",\n  \"winner\":\"abc123\",  // null if draw\n  \"isDraw\":false,\n  \"finalScores\":[\n    {\"id\":\"abc123\",\"name\":\"YourBot\",\"score\":8},\n    {\"id\":\"xyz789\",\"name\":\"Opponent\",\"score\":5}\n  ]\n}\n```\n<br>\n\n## Essential Bot Algorithm\n- **Locate self:**\n```javascript\nmyPlayer = players.find(p => p.id === playerId);\nmyPosition = myPlayer.position\n```\n- **Pick target intel (value-weighted):** minimize `ManhattanDistance / value`.\n- **Choose direction:** step along the dominant axis toward target.\n- **Validate step:** in-bounds (0–19), not an obstacle, not another player's position.\n- **Send move or alternative safe step.**\n- **Repeat every 200 ms** until game ends.\n<br>\n\n## Critical Details\n\n- Store your `playerId` from the `registered` message.\n- Update your position only from `gameUpdate` (authoritative server state).\n- Remove intel that disappears; watch for new spawns in updates.\n- Handle `{ \"type\": \"opponentDisconnected\" }`.\n- Auto-reconnect if the WebSocket drops and re-register.<br><br>\n## Submission\n\nWhen your bot registers with the server, the server sends your FLAG in the `registered` message response. Be sure to print this out and **submit that flag** to complete the challenge.<br><br>\n## Hints\n\n- Start with a simple Node.js or Python WS client; then implement the decision loop.\n- Throttle sends to ≥200 ms; sending faster may be ignored or rate-limited.\n- Keep obstacle and opponent locations in quick-lookup sets (e.g., `\"x,y\"` keys).<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player6?view=graph\n- **spectator arena**: https://spy-vs-spy-ctfg.apps.cluster.example.com",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 5
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 11,
+          "title": "Crossword Uplink",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 60,
+          "solved": true,
+          "description": "You solved the grid once--good. HQ needs a field-capable solver that can take a live drop and prove it can compute under pressure.<br><br>\n## Objective\n\nDeploy a **crossword-solver service** in your OpenShift namespace and expose it with a Route. The handler will POST a puzzle payload (including a one-time **nonce**). Your service must solve the crossword, compute an HMAC over the bottom row and nonce using a Secret provided in your namespace, and emit the FLAG to its logs.<br><br>\n## Inputs (delivered at runtime)\n\n- POST body (JSON):\n```json\n{\n  \"grid\": \"<hash/# and dots grid>\",\n  \"words\": [\"...\"],\n  \"nonce\": \"<uuid>\"\n}\n```\n- Secret in your namespace: `crossword-key` with key `key` (UTF-8 string). Mount it as `CROSSWORD_KEY` (env) or file.<br><br>\n## Protocol (Your service)\n\n- Route: `https://crossword-player6.apps.cluster.example.com/solve`\n- Method: `POST`, `Content-Type: application/json`\n- Response (JSON):\n```json\n{\n  \"bottom_row\": \"<letters>\",\n  \"hmac\": \"<hex sha256 of (bottom_row + \":\" + nonce) keyed with CROSSWORD_KEY>\"\n}\n```\n- Side-effect: write exactly one line to stdout logs: `FLAG: AGENT{<hmac>}`<br><br>\n## Specification\n\n1. Deploy an app (e.g., `crossword-solver`) in project `player6` that listens on `8080` and implements `POST /solve` as above.\n2. Create a **Route** with host `crossword-player6.apps.cluster.example.com`.\n3. Mount the Secret `crossword-key` (key: `key`) into the container as env `CROSSWORD_KEY` or a file your code reads.\n4. When the handler POSTs the payload, your service must:\n   a. Solve the crossword (use each word exactly once, RIGHT/DOWN only; crossings must agree).\n   b. Extract the bottom-row letters as a contiguous string (no `#` or spaces).\n   c. Compute HMAC-SHA256 over `bottom_row + \":\" + nonce` using `CROSSWORD_KEY`.\n   d. Log `FLAG: AGENT{<hmac>}` and return the JSON response.\n5. OpenShift Console -> your pod -> *View logs* and submit the FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player6?view=graph",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 1
+            },
+            {
+              "id": 2,
+              "cost": 1
+            },
+            {
+              "id": 3,
+              "cost": 2
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 10,
+          "title": "The Clandestine Crossword",
+          "category": "Codecraft",
+          "difficulty": "Hard",
+          "points": 100,
+          "solved": true,
+          "description": "Station Zero's wall screens flicker to life, revealing a blinking file: `crossword.txt`. In the Agency's early days, field teams received instructions hidden in plain sight--messages smuggled into newspaper crosswords. A harmless grid to the public; an exact set of moves to those who knew the key. Your handler's last transmission cached a grid and a word list… but not the solver.<br><br>\n## Objective\n\nFetch the crossword grid and word list from your Ops Relay, fill the grid using each word exactly once (rightward and downward only), then derive the FLAG from the bottom row.<br><br>\n## Inputs\n\n- https://station-zero-player6.apps.cluster.example.com/crossword.txt -- grid using `#` for blocks and `.` for empty cells. **No prefilled letters.**\n- https://station-zero-player6.apps.cluster.example.com/words.txt -- newline-separated words; each must be used exactly once.<br><br>\n## Specification\n\n1. **Slot enumeration:** Identify Across (rightward) and Down (downward) slots. A slot starts where the previous cell in that direction is a block or off-grid, and continues until a block or edge.\n2. **Placement rules:** Words may run only *RIGHT* (Across) or *DOWN* (Down). *No* backwards, diagonal, or wrapping placements. Crossings must agree on letters. Use each word exactly once.\n3. **Output:** Print the solved grid (letters and `#`). After the grid is fully solved, read all letters on the **bottom row** (left to right), concatenate them with *no spaces*, and submit that string as the FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player6?view=graph",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 9,
+          "title": "Digital Brush-Pass",
+          "category": "Codecraft",
+          "difficulty": "Medium",
+          "points": 75,
+          "solved": true,
+          "description": "In the old days a slip of paper changed hands on a crowded street. Today the brush-pass is a webhook. The Agency courier will attempt a one-way handoff to your service. Your endpoint must accept the packet--but only after it verifies the PIN with Station Zero's Ops Relay.<br><br>\n## Objective\n\nDeploy an HTTP service that accepts JSON POSTs at a fixed path. On each request, validate two headers (`X-Agent` and `X-PIN`) by calling the Ops Relay validation API. If validation passes, log the FLAG from the body and acknowledge the handoff.<br><br>\n## Inputs\n\n- Your Ops Relay route from the first challenge (find it in OpenShift -> Networking -> Routes), referred to as `$OPS_RELAY_URL`.\n- Courier POST target (must be reachable via Route): `https://brushpass-player6.apps.cluster.example.com/handoff`<br><br>\n## POST Contract (Courier -> You)\n\n**Method:** POST\n**Path:** `/handoff`\n**Headers:**\n```\nContent-Type: application/json\nX-Agent: player6\nX-PIN: <PIN value>\n```\n\n**Body (JSON):**\n```json\n{\n  \"nonce\": \"<uuid>\",\n  \"ts\": \"<RFC3339 timestamp>\",\n  \"package\": {\n    \"note\": \"one-way courier packet\",\n    \"flag\": \"AGENT{...}\"\n  }\n}\n```\n<br><br>\n## Validation API (You -> Ops Relay)\n\nBefore accepting a courier POST, your service must call:\n```\nGET $OPS_RELAY_URL/validate/pin?agent=player6&pin=<PIN-from-header>\n```\n<br><br>\n**Responses:**\n\n```200 OK\n{ \"ok\": true, \"station\": \"player6\" }\n\n403 Forbidden\n{ \"ok\": false, \"error\": \"invalid pin\" }```\n<br><br>Only if the response is `200` with `ok:true` may you accept the drop.<br><br>\n## Specification\n- Deploy an app (e.g., `brushpass`) in project `player6` that listens on port `8080` and implements `POST /handoff`.\n- Create a Route with host `brushpass-player6.apps.cluster.example.com`.\n- On each `/handoff` request:\n  - Require headers `X-Agent` and `X-PIN`.\n  - Reject with `400` if JSON is malformed.\n  - Check `X-Agent` equals player6. If not, respond `403`.\n  - Call `GET $OPS_RELAY_URL/validate/pin?agent=player6&pin=<X-PIN>`. If not `200 ok:true`, respond `403`.\n  - On success, write exactly one line to stdout logs: `FLAG: AGENT{...}` (from `package.flag`), and respond `200` with `{\"ack\":true,\"nonce\":\"<same nonce>\"}`.\n<br><br>\n## Links\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player6?view=graph",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 8,
+          "title": "Seven Letters",
+          "category": "HUMINT",
+          "difficulty": "Medium",
+          "points": 40,
+          "solved": true,
+          "description": "Every agent's `station-zero` service can emit a QR tile referencing a single letter and a number. Retrieve six other unique letter/number combinations to assemble the hidden seven-letter code word. Your FLAG is computed from the seven numbers using a mix of multiply, minus, and plus--**in the order of the letters that spell the word**.<br><br>\n## Objective\n\nCollect seven distinct QR tokens. Sort the letters into a seven-letter word, then compute the FLAG using the rule below and submit it.<br><br>\n## Computation Rule\n\nLet the ordered numbers (matching your letter order) be `n1..n7`. Compute:\n`FLAG = (n1 × n2) − n3 + (n4 × n5) − n6 + n7`\nUse normal arithmetic precedence (multiplication before addition/subtraction) or the parentheses as shown.<br><br>*Example (structure only):* If your ordered numbers were `[4,9,5,3,7,6,2]`, the FLAG would be `(4×9) − 5 + (3×7) − 6 + 2 = 36 − 5 + 21 − 6 + 2 = 48`.<br><br>\n## Specification\n\n1. Each agent opens their QR tile at `/qr`. It shows a big letter (A–Z) and a number (1–9) separated by a dash.\n2. Form a group that collectively has all seven distinct letters needed for the hidden word.\n3. Scan/collect the seven tokens, arrange letters to form the correct word, compute the FLAG via the rule above.\n4. Enter the FLAG below.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player6?view=graph\n- **your QR tile**: https://station-zero-player6.apps.cluster.example.com/qr",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 7,
+          "title": "Broadcast Orders",
+          "category": "Shadow Ops",
+          "difficulty": "Medium",
+          "points": 30,
+          "solved": true,
+          "description": "The Numbers Station transmitter is up, but HQ's broadcast queue is stuck in staging. Your job is to feed the station its orders and get the right number sequence on-air.<br><br>\n## Objective\n\nMount the provided `ConfigMap` named `numbers` (containing `numbers.txt`) into the Numbers Station pod at `/etc/numbers`, restart the deployment, then tune in. The station will read the sequence and **say the FLAG word**--submit that exact string.<br><br>\n## Specification\n\n1. **Prereq:** The app `numbers-station` is deployed and exposed via a Route in `player6` (from the prior challenge).\n2. Confirm the **ConfigMap** `numbers` exists in your namespace and includes a key/file named `numbers.txt`.\n3. Mount the ConfigMap as a volume at `/etc/numbers` in the Numbers Station container.\n4. Restart/redeploy to pick up the change.\n5. Visit your Numbers Station Route and listen to the audio. The station will speak the FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player6?view=graph\n- **numbers-station route**: https://numbers-station-player6.apps.cluster.example.com/",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 6,
+          "title": "Knock Knock",
+          "category": "Shadow Ops",
+          "difficulty": "Medium",
+          "points": 40,
+          "solved": true,
+          "description": "The previous Station Zero commander left a classified intelligence package for their replacement--but the access details were lost during the handover. The package is available through a service running on an additional port, separate from the main Ops Relay.<br><br>\n## Objective\n\nDiscover the additional port where Station Zero is running a service, explore what's available there, and retrieve the intelligence package to obtain your FLAG.<br><br>\n## Specification\n\n1. **Prereq:** Complete \"Ops Relay\" so your Station Zero service is running in `player6`.\n2. Probe for an additional service running on a port between 2000 and 10000.\n3. Once found, access that port and explore what's available.\n4. Follow the instructions you find to retrieve the intelligence package.\n5. Submit the FLAG found in the package.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player6?view=graph",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 5,
+          "title": "Numbers Station",
+          "category": "Shadow Ops",
+          "difficulty": "Easy",
+          "points": 20,
+          "solved": true,
+          "description": "The airwaves have gone quiet. HQ's field teams rely on the **Numbers Station** for one-time pad cues and timing marks--but the transmitter at Station Zero is down. Your job is to bring it back online so agents can tune in.<br><br>*Background:* Numbers stations are mysterious shortwave radio broadcasts that have been reported since World War I and are still believed to operate today. They transmit long sequences of numbers--often read by synthetic voices or sent in Morse code or digital tones--intended for intelligence officers in the field. To hobbyists and radio enthusiasts they sound eerie, but to agents with the right cipher they deliver mission-critical orders. Many of these stations have earned nicknames among listeners for their quirks, accents, or origins.<br><br>[Learn more on Wikipedia](https://en.wikipedia.org/wiki/Numbers_station).<br><br>\n## Objective\n\nDeploy the Numbers Station container in your OpenShift namespace, expose it with a Route, and confirm the audio stream is reachable from the web page it serves. The station's name shown on the page is your FLAG.<br><br>\n## Specification\n\n1. In `player6`, deploy the image `quay.io/atgreen0/numbers-station:latest` as an app named `numbers-station`.\n2. Create a **Service** targeting the container's web port (defaults to HTTP) and expose it with a **Route**.\n3. Open your Route. You should see the Numbers Station web page with a playable audio stream.\n4. Find the station's **name** displayed on the page (exact case and punctuation) and submit that string as your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player6?view=graph\n- **numbers-station route**: https://numbers-station-player6.apps.cluster.example.com/",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 4,
+          "title": "Dead Drop: Burn Code",
+          "category": "Shadow Ops",
+          "difficulty": "Medium",
+          "points": 30,
+          "solved": true,
+          "description": "Intel confirms a clandestine dead drop--your unit's **burn code**--is stashed on a Persistent Volume.\n\nYour mission namespace already includes a Persistent Volume Claim named **dead-drop-pvc**. Mount this PVC into a running container and read `burncode.txt`. The text flag you seek is the exact content of that file.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player6?view=graph",
+          "hints": [
+            {
+              "id": 1,
+              "cost": 1
+            },
+            {
+              "id": 2,
+              "cost": 5
+            }
+          ],
+          "content": null
+        },
+        {
+          "id": 3,
+          "title": "Clearance Checkpoint",
+          "category": "Tradecraft",
+          "difficulty": "Easy",
+          "points": 10,
+          "solved": true,
+          "description": "A red strobe blinks above the terminal: *IDENTITY INVALID -- CLEARANCE REQUIRED*. Your access profile has been wiped from Agency systems. Before any further ops unlock, you must pass a clearance gate that's rotated daily and delivered out-of-band to avoid interception.<br><br>\n## Objective\n\nAuthenticate by supplying today's one-time codeword from your handler (game master). This proves you can follow compartmentalized instructions under pressure and enables downstream mission packages.<br><br>\n## Specification\n\nYour handler will provide the codeword verbally or on a secure channel during the briefing. Enter that exact codeword as your FLAG.\n- Case-insensitive.\n- Do not brute-force; codes rotate per event.\n- On success, additional challenge tracks will unlock.",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 2,
+          "title": "Hello, Handler",
+          "category": "Tradecraft",
+          "difficulty": "Easy",
+          "points": 10,
+          "solved": true,
+          "description": "Your cover is thin and time is thinner. A burner web app in the starter repos contains a confirmation phrase used to re-establish contact with a friendly handler. Deploy it inside the cluster, then retrieve the phrase to verify egress works from your namespace.<br><br>\n## Objective\n\nFork and deploy the `python-starter` app; expose it with a Route; recover the phrase from the running app.<br><br>\n## Specification\n\nIn Gitea, the `starter` org hosts `python-starter`. Fork it to your user, deploy it in your `player6` Project, and expose it. The app publishes a FLAG at:\nhttps://hello-player6.apps.cluster.example.com/\n\nSubmit that FLAG to complete the exercise.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player6?view=graph\n- **gitea starters**: https://gitea-gitea.apps.cluster.example.com/starter",
+          "hints": null,
+          "content": null
+        },
+        {
+          "id": 1,
+          "title": "Ops Relay",
+          "category": "Tradecraft",
+          "difficulty": "Easy",
+          "points": 10,
+          "solved": true,
+          "description": "You steady your breathing and sweep the room. The signage is faded, the clocks are stopped--but you know this place: **Station Zero**, the Agency's long-dormant operations hub. One thing still answers your credentials: an OpenShift terminal humming on the desk. If you're going to reconnect to HQ, you need the *Ops Relay* online now!<br><br>\n## Objective\n\nDeploy the Agency's Ops Relay service in your OpenShift namespace and recover its version string. That version is your FLAG.<br><br>\n## Specification\n\n1. In your assigned OpenShift project `player6`, deploy the container image `quay.io/atgreen0/station-zero:latest` as an application (Console path: *Add -> Container image*).\n2. Create a **Service** called `station-zero` for the pod and expose it with a **Route** so it's reachable.\n3. Once the pod is running, open its **Logs** in the OpenShift console (Workloads -> Deployments -> pod -> *View logs*) and locate the service version string.\n4. Submit that exact version as your FLAG.<br><br>\n## Links\n\n- **ocp console**: https://console-openshift-console.apps.cluster.example.com/topology/ns/player6?view=graph",
+          "hints": null,
+          "content": null
+        }
+      ],
+      "metrics": {
+        "startTime": 1758010307447,
+        "loginTime": 1758010308753,
+        "wsConnectTime": null,
+        "firstChallengeTime": 1758010309101,
+        "challengesSolved": 15,
+        "flagsSubmitted": 15,
+        "errors": [
+          {
+            "timestamp": 1758010308810,
+            "error": "Unexpected server response: 403",
+            "context": "websocket"
+          }
+        ]
+      },
+      "wsUrl": "ws://localhost:12345/scorestream"
+    }
+  ],
+  "totals": {
+    "loginAttempts": 5,
+    "loginSuccess": 5,
+    "wsConnections": 5,
+    "wsSuccessful": 0,
+    "flagSubmissions": 75,
+    "flagsCorrect": 75,
+    "challengesLoaded": 0,
+    "staticFilesLoaded": 20,
+    "errors": [
+      {
+        "timestamp": 1758010308078,
+        "error": "Unexpected server response: 403",
+        "context": "websocket",
+        "playerId": 4
+      },
+      {
+        "timestamp": 1758010308227,
+        "error": "Unexpected server response: 403",
+        "context": "websocket",
+        "playerId": 2
+      },
+      {
+        "timestamp": 1758010308475,
+        "error": "Unexpected server response: 403",
+        "context": "websocket",
+        "playerId": 1
+      },
+      {
+        "timestamp": 1758010308667,
+        "error": "Unexpected server response: 403",
+        "context": "websocket",
+        "playerId": 3
+      },
+      {
+        "timestamp": 1758010308810,
+        "error": "Unexpected server response: 403",
+        "context": "websocket",
+        "playerId": 5
+      }
+    ]
+  },
+  "timeline": [
+    {
+      "timestamp": 1758010307743,
+      "category": "static_file_loaded",
+      "value": 154,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010307746,
+      "category": "static_file_loaded",
+      "value": 2,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010307762,
+      "category": "static_file_loaded",
+      "value": 15,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010307806,
+      "category": "static_file_loaded",
+      "value": 44,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010307974,
+      "category": "login_attempt",
+      "value": 67,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010307974,
+      "category": "login_success",
+      "value": 1,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010307975,
+      "category": "static_file_loaded",
+      "value": 12,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010307978,
+      "category": "static_file_loaded",
+      "value": 2,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010307999,
+      "category": "static_file_loaded",
+      "value": 19,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010308043,
+      "category": "static_file_loaded",
+      "value": 44,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010308163,
+      "category": "login_attempt",
+      "value": 19,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010308163,
+      "category": "login_success",
+      "value": 1,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010308235,
+      "category": "static_file_loaded",
+      "value": 5,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010308237,
+      "category": "static_file_loaded",
+      "value": 2,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010308256,
+      "category": "static_file_loaded",
+      "value": 19,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010308300,
+      "category": "static_file_loaded",
+      "value": 43,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010308416,
+      "category": "static_file_loaded",
+      "value": 10,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010308418,
+      "category": "login_attempt",
+      "value": 17,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010308418,
+      "category": "login_success",
+      "value": 1,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010308419,
+      "category": "static_file_loaded",
+      "value": 2,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010308444,
+      "category": "static_file_loaded",
+      "value": 25,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010308447,
+      "category": "submit_flag",
+      "value": 44,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010308447,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010308448,
+      "category": "submit_flag",
+      "value": 43,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010308448,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010308449,
+      "category": "submit_flag",
+      "value": 23,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010308449,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010308488,
+      "category": "static_file_loaded",
+      "value": 44,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010308552,
+      "category": "submit_flag",
+      "value": 6,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010308553,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010308578,
+      "category": "static_file_loaded",
+      "value": 8,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010308581,
+      "category": "static_file_loaded",
+      "value": 2,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010308604,
+      "category": "static_file_loaded",
+      "value": 23,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010308607,
+      "category": "submit_flag",
+      "value": 25,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010308607,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010308612,
+      "category": "login_attempt",
+      "value": 6,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010308612,
+      "category": "login_success",
+      "value": 1,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010308614,
+      "category": "submit_flag",
+      "value": 8,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010308615,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010308648,
+      "category": "static_file_loaded",
+      "value": 44,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010308683,
+      "category": "submit_flag",
+      "value": 7,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010308683,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010308692,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010308692,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010308734,
+      "category": "submit_flag",
+      "value": 4,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010308734,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010308740,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010308740,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010308753,
+      "category": "login_attempt",
+      "value": 4,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010308753,
+      "category": "login_success",
+      "value": 1,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010308785,
+      "category": "submit_flag",
+      "value": 6,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010308785,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010308807,
+      "category": "submit_flag",
+      "value": 6,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010308807,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010308819,
+      "category": "submit_flag",
+      "value": 4,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010308819,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010308843,
+      "category": "submit_flag",
+      "value": 4,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010308844,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010308872,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010308872,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010308931,
+      "category": "submit_flag",
+      "value": 7,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010308931,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010308947,
+      "category": "submit_flag",
+      "value": 4,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010308947,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010308960,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010308960,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010308978,
+      "category": "submit_flag",
+      "value": 6,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010308978,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309015,
+      "category": "submit_flag",
+      "value": 33,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010309015,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010309048,
+      "category": "submit_flag",
+      "value": 43,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309048,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309057,
+      "category": "submit_flag",
+      "value": 6,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309057,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309061,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309061,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309066,
+      "category": "submit_flag",
+      "value": 8,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309066,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309068,
+      "category": "submit_flag",
+      "value": 6,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309068,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309099,
+      "category": "submit_flag",
+      "value": 18,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309099,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309101,
+      "category": "submit_flag",
+      "value": 12,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309101,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309106,
+      "category": "submit_flag",
+      "value": 7,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309106,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309125,
+      "category": "submit_flag",
+      "value": 119,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309126,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309136,
+      "category": "submit_flag",
+      "value": 6,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309137,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309218,
+      "category": "submit_flag",
+      "value": 6,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010309218,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010309223,
+      "category": "submit_flag",
+      "value": 4,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010309223,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010309227,
+      "category": "submit_flag",
+      "value": 4,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309228,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309263,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010309263,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010309274,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309275,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309301,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309302,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309304,
+      "category": "submit_flag",
+      "value": 6,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309305,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309312,
+      "category": "submit_flag",
+      "value": 6,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309312,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309337,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309337,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309349,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309349,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309355,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309355,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309359,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309359,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309366,
+      "category": "submit_flag",
+      "value": 6,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309367,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309390,
+      "category": "submit_flag",
+      "value": 6,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309390,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309400,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309400,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309439,
+      "category": "submit_flag",
+      "value": 7,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010309439,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010309481,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010309481,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010309518,
+      "category": "submit_flag",
+      "value": 7,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309518,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309522,
+      "category": "submit_flag",
+      "value": 7,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309522,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309527,
+      "category": "submit_flag",
+      "value": 14,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309527,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309536,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309536,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309554,
+      "category": "submit_flag",
+      "value": 11,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309555,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309594,
+      "category": "submit_flag",
+      "value": 6,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309594,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309610,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309610,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309629,
+      "category": "submit_flag",
+      "value": 9,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309629,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309634,
+      "category": "submit_flag",
+      "value": 6,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309634,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309643,
+      "category": "submit_flag",
+      "value": 6,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309643,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309696,
+      "category": "submit_flag",
+      "value": 41,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309697,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309742,
+      "category": "submit_flag",
+      "value": 17,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309743,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 2
+    },
+    {
+      "timestamp": 1758010309749,
+      "category": "submit_flag",
+      "value": 4,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309749,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309765,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309765,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309788,
+      "category": "submit_flag",
+      "value": 60,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010309788,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 4
+    },
+    {
+      "timestamp": 1758010309803,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309804,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010309822,
+      "category": "submit_flag",
+      "value": 8,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309822,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309847,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309847,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309876,
+      "category": "submit_flag",
+      "value": 4,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309877,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309899,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309899,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010309902,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010309902,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010310039,
+      "category": "submit_flag",
+      "value": 17,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010310039,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010310044,
+      "category": "submit_flag",
+      "value": 9,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010310044,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010310084,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010310084,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010310121,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010310122,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 1
+    },
+    {
+      "timestamp": 1758010310125,
+      "category": "submit_flag",
+      "value": 5,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010310125,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010310293,
+      "category": "submit_flag",
+      "value": 21,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010310293,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 3
+    },
+    {
+      "timestamp": 1758010310329,
+      "category": "submit_flag",
+      "value": 4,
+      "playerId": 5
+    },
+    {
+      "timestamp": 1758010310330,
+      "category": "flag_correct",
+      "value": 1,
+      "playerId": 5
+    }
+  ],
+  "responseTimes": {
+    "staticFiles": [
+      154,
+      2,
+      15,
+      44,
+      12,
+      2,
+      19,
+      44,
+      5,
+      2,
+      19,
+      43,
+      10,
+      2,
+      25,
+      44,
+      8,
+      2,
+      23,
+      44
+    ],
+    "login": [
+      67,
+      19,
+      17,
+      6,
+      4
+    ],
+    "challenges": [],
+    "submit": [
+      44,
+      43,
+      23,
+      6,
+      25,
+      8,
+      7,
+      5,
+      4,
+      5,
+      6,
+      6,
+      4,
+      4,
+      5,
+      7,
+      4,
+      5,
+      6,
+      33,
+      43,
+      6,
+      5,
+      8,
+      6,
+      18,
+      12,
+      7,
+      119,
+      6,
+      6,
+      4,
+      4,
+      5,
+      5,
+      5,
+      6,
+      6,
+      5,
+      5,
+      5,
+      5,
+      6,
+      6,
+      5,
+      7,
+      5,
+      7,
+      7,
+      14,
+      5,
+      11,
+      6,
+      5,
+      9,
+      6,
+      6,
+      41,
+      17,
+      4,
+      5,
+      60,
+      5,
+      8,
+      5,
+      4,
+      5,
+      5,
+      17,
+      9,
+      5,
+      5,
+      5,
+      21,
+      4
+    ],
+    "websocket": []
+  },
+  "staticFileBreakdown": {
+    "index.html": [
+      154,
+      12,
+      5,
+      10,
+      8
+    ],
+    "CSS": [
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "banner image": [
+      15,
+      19,
+      19,
+      25,
+      23
+    ],
+    "app.js": [
+      44,
+      44,
+      43,
+      44,
+      44
+    ]
+  }
+}

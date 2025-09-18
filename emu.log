@@ -1,0 +1,63 @@
+Loaded 15 challenges
+Loaded 399 credentials (excluding player1)
+Starting 3 player emulation(s) against http://localhost:8080
+Jitter: 1s (staggered start)
+Press Ctrl-C to interrupt and generate partial report
+----------------------------------------
+
+🎲 Using 1s jitter window (0 = thundering herd, >0 = staggered start)
+[Player 1] Starting after 0.4s jitter
+[Player 1/player2] Starting player simulation...
+[Player 1/player2] Error fetching static files: 
+[Player 1/player2] Attempting login with username: player2, password: iNA...
+[Player 1/player2] Login error: 
+[Player 1/player2] Failed to login, aborting
+[Player 1/player2] Cleaning up resources...
+[Player 1/player2] Cleanup complete
+[Player 1/player2] Player simulation complete
+[Player 3] Starting after 0.6s jitter
+[Player 3/player4] Starting player simulation...
+[Player 3/player4] Error fetching static files: 
+[Player 3/player4] Attempting login with username: player4, password: 09w...
+[Player 3/player4] Login error: 
+[Player 3/player4] Failed to login, aborting
+[Player 3/player4] Cleaning up resources...
+[Player 3/player4] Cleanup complete
+[Player 3/player4] Player simulation complete
+[Player 2] Starting after 0.8s jitter
+[Player 2/player3] Starting player simulation...
+[Player 2/player3] Error fetching static files: 
+[Player 2/player3] Attempting login with username: player3, password: qoo...
+[Player 2/player3] Login error: 
+[Player 2/player3] Failed to login, aborting
+[Player 2/player3] Cleaning up resources...
+[Player 2/player3] Cleanup complete
+[Player 2/player3] Player simulation complete
+
+----------------------------------------
+All player simulations complete
+
+🧹 Cleaning up 3 player connections...
+[Player 1/player2] Cleaning up resources...
+[Player 1/player2] Cleanup complete
+[Player 2/player3] Cleaning up resources...
+[Player 2/player3] Cleanup complete
+[Player 3/player4] Cleaning up resources...
+[Player 3/player4] Cleanup complete
+📊 Metrics saved to: metrics-1758009091140.json
+📊 Performance report generated: performance-report-1758009091141.html
+
+🎯 PERFORMANCE SUMMARY:
+├─ Duration: 1s
+├─ Players: 3
+├─ Login Success: 0/3 (0.0%)
+├─ WebSocket Success: 0/0 (NaN%)
+├─ Flags Submitted: 0
+├─ Flags Correct: 0 (NaN%)
+├─ Throughput: 0.00 flags/second
+├─ Errors: 6
+└─ Report: performance-report-1758009091141.html
+
+⚠️  TOP ERRORS:
+   3x static_files: AggregateError
+   3x login: AggregateError
