@@ -44,6 +44,8 @@
                                          :description "seconds between WebSocket keepalive pings (0=disable, server PING frames)" :initial-value 15))
         (g (clingon:make-option :integer :short-name #\g :long-name "ws-backlog" :key :ws-backlog
                                          :description "WebSocket accept backlog (if supported by CLWS)" :initial-value 512))
+        (tmo (clingon:make-option :integer :short-name #\t :long-name "ws-ping-timeout" :key :ws-ping-timeout
+                                          :description "seconds to wait for client PONG before dropping connection" :initial-value 45))
         (d (clingon:make-option :flag :short-name #\d :long-name "developer-mode" :key :developer-mode
                                       :description "enable developer mode" :initial-value nil)))
     (clingon:make-command
@@ -53,7 +55,7 @@
      :authors (list "Anthony Green")
      :license "MIT"
      :usage ""
-     :options (list p s b w k g d)
+     :options (list p s b w k g tmo d)
      :sub-commands (list (init/command))
      :handler (lambda (cmd)
 
@@ -83,7 +85,8 @@
                        (websocket-url (clingon:getopt cmd :websocket-url))
                        (slynk-port (clingon:getopt cmd :slynk-port))
                        (ws-keepalive (clingon:getopt cmd :ws-keepalive-interval))
-                       (ws-backlog (clingon:getopt cmd :ws-backlog)))
+                       (ws-backlog (clingon:getopt cmd :ws-backlog))
+                       (ws-ping-timeout (clingon:getopt cmd :ws-ping-timeout)))
                   (setf *challenges-path* json-path)
                   (setf *dbdir* (concatenate 'string dbdir "/"))
                   (setf *websocket-url* websocket-url)
@@ -91,6 +94,8 @@
                     (setf *ws-keepalive-interval* ws-keepalive))
                   (when (and (integerp ws-backlog) (> ws-backlog 0))
                     (setf *ws-backlog* ws-backlog))
+                  (when (and (integerp ws-ping-timeout) (> ws-ping-timeout 0))
+                    (setf *ws-ping-timeout* ws-ping-timeout))
                   (setf *ctfg-api-token* (uiop:getenv "CTFG_API_TOKEN"))
                   (bt:with-lock-held (*server-lock*)
                     (setf *developer-mode* (clingon:getopt cmd :developer-mode))

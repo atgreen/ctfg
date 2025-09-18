@@ -22,6 +22,8 @@
 (defvar *ws-keepalive-running* nil)
 (defparameter *ws-backlog* 512
   "Listen backlog for CLWS server acceptor. If the vendored CLWS supports a :backlog keyword, it will be used.")
+(defparameter *ws-ping-timeout* 45
+  "Seconds to wait for a client Pong before considering the connection dead.")
 
 (defun start-ws-keepalive ()
   "Start a background thread that periodically sends tiny keepalive messages
@@ -46,15 +48,30 @@
                           (when (null ping-fn)
                             (log:warn "CLWS ping not available; disabling server keepalive pings")
                             (return))
+                          ;; Send PING to all clients
                           (ignore-errors
                             (dolist (c (get-client-list))
                               (handler-case
                                   (with-write-lock-held ((client-lock c))
                                     (funcall ping-fn (client-socket c)))
                                 (error (e)
-                                  ;; Drop the client on write error to avoid leaks
                                   (log:warn "Keepalive ping failed; removing client: ~A" e)
-                                  (ignore-errors (remove-client (client-socket c))))))))))
+                                  (ignore-errors (remove-client (client-socket c)))))))
+                          ;; Reap clients that haven't PONGed in time
+                          (let ((now (get-universal-time)))
+                            (dolist (c (get-client-list))
+                              (let ((last (client-last-pong-ts c)))
+                                (when (or (null last)
+                                          (> (- now last) *ws-ping-timeout*))
+                                  (handler-case
+                                      (progn
+                                        (with-write-lock-held ((client-lock c))
+                                          (ignore-errors
+                                            (ws:write-to-client-close (client-socket c))))
+                                        (remove-client (client-socket c))
+                                        (log:info "Dropped client due to missed PONG (~As)" (or (and last (- now last)) :unknown)))
+                                    (error (e)
+                                      (log:warn "Error dropping stale client: ~A" e))))))))))
            :name "ws keepalive"))
     (log:info "WebSocket keepalive enabled (~As)" *ws-keepalive-interval*)
     *ws-keepalive-thread*))
@@ -691,7 +708,7 @@
   (log:info "Client connected to scorestream server from ~s : ~s" (ws:client-host client) (ws:client-port client))
   (log:info client)
   (handler-case
-      (let ((client (make-client :socket client :lock (make-rwlock))))
+      (let ((client (make-client :socket client :lock (make-rwlock) :last-pong-ts (get-universal-time))))
         (add-client client)
         (send-events client))
     (error (e)
@@ -704,6 +721,21 @@
   ;; out the connection.  We can ignore these.
   (when *developer-mode*
     (log:debug "Received ~S from ~S." message client)))
+
+(defmethod ws:resource-received-pong ((res scorestream-resource) client message)
+  ;; Update last-pong timestamp for this client. MESSAGE is an octet vector.
+  (declare (ignore res))
+  (handler-case
+      (let* ((wrapper (find client (get-client-list)
+                            :key #'client-socket :test #'eq))
+             (now (get-universal-time)))
+        (when wrapper
+          (with-write-lock-held ((client-lock wrapper))
+            (setf (client-last-pong-ts wrapper) now)))
+        (when *developer-mode*
+          (log:debug "PONG from ~S (payload ~S)" client message)))
+    (error (e)
+      (log:warn "Error handling PONG: ~A" e)))
 
 (defmethod ws:resource-client-disconnected ((resource scorestream-resource) client)
   (log:info "Client disconnected from resource ~A: ~A" resource client)
