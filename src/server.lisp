@@ -24,6 +24,8 @@
   "Listen backlog for CLWS server acceptor. If the vendored CLWS supports a :backlog keyword, it will be used.")
 (defparameter *ws-ping-timeout* 45
   "Seconds to wait for a client Pong before considering the connection dead.")
+(defparameter *ws-ping-latency-warn-ms* 2000
+  "Warn if Ping→Pong latency exceeds this many milliseconds.")
 
 (defun start-ws-keepalive ()
   "Start a background thread that periodically sends tiny keepalive messages
@@ -724,19 +726,25 @@
     (log:debug "Received ~S from ~S." message client)))
 
 (defmethod ws:resource-received-pong ((res scorestream-resource) client message)
-  ;; Update last-pong timestamp for this client. MESSAGE is an octet vector.
+  ;; Update last-pong timestamp and log latency. MESSAGE is the pong payload octets.
   (declare (ignore res))
   (handler-case
       (let* ((wrapper (find client (get-client-list)
                             :key #'client-socket :test #'eq))
-             (now (get-universal-time)))
+             (now-secs (get-universal-time))
+             (payload-str (ignore-errors (%utf8->string message)))
+             (now-ms (floor (now-micros) 1000))
+             (sent-ms (ignore-errors (parse-integer (or payload-str "") :junk-allowed t)))
+             (latency (and sent-ms (- now-ms sent-ms))))
         (when wrapper
           (with-write-lock-held ((client-lock wrapper))
-            (setf (client-last-pong-ts wrapper) now)))
-        (when *developer-mode*
-          (log:debug "PONG from ~S (payload ~S)" client message)))
+            (setf (client-last-pong-ts wrapper) now-secs)))
+        (when latency
+          (if (> latency *ws-ping-latency-warn-ms*)
+              (log:warn "WS Pong latency ~A ms from ~A:~A" latency (ws:client-host client) (ws:client-port client))
+              (log:debug "WS Pong latency ~A ms from ~A:~A" latency (ws:client-host client) (ws:client-port client)))))
     (error (e)
-      (log:warn "Error handling PONG: ~A" e)))
+      (log:warn "Error handling PONG: ~A" e))))
 
 (defmethod ws:resource-client-disconnected ((resource scorestream-resource) client)
   (log:info "Client disconnected from resource ~A: ~A" resource client)
@@ -844,7 +852,6 @@
   (hunchentoot:start *acceptor*)
   (log:info "Server started successfully on port ~A" port)
   *acceptor*)
-)
 
 (defun shutdown-server ()
   "Gracefully shutdown the server and cleanup resources"
