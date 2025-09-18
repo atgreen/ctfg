@@ -100,6 +100,43 @@ make clean      # Remove build artifacts and test files
 - Test generation script creates Playwright tests: `./tests/make_tests.sh <number_of_users>`
 - All static files are embedded in the binary via runtime-files.tgz during build
 
+## Recent Backend Updates (Important for Agents)
+
+### SQLite Usage
+- Connections are no longer cached per thread. Every DB block opens a fresh connection and closes it (see `with-open-connection`/`with-fresh-connection` in `src/db.lisp`). This eliminates FD leaks and stale handles.
+- Submits are idempotent: `record-flag-if-not-solved` uses a single `INSERT OR IGNORE` guarded by a unique partial index. No explicit transaction or long writer lock is taken for submits.
+- Hints remain transactional; `BEGIN IMMEDIATE` has a bounded retry to tolerate transient `SQLITE_BUSY`.
+- Startup creates helpful indexes and enforces uniqueness:
+  - `uniq_submit(user_id, challenge_id) WHERE event_type = 1`
+  - `uniq_hint(user_id, challenge_id, hint_number) WHERE event_type = 2`
+  Duplicate legacy rows are cleaned before index creation.
+- To avoid `SQLITE_CANTOPEN` bursts, concurrent connects are capped via a small lock+CV gate (default 128). Tweak `*sqlite-max-connections*` in `src/db.lisp` if needed.
+- A short retry on `CANTOPEN` exists around `sqlite:connect` for resilience; `busy_timeout` is set to 30s for queries.
+
+Practical tips:
+- If you change the DB location, use `-b/--dbdir`; ensure the directory exists and is writable. Most test failures with `CANTOPEN` are path/permissions or FD limit issues.
+- Avoid reintroducing connection pools/caches unless you also add strict lifecycle cleanup.
+
+### WebSocket (CLWS)
+- The opening handshake now uses RFC-compliant CRLF line endings on all status/header lines. This fixes Node `ws`/`wscat` errors like “Missing expected CR after response line”. The change lives in the local `~/git/clws` repo:
+  - `protocol-7.lisp` (101 Switching Protocols), `protocol.lisp` (400), `config.lisp` (400/403/404), `server.lisp` (503).
+- Server keepalive pings are enabled by default; `*ws-keepalive-interval*` and `*ws-ping-timeout*` control cadence and timeout. PONGs update `client-last-pong-ts` in `src/server.lisp`.
+- Load/backlog: the CLWS listener can accept a `:backlog` (see `*ws-backlog*`); increase for large bursts.
+
+Testing tips:
+- Validate the handshake with `wscat -c ws://127.0.0.1:12345/scorestream`. If it fails, confirm you restarted after CLWS changes and you are connecting to IPv4.
+- From curl: send an Upgrade request and expect `101 Switching Protocols`.
+
+### Player Emulator
+- Normalizes ws URL to IPv4 (`127.0.0.1`) and disables permessage-deflate to avoid negotiation issues.
+- Explicitly responds to protocol-level PING with PONG, reducing `ECONNRESET` from missed keepalive.
+- Use a non-zero jitter for realistic behavior; `0` creates a thundering herd.
+
+## Troubleshooting Quick Reference
+- WebSocket parse error (CR expected): ensure you’re on the CRLF-enabled CLWS and connecting to `ws://127.0.0.1:12345/scorestream` (or the TLS front door with a proper proxy). Test with `wscat`.
+- ECONNRESET on ws: indicates peer closed; check keepalive PING/PONG handling and `*ws-ping-timeout*`. Emulator now auto-PONGs.
+- SQLITE_CANTOPEN: typically FD burst or invalid path. Fresh connections + gate + short retry are in place. Verify `--dbdir` and permissions; raise `*sqlite-max-connections*` only if necessary.
+
 ## Performance Optimization
 
 ### Static File Caching
