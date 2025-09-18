@@ -192,45 +192,46 @@
       (t "application/octet-stream"))))
 
 (defun cached-static-dispatcher (request)
-  "Custom dispatcher that serves static files with caching"
-  (let* ((script-name (hunchentoot:script-name request))
-         (static-paths '("/css/" "/js/" "/images/")))
-    ;; Check if this is a static file request
-    (when (some (lambda (prefix) (alexandria:starts-with-subseq prefix script-name))
-                static-paths)
-      ;; Return a handler function
-      (lambda ()
-        (let* ((file-path (merge-pathnames
-                           (subseq script-name 1) ; Remove leading slash
-                           (app-root)))
-               (content-type (get-content-type file-path)))
-
-          (if (probe-file file-path)
-              (multiple-value-bind (content cached-p)
-                  (get-cached-file file-path content-type)
-
-                ;; Set content type
-                (setf (hunchentoot:content-type*) content-type)
-
-                ;; Set cache headers
-                (if *developer-mode*
-                    (hunchentoot:no-cache)
-                    (progn
-                      (setf (hunchentoot:header-out "Cache-Control") "public, max-age=31536000") ; 1 year
-                      (setf (hunchentoot:header-out "Expires")
-                            (hunchentoot:rfc-1123-date (+ (get-universal-time) (* 365 24 60 60))))))
-
-                ;; Log cache hit/miss for debugging
-                (when (and (not *developer-mode*) (log:debug))
-                  (log:debug "Static file ~A: ~A" file-path (if cached-p "CACHE HIT" "CACHE MISS")))
-
-                ;; Return the content
-                content)
-
-              ;; File not found
-              (progn
-                (setf (hunchentoot:return-code*) hunchentoot:+http-not-found+)
-                "File not found")))))))
+  "Custom dispatcher that serves static files safely with caching and traversal protection."
+  (let* ((raw (hunchentoot:script-name request))
+         ;; Ensure URL-decoding so encoded traversals like %2e%2e are handled
+         (script-name (hunchentoot:url-decode raw))
+         (prefix-map '(("/css/" . "css/") ("/js/" . "js/") ("/images/" . "images/"))))
+    (loop for (prefix . base-rel) in prefix-map
+          when (alexandria:starts-with-subseq prefix script-name)
+            do (return
+                 (lambda ()
+                   ;; Compute base directory and relative part strictly under prefix
+                   (let* ((base-root (merge-pathnames base-rel (app-root)))
+                          (rel (subseq script-name (length prefix)))
+                          ;; basic sanitization: reject obvious traversal or backslash separators
+                          (bad (or (search ".." rel)
+                                   (find #\\ rel)
+                                   (and (> (length rel) 0) (char= (char rel 0) #\/))))
+                          (candidate (unless bad (merge-pathnames rel base-root))))
+                     (cond
+                       (bad
+                        (setf (hunchentoot:return-code*) hunchentoot:+http-bad-request+)
+                        "Bad path")
+                       ((and candidate (probe-file candidate)
+                             (let ((tru (ignore-errors (truename candidate))))
+                               (and tru (uiop:subpathp tru base-root))))
+                        (let* ((content-type (get-content-type candidate)))
+                          (multiple-value-bind (content cached-p)
+                              (get-cached-file candidate content-type)
+                            (setf (hunchentoot:content-type*) content-type)
+                            (if *developer-mode*
+                                (hunchentoot:no-cache)
+                                (progn
+                                  (setf (hunchentoot:header-out "Cache-Control") "public, max-age=31536000")
+                                  (setf (hunchentoot:header-out "Expires")
+                                        (hunchentoot:rfc-1123-date (+ (get-universal-time) (* 365 24 60 60))))))
+                            (when (and (not *developer-mode*) (log:debug))
+                              (log:debug "Static file ~A: ~A" candidate (if cached-p "CACHE HIT" "CACHE MISS")))
+                            content)))
+                       (t
+                        (setf (hunchentoot:return-code*) hunchentoot:+http-not-found+)
+                        "File not found"))))))))
 
 (defun cache-callback (file content-type)
   "Legacy callback for compatibility (no longer used with custom dispatcher)"
