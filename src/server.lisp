@@ -20,6 +20,8 @@
 ;; Keepalive thread control
 (defvar *ws-keepalive-thread* nil)
 (defvar *ws-keepalive-running* nil)
+(defparameter *ws-backlog* 512
+  "Listen backlog for CLWS server acceptor. If the vendored CLWS supports a :backlog keyword, it will be used.")
 
 (defun start-ws-keepalive ()
   "Start a background thread that periodically sends tiny keepalive messages
@@ -37,19 +39,22 @@
                                              (bt:current-thread) c)
                                      (sb-debug:print-backtrace :count 50 :stream *error-output*)
                                      (finish-output *error-output*))))
-               (loop while *ws-keepalive-running*
-                     do (sleep *ws-keepalive-interval*)
-                        (ignore-errors
-                          (dolist (c (get-client-list))
-                            (handler-case
-                                ;; Use a very small JSON payload. The client ignores
-                                ;; messages that are not score/hint events.
-                                (with-write-lock-held ((client-lock c))
-                                  (ws:write-to-client-text (client-socket c) "{\"type\":\"ping\"}"))
-                              (error (e)
-                                ;; Drop the client on write error to avoid leaks
-                                (log:warn "Keepalive ping failed; removing client: ~A" e)
-                                (ignore-errors (remove-client (client-socket c)))))))))
+               (let ((ping-fn (when (fboundp 'ws:write-to-client-ping)
+                                (symbol-function 'ws:write-to-client-ping))))
+                 (loop while *ws-keepalive-running*
+                       do (sleep *ws-keepalive-interval*)
+                          (when (null ping-fn)
+                            (log:warn "CLWS ping not available; disabling server keepalive pings")
+                            (return))
+                          (ignore-errors
+                            (dolist (c (get-client-list))
+                              (handler-case
+                                  (with-write-lock-held ((client-lock c))
+                                    (funcall ping-fn (client-socket c)))
+                                (error (e)
+                                  ;; Drop the client on write error to avoid leaks
+                                  (log:warn "Keepalive ping failed; removing client: ~A" e)
+                                  (ignore-errors (remove-client (client-socket c))))))))))
            :name "ws keepalive"))
     (log:info "WebSocket keepalive enabled (~As)" *ws-keepalive-interval*)
     *ws-keepalive-thread*))
@@ -767,7 +772,13 @@
                              (sb-debug:print-backtrace :count 50 :stream *error-output*)
                              (finish-output *error-output*))))
        (handler-case
-           (ws:run-server 12345)
+           (handler-case
+               ;; Prefer CLWS backlog if available; fall back if keyword not accepted
+               (apply #'ws:run-server (append (list 12345)
+                                              (when *ws-backlog* (list :backlog *ws-backlog*))))
+             (error (e)
+               (log:warn "CLWS run-server does not accept :backlog (~A); using default" e)
+               (ws:run-server 12345)))
          (error (e)
            (log:error "WebSocket server crashed: ~A" e)
            (capture-exception e)))))

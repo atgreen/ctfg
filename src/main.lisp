@@ -41,7 +41,9 @@
         (w (clingon:make-option :string :short-name #\w :long-name "websocket-url" :key :websocket-url
                                         :description "websocket-url" :initial-value "ws://localhost:12345/scorestream"))
         (k (clingon:make-option :integer :short-name #\k :long-name "ws-keepalive-interval" :key :ws-keepalive-interval
-                                         :description "seconds between WebSocket keepalive pings (0=disable)" :initial-value 15))
+                                         :description "seconds between WebSocket keepalive pings (0=disable, server PING frames)" :initial-value 15))
+        (g (clingon:make-option :integer :short-name #\g :long-name "ws-backlog" :key :ws-backlog
+                                         :description "WebSocket accept backlog (if supported by CLWS)" :initial-value 512))
         (d (clingon:make-option :flag :short-name #\d :long-name "developer-mode" :key :developer-mode
                                       :description "enable developer mode" :initial-value nil)))
     (clingon:make-command
@@ -51,7 +53,7 @@
      :authors (list "Anthony Green")
      :license "MIT"
      :usage ""
-     :options (list p s b w k d)
+     :options (list p s b w k g d)
      :sub-commands (list (init/command))
      :handler (lambda (cmd)
 
@@ -80,12 +82,15 @@
                        (dbdir (clingon:getopt cmd :dbdir))
                        (websocket-url (clingon:getopt cmd :websocket-url))
                        (slynk-port (clingon:getopt cmd :slynk-port))
-                       (ws-keepalive (clingon:getopt cmd :ws-keepalive-interval)))
+                       (ws-keepalive (clingon:getopt cmd :ws-keepalive-interval))
+                       (ws-backlog (clingon:getopt cmd :ws-backlog)))
                   (setf *challenges-path* json-path)
                   (setf *dbdir* (concatenate 'string dbdir "/"))
                   (setf *websocket-url* websocket-url)
                   (when (and (integerp ws-keepalive) (>= ws-keepalive 0))
                     (setf *ws-keepalive-interval* ws-keepalive))
+                  (when (and (integerp ws-backlog) (> ws-backlog 0))
+                    (setf *ws-backlog* ws-backlog))
                   (setf *ctfg-api-token* (uiop:getenv "CTFG_API_TOKEN"))
                   (bt:with-lock-held (*server-lock*)
                     (setf *developer-mode* (clingon:getopt cmd :developer-mode))

@@ -45,7 +45,6 @@ const WEBSOCKET_CONFIG = {
     BACKOFF_MAX: 30_000,              // 30 seconds maximum delay
     MAX_RECONNECT_ATTEMPTS: 10,       // Maximum reconnection attempts
     CONNECTION_TIMEOUT: 10_000,       // 10 seconds connection timeout
-    PING_INTERVAL: 15_000,            // 15 seconds ping interval
     MAX_MESSAGE_SIZE: 5_000_000       // 5MB maximum message size
 };
 
@@ -99,7 +98,6 @@ const AppState = {
     ws: null,
     reconnectDelay: WEBSOCKET_CONFIG.BACKOFF_MIN,
     reconnectAttempts: 0,
-    pingTimer: null,
     
     // Scoreboard state
     timelines: new Map(),             // username → [{x, y}, …]
@@ -543,7 +541,7 @@ const WebSocketManager = {
         }, WEBSOCKET_CONFIG.CONNECTION_TIMEOUT);
         
         this.setupEventListeners(websocket_url, connectionTimeout);
-        this.startPingInterval();
+        // No client-side app-level ping; server uses RFC6455 Ping
     },
 
     /**
@@ -585,7 +583,6 @@ const WebSocketManager = {
 
         AppState.ws.addEventListener('close', (e) => {
             console.log('WebSocket closed', { code: e.code, reason: e.reason, wasClean: e.wasClean });
-            clearInterval(AppState.pingTimer);
             clearTimeout(connectionTimeout);
             
             this.handleReconnection(websocket_url);
@@ -616,17 +613,7 @@ const WebSocketManager = {
         }
     },
 
-    /**
-     * Start ping interval to keep connection alive
-     */
-    startPingInterval() {
-        clearInterval(AppState.pingTimer);
-        AppState.pingTimer = setInterval(() => {
-            if (AppState.ws && AppState.ws.readyState === WebSocket.OPEN) {
-                AppState.ws.send(JSON.stringify({ type: 'ping' }));
-            }
-        }, WEBSOCKET_CONFIG.PING_INTERVAL);
-    },
+    // No client-initiated ping; browsers auto-Pong server Pings
 
     /**
      * Dispatch incoming WebSocket events
@@ -651,7 +638,6 @@ const WebSocketManager = {
             AppState.ws.close();
             AppState.ws = null;
         }
-        clearInterval(AppState.pingTimer);
         AppState.reconnectAttempts = 0;
         AppState.reconnectDelay = WEBSOCKET_CONFIG.BACKOFF_MIN;
     }
