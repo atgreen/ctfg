@@ -800,6 +800,9 @@
 
   (read-credentials)
 
+  ;; Pre-load users from credentials to avoid INSERT race conditions
+  (preload-users *db*)
+
   (let ((events (collect-events *db*)))
     (dolist (event events)
       (save-solve (event-user-id event) (event-challenge-id event))))

@@ -161,7 +161,43 @@ The handle is closed after BODY completes. Use for atomic transactions."
         CHECK ((event_type = 2 AND hint_number IS NOT NULL)
             OR (event_type = 1 AND hint_number IS NULL)));")
     ;; users table (backend-specific SQL)
-    (sqlite:execute-non-query dbc (slot-value db 'sql-create-user-table-statement))))
+    (sqlite:execute-non-query dbc (slot-value db 'sql-create-user-table-statement))
+
+    ;; Create indexes for performance optimization as recommended in agent-review
+    (sqlite:execute-non-query
+     dbc
+     "CREATE INDEX IF NOT EXISTS events_user_chal_submit
+      ON events(user_id, challenge_id, event_type);")
+
+    (sqlite:execute-non-query
+     dbc
+     "CREATE INDEX IF NOT EXISTS events_user_chal_hint
+      ON events(user_id, challenge_id, event_type, hint_number);")
+
+    (sqlite:execute-non-query
+     dbc
+     "CREATE INDEX IF NOT EXISTS events_ts
+      ON events(ts);")))
+
+(defmethod preload-users ((db db-backend))
+  "Pre-load users from credentials.csv into the database to avoid INSERT race conditions during login"
+  (log:info "Pre-loading users from credentials.csv")
+  (let ((count 0))
+    (with-open-connection (conn db)
+      (sqlite:execute-non-query conn "BEGIN IMMEDIATE;")
+      (unwind-protect
+           (progn
+             (maphash (lambda (username password)
+                        (declare (ignore password))
+                        (sqlite:execute-non-query
+                         conn
+                         "INSERT OR IGNORE INTO users (username) VALUES (?);"
+                         username)
+                        (incf count))
+                      *credentials*)
+             (sqlite:execute-non-query conn "COMMIT;"))
+        (ignore-errors (sqlite:execute-non-query conn "ROLLBACK;"))))
+    (log:info "Pre-loaded ~A users into database" count)))
 
 ;;;; --------------------------------------------------------------------------
 ;;;;  Write helpers
