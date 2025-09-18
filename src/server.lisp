@@ -72,9 +72,10 @@
                                         (log:info "Dropped client due to missed PONG (~As)" (or (and last (- now last)) :unknown)))
                                     (error (e)
                                       (log:warn "Error dropping stale client: ~A" e))))))))))
-           :name "ws keepalive"))
+           :name "ws keepalive")))
     (log:info "WebSocket keepalive enabled (~As)" *ws-keepalive-interval*)
     *ws-keepalive-thread*))
+
 
 (defun stop-ws-keepalive ()
   "Signal the keepalive thread to stop."
@@ -843,6 +844,7 @@
   (hunchentoot:start *acceptor*)
   (log:info "Server started successfully on port ~A" port)
   *acceptor*)
+)
 
 (defun shutdown-server ()
   "Gracefully shutdown the server and cleanup resources"
