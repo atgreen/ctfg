@@ -106,11 +106,11 @@
   (unless (and *rate-limit-cleanup-thread*
                (bt2:thread-alive-p *rate-limit-cleanup-thread*))
     (setf *rate-limit-cleanup-thread*
-          (bt2:make-thread
+               (bt2:make-thread
            (lambda ()
              (handler-bind ((error (lambda (c)
                                      (format *error-output* "Error in thread ~A: ~A~%"
-                                             (bt:current-thread) c)
+                                             (bt2:current-thread) c)
                                      (sb-debug:print-backtrace :count 50 :stream *error-output*)
                                      (finish-output *error-output*))))
                (loop

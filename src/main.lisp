@@ -101,13 +101,13 @@
                     (setf *ws-ping-timeout* ws-ping-timeout))
                   (setf *ws-log-ping-latency* (and ws-log-latency t))
                   (setf *ctfg-api-token* (uiop:getenv "CTFG_API_TOKEN"))
-                  (bt:with-lock-held (*server-lock*)
+                  (bt2:with-lock-held (*server-lock*)
                     (setf *developer-mode* (clingon:getopt cmd :developer-mode))
                     ;; Create the slynk server.  Allow connections from anywhere.
                     (when slynk-port
                       (handler-bind ((error (lambda (c)
                                               (format *error-output* "Error in thread ~A: ~A~%"
-                                                      (bt:current-thread) c)
+                                              (bt2:current-thread) c)
                                               (sb-debug:print-backtrace :count 50 :stream *error-output*)
                                               (finish-output *error-output*))))
                         (slynk:create-server :port slynk-port :interface "0.0.0.0" :dont-close t))

@@ -35,8 +35,8 @@
 ;; Simple counting gate implemented with a lock + condition variable
 (defstruct (conn-gate (:constructor %make-conn-gate))
   (count 0 :type fixnum)
-  (lock (bt:make-lock "conn-gate") :read-only t)
-  (cv   (bt:make-condition-variable) :read-only t))
+  (lock (bt2:make-lock :name "conn-gate") :read-only t)
+  (cv   (bt2:make-condition-variable) :read-only t))
 
 (defun make-conn-gate (count &key (name "conn-gate"))
   (declare (ignore name))
@@ -44,17 +44,17 @@
 
 (defun conn-gate-acquire (g)
   (when g
-    (bt:with-lock-held ((conn-gate-lock g))
+    (bt2:with-lock-held ((conn-gate-lock g))
       (loop while (<= (conn-gate-count g) 0) do
-           (bt:condition-wait (conn-gate-cv g) (conn-gate-lock g)))
+           (bt2:condition-wait (conn-gate-cv g) (conn-gate-lock g)))
       (decf (conn-gate-count g))
       g)))
 
 (defun conn-gate-release (g)
   (when g
-    (bt:with-lock-held ((conn-gate-lock g))
+    (bt2:with-lock-held ((conn-gate-lock g))
       (incf (conn-gate-count g))
-      (bt:condition-notify (conn-gate-cv g)))
+      (bt2:condition-notify (conn-gate-cv g)))
     t))
 
 (defvar *sqlite-connection-gate*

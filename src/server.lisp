@@ -65,16 +65,16 @@
   "Start a background thread that periodically sends tiny keepalive messages
    to all connected WebSocket clients so that intermediary load balancers and
    routes (e.g., OpenShift, AWS) keep the connections alive."
-  (when (and *ws-keepalive-thread* (bt:thread-alive-p *ws-keepalive-thread*))
+  (when (and *ws-keepalive-thread* (bt2:thread-alive-p *ws-keepalive-thread*))
     (return-from start-ws-keepalive *ws-keepalive-thread*))
   (when (and (numberp *ws-keepalive-interval*) (> *ws-keepalive-interval* 0))
     (setf *ws-keepalive-running* t)
     (setf *ws-keepalive-thread*
-          (bt:make-thread
+          (bt2:make-thread
            (lambda ()
              (handler-bind ((error (lambda (c)
                                      (format *error-output* "Error in thread ~A: ~A~%"
-                                             (bt:current-thread) c)
+                                             (bt2:current-thread) c)
                                      (sb-debug:print-backtrace :count 50 :stream *error-output*)
                                      (finish-output *error-output*))))
                (let ((ping-fn (when (fboundp 'ws:write-to-client-ping)
@@ -156,8 +156,8 @@
 
 ;; ----------------------------------------------------------------------------
 ;; Machinery for managing the execution of the server.
-(defvar *shutdown-cv* (bt:make-condition-variable))
-(defvar *server-lock* (bt:make-lock))
+(defvar *shutdown-cv* (bt2:make-condition-variable))
+(defvar *server-lock* (bt2:make-lock))
 (defvar *acceptor* nil)
 
 (defun respond-unauthorized ()
@@ -188,7 +188,7 @@
 (defvar *static-file-cache* (make-hash-table :test 'equal)
   "Hash table cache for static files. Key: file path, Value: (content . content-type)")
 
-(defvar *cache-lock* (bordeaux-threads:make-lock "static-cache-lock")
+(defvar *cache-lock* (bt2:make-lock :name "static-cache-lock")
   "Lock for thread-safe access to the static file cache")
 
 (defun get-cached-file (file-path content-type)
@@ -197,7 +197,7 @@
       ;; In developer mode, don't cache - always read from disk
       (values (alexandria:read-file-into-byte-vector file-path) nil)
       ;; In production mode, use cache
-      (bordeaux-threads:with-lock-held (*cache-lock*)
+      (bt2:with-lock-held (*cache-lock*)
         (let ((cached (gethash file-path *static-file-cache*)))
           (if cached
               (values (car cached) t)
@@ -209,12 +209,12 @@
 
 (defun clear-static-cache ()
   "Clear the static file cache (useful for testing or memory management)"
-  (bordeaux-threads:with-lock-held (*cache-lock*)
+  (bt2:with-lock-held (*cache-lock*)
     (clrhash *static-file-cache*)))
 
 (defun get-cache-stats ()
   "Get statistics about the static file cache"
-  (bordeaux-threads:with-lock-held (*cache-lock*)
+  (bt2:with-lock-held (*cache-lock*)
     (let ((entries (hash-table-count *static-file-cache*))
           (total-size 0))
       (loop for (content . content-type) being the hash-values of *static-file-cache*
@@ -333,8 +333,8 @@
 
 (easy-routes:defroute threads ("/debug/threads" :method :get) ()
   (format nil "Threads: ~{~A~%~}"
-          (mapcar #'bt:thread-name
-                  (bt:all-threads))))
+          (mapcar #'bt2:thread-name
+                  (bt2:all-threads))))
 
 (easy-routes:defroute login ("/api/login" :method :post) ()
   "User login"
@@ -749,7 +749,7 @@
 
 (defun send-events (client)
   (let ((events (collect-events *db*)))
-    (bt:make-thread
+    (bt2:make-thread
      (lambda ()
        (let ((json-events
               (loop for event in events
@@ -877,11 +877,11 @@
   (setf hunchentoot:*session-gc-frequency* 20)  ; More frequent cleanup
   (setf hunchentoot:*rewrite-for-session-urls* nil) ; Disable URL rewriting for performance
 
-  (bordeaux-threads:make-thread
+  (bt2:make-thread
    (lambda ()
      (handler-bind ((error (lambda (c)
                              (format *error-output* "Error in thread ~A: ~A~%"
-                                     (bt:current-thread) c)
+                                     (bt2:current-thread) c)
                              (sb-debug:print-backtrace :count 50 :stream *error-output*)
                              (finish-output *error-output*))))
        (handler-case
@@ -897,11 +897,11 @@
            (capture-exception e)))))
    :name "websockets server")
 
-  (bordeaux-threads:make-thread
+  (bt2:make-thread
    (lambda ()
      (handler-bind ((error (lambda (c)
                              (format *error-output* "Error in thread ~A: ~A~%"
-                                     (bt:current-thread) c)
+                                     (bt2:current-thread) c)
                              (sb-debug:print-backtrace :count 50 :stream *error-output*)
                              (finish-output *error-output*))))
        (handler-case
@@ -938,7 +938,7 @@
 (defmethod hunchentoot:create-request-handler-thread :around ((taskmaster hunchentoot:one-thread-per-connection-taskmaster) socket)
   (handler-bind ((error (lambda (c)
                           (format *error-output* "Error in thread ~A: ~A~%"
-                                  (bt:current-thread) c)
+                                  (bt2:current-thread) c)
                           (sb-debug:print-backtrace :count 50 :stream *error-output*)
                           (finish-output *error-output*))))
     (call-next-method)))

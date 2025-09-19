@@ -8,7 +8,7 @@
 
 (defstruct rwlock
   ;; internal mutex protecting counters and CVS
-  (mutex        (bt:make-lock))
+  (mutex        (bt2:make-lock))
   ;; number of active readers
   (readers      0)
   ;; number of writers waiting to acquire the lock
@@ -16,17 +16,17 @@
   ;; true when one thread holds the write lock
   (writer-active  nil)
   ;; condition vars
-  (read-cv   (bt:make-condition-variable))
-  (write-cv  (bt:make-condition-variable)))
+  (read-cv   (bt2:make-condition-variable))
+  (write-cv  (bt2:make-condition-variable)))
 
-(defun %wait (cv lock) (bt:condition-wait cv lock))
+(defun %wait (cv lock) (bt2:condition-wait cv lock))
 
-(defun %signal (cv) (bt:condition-notify cv))
+(defun %signal (cv) (bt2:condition-notify cv))
 
 (defun %broadcast (cv) (bt2:condition-broadcast cv))
 
 (defun acquire-read-lock (rw)
-  (bt:with-lock-held ((rwlock-mutex rw))
+  (bt2:with-lock-held ((rwlock-mutex rw))
     ;; Block while a writer is active **or waiting** (writer priority)
     (loop while (or (rwlock-writer-active rw)
                     (> (rwlock-writers-waiting rw) 0))
@@ -35,7 +35,7 @@
   (values))
 
 (defun release-read-lock (rw)
-  (bt:with-lock-held ((rwlock-mutex rw))
+  (bt2:with-lock-held ((rwlock-mutex rw))
     (decf (rwlock-readers rw))
     ;; If this was the last reader and a writer is queued, wake one writer
     (when (and (zerop (rwlock-readers rw))
@@ -44,7 +44,7 @@
   (values))
 
 (defun acquire-write-lock (rw)
-  (bt:with-lock-held ((rwlock-mutex rw))
+  (bt2:with-lock-held ((rwlock-mutex rw))
     (incf (rwlock-writers-waiting rw))
     ;; Wait until no other writer is active and no readers are active
     (loop while (or (rwlock-writer-active rw)
@@ -55,7 +55,7 @@
   (values))
 
 (defun release-write-lock (rw)
-  (bt:with-lock-held ((rwlock-mutex rw))
+  (bt2:with-lock-held ((rwlock-mutex rw))
     (setf (rwlock-writer-active rw) nil)
     (cond
       ;; Prefer queued writers, else wake *all* waiting readers
