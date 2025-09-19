@@ -17,3 +17,4 @@ node_modules
 metrics-*.json
 performance-report-*.html
 /typescript/
+typescript
