@@ -58,7 +58,9 @@ const UI_CONFIG = {
     MAX_USERNAME_LENGTH: 50,          // Username length limit
     MAX_PASSWORD_LENGTH: 100,         // Password length limit
     MAX_DESCRIPTION_LENGTH: 10000,    // Challenge description limit
-    MIN_PASSWORD_LENGTH: 3            // Minimum password length
+    MIN_PASSWORD_LENGTH: 3,           // Minimum password length
+    MIN_DISPLAYNAME_LENGTH: 2,        // Minimum display name length
+    MAX_DISPLAYNAME_LENGTH: 30        // Maximum display name length
 };
 
 /**
@@ -178,6 +180,41 @@ const SecurityUtils = {
     },
 
     /**
+     * Validate display name format
+     * @param {string} displayName - Display name to validate
+     * @returns {Object} {valid: boolean, error: string|null}
+     */
+    validateDisplayName(displayName) {
+        if (!displayName || typeof displayName !== 'string') {
+            return { valid: false, error: 'Display name is required' };
+        }
+
+        const trimmed = displayName.trim().replace(/\s+/g, ' ');
+
+        if (trimmed.length < UI_CONFIG.MIN_DISPLAYNAME_LENGTH) {
+            return { valid: false, error: `Display name must be at least ${UI_CONFIG.MIN_DISPLAYNAME_LENGTH} characters` };
+        }
+
+        if (trimmed.length > UI_CONFIG.MAX_DISPLAYNAME_LENGTH) {
+            return { valid: false, error: `Display name cannot exceed ${UI_CONFIG.MAX_DISPLAYNAME_LENGTH} characters` };
+        }
+
+        // Check for valid characters (letters, numbers, spaces, basic punctuation)
+        if (!/^[a-zA-Z0-9\s\-_.,'!?@#()]+$/.test(trimmed)) {
+            return { valid: false, error: 'Display name contains invalid characters' };
+        }
+
+        // Check for excessive repetition (5+ same characters in a row)
+        if (/(.)\1{4,}/.test(trimmed)) {
+            return { valid: false, error: 'Display name contains excessive character repetition' };
+        }
+
+        // Note: More detailed validation is performed on the server
+
+        return { valid: true, error: null };
+    },
+
+    /**
      * Validate WebSocket URL format
      * @param {string} url - WebSocket URL to validate
      * @returns {boolean} Whether URL is valid
@@ -195,7 +232,7 @@ const SecurityUtils = {
     createSafeErrorMessage(errorType, fallback = 'An error occurred') {
         const safeErrors = {
             'network': 'Connection error. Please try again.',
-            'validation': 'Invalid input. Please check your data.',
+            'validation': 'Please check your input and try again.',
             'auth': 'Authentication failed. Please log in again.',
             'permission': 'You do not have permission to perform this action.',
             'rate_limit': 'Too many requests. Please wait and try again.',
@@ -443,7 +480,10 @@ const AuthManager = {
         }
         const nameForm = document.getElementById('name-form');
         if (nameForm) {
-            nameForm.addEventListener('submit', this.handleNameSubmit, { once: true });
+            // Remove { once: true } so the listener persists
+            nameForm.addEventListener('submit', this.handleNameSubmit);
+        } else {
+            console.log('name-form element not found!'); // Debug logging
         }
     },
 
@@ -463,10 +503,21 @@ const AuthManager = {
      */
     async handleNameSubmit(e) {
         e.preventDefault();
-        const name = SecurityUtils.sanitizeInput(
-            document.getElementById('display-name')?.value?.trim() || ''
-        );
-        if (!name) return;
+        const rawName = document.getElementById('display-name')?.value || '';
+
+        // Validate the display name
+        console.log('Validating display name:', rawName); // Debug logging
+        const validation = SecurityUtils.validateDisplayName(rawName);
+        console.log('Validation result:', validation); // Debug logging
+        if (!validation.valid) {
+            console.log('Client-side validation failed:', validation.error); // Debug logging
+            UIUtils.showError(validation.error);
+            return;
+        }
+
+        console.log('Client-side validation passed, proceeding to server...'); // Debug logging
+
+        const name = rawName.trim().replace(/\s+/g, ' '); // Normalize whitespace
 
         try {
             const res = await fetch('/api/set-name', {
@@ -478,10 +529,20 @@ const AuthManager = {
             
             if (!res.ok) {
                 const data = await res.json();
+                console.log('Server error response:', data); // Debug logging
                 if (data.error === 'name_taken') {
                     UIUtils.showError('That display name is already taken. Please choose another.');
                     return;
+                } else if (data.error === 'rate_limit_exceeded') {
+                    UIUtils.showError('Too many attempts. Please wait before trying again.');
+                    return;
+                } else if (data.error) {
+                    // Display server validation error
+                    console.log('Displaying validation error:', data.error); // Debug logging
+                    UIUtils.showError(data.error);
+                    return;
                 }
+                console.log('No error field found in response'); // Debug logging
                 throw new Error(`HTTP ${res.status}`);
             }
 

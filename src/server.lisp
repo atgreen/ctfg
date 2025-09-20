@@ -283,7 +283,12 @@
                               (get-cached-file candidate content-type)
                             (setf (hunchentoot:content-type*) content-type)
                             (if *developer-mode*
-                                (hunchentoot:no-cache)
+                                (progn
+                                  (hunchentoot:no-cache)
+                                  ;; Extra aggressive cache busting for developer mode
+                                  (setf (hunchentoot:header-out "Cache-Control") "no-cache, no-store, must-revalidate, max-age=0")
+                                  (setf (hunchentoot:header-out "Pragma") "no-cache")
+                                  (setf (hunchentoot:header-out "Expires") "0"))
                                 (progn
                                   (setf (hunchentoot:header-out "Cache-Control") "public, max-age=31536000")
                                   (setf (hunchentoot:header-out "Expires")
@@ -299,7 +304,12 @@
   "Legacy callback for compatibility (no longer used with custom dispatcher)"
   (declare (ignore file content-type))
   (if *developer-mode*
-      (hunchentoot:no-cache)
+      (progn
+        (hunchentoot:no-cache)
+        ;; Extra aggressive cache busting for developer mode
+        (setf (hunchentoot:header-out "Cache-Control") "no-cache, no-store, must-revalidate, max-age=0")
+        (setf (hunchentoot:header-out "Pragma") "no-cache")
+        (setf (hunchentoot:header-out "Expires") "0"))
       (progn
         (setf (hunchentoot:header-out "Cache-Control") "public, max-age=31536000")
         (setf (hunchentoot:header-out "Expires")
@@ -423,6 +433,89 @@
       (incf (user-total-points user) (challenge-points challenge)))
     success))
 
+;;; ------------------------------------------------------------------
+;;; Display name validation
+;;; ------------------------------------------------------------------
+
+(defparameter *displayname-min-length* 2
+  "Minimum length for display names")
+
+(defparameter *displayname-max-length* 30
+  "Maximum length for display names")
+
+(defparameter *displayname-blocked-terms*
+  '("admin" "administrator" "moderator" "mod" "root" "system" "ctfg"
+    "official" "support" "staff" "owner" "operator" "gamemaster")
+  "List of terms that cannot be used in display names (case-insensitive)")
+
+(defparameter *displayname-offensive-terms*
+  '() ; Add offensive terms here if needed
+  "List of offensive terms to block (case-insensitive)")
+
+(defun normalize-displayname (name)
+  "Normalize a display name by trimming whitespace and collapsing multiple spaces."
+  (when name
+    (let* ((trimmed (string-trim '(#\Space #\Tab #\Newline #\Return) name))
+           (collapsed (cl-ppcre:regex-replace-all "\\s+" trimmed " ")))
+      collapsed)))
+
+(defun validate-displayname-characters (name)
+  "Check if display name contains only allowed characters.
+   Returns T if valid, NIL if invalid."
+  ;; Allow: letters, numbers, spaces, common punctuation
+  ;; Block: control chars, suspicious Unicode
+  (and name
+       ;; Check for basic safe characters (ASCII + basic Latin)
+       (cl-ppcre:scan "^[a-zA-Z0-9\\s\\-_.,'!?@#()]+$" name)
+       ;; Block common problematic characters
+       (not (cl-ppcre:scan "[\\x00-\\x1F\\x7F-\\x9F]" name))))
+
+(defun contains-blocked-term-p (name terms)
+  "Check if NAME contains any of the blocked TERMS (case-insensitive)."
+  (when (and name terms)
+    (let ((lower-name (string-downcase name)))
+      (some (lambda (term)
+              (search (string-downcase term) lower-name))
+            terms))))
+
+(defun validate-displayname (name)
+  "Validate a display name and return (VALUES normalized-name error-message).
+   If valid, returns (normalized-name NIL).
+   If invalid, returns (NIL error-message)."
+  (let ((normalized (normalize-displayname name)))
+    (cond
+      ;; Check if empty after normalization
+      ((or (null normalized) (string= normalized ""))
+       (values nil "Display name cannot be empty"))
+
+      ;; Check length
+      ((< (length normalized) *displayname-min-length*)
+       (values nil (format nil "Display name must be at least ~D characters"
+                          *displayname-min-length*)))
+
+      ((> (length normalized) *displayname-max-length*)
+       (values nil (format nil "Display name cannot exceed ~D characters"
+                          *displayname-max-length*)))
+
+      ;; Check for invalid characters
+      ((not (validate-displayname-characters normalized))
+       (values nil "Display name contains invalid characters"))
+
+      ;; Check for blocked terms
+      ((contains-blocked-term-p normalized *displayname-blocked-terms*)
+       (values nil "Display name contains restricted terms"))
+
+      ;; Check for offensive terms
+      ((contains-blocked-term-p normalized *displayname-offensive-terms*)
+       (values nil "Display name contains inappropriate content"))
+
+      ;; Check for excessive repetition (e.g., "aaaaaaaaa")
+      ((cl-ppcre:scan "([a-zA-Z0-9])\\1{4,}" normalized)
+       (values nil "Display name contains excessive character repetition"))
+
+      ;; All checks passed
+      (t (values normalized nil)))))
+
 (easy-routes:defroute set-name ("/api/set-name" :method :post) ()
   "Set your display name"
   (with-authenticated-user (user)
@@ -432,15 +525,24 @@
       (return-from set-name
         (respond-json '((:error . "rate_limit_exceeded")) :code 429)))
     (let* ((body   (json-body))
-           (name   (cdr (assoc :name body))))
-      ;; Check if the display name is already taken by another user
-      (when (displayname-exists-p *db* name (user-id user))
-        (log:info "Display name ~A already taken (requested by ~A)" name (user-username user))
-        (return-from set-name
-          (respond-json '((:error . "name_taken")) :code 409)))
-      (log:info "Setting displayname for player ~A to ~A: " (user-username user) name)
-      (set-displayname *db* user name)
-      (respond-json '((:result . "ok"))))))
+           (raw-name   (cdr (assoc :name body))))
+      ;; Validate and normalize the display name
+      (multiple-value-bind (normalized-name error-message)
+          (validate-displayname raw-name)
+        (when error-message
+          (log:info "Invalid display name from ~A: ~A" (user-username user) error-message)
+          (return-from set-name
+            (respond-json `((:error . ,error-message)) :code 400)))
+
+        ;; Check if the normalized display name is already taken by another user
+        (when (displayname-exists-p *db* normalized-name (user-id user))
+          (log:info "Display name ~A already taken (requested by ~A)" normalized-name (user-username user))
+          (return-from set-name
+            (respond-json '((:error . "name_taken")) :code 409)))
+
+        (log:info "Setting displayname for player ~A to ~A" (user-username user) normalized-name)
+        (set-displayname *db* user normalized-name)
+        (respond-json '((:result . "ok")))))))
 
 (easy-routes:defroute hint ("/api/hint" :method :post) ()
   (with-authenticated-user (user)
