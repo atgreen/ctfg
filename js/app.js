@@ -527,8 +527,9 @@ const WebSocketManager = {
             console.error('Invalid WebSocket URL:', sanitizedUrl);
             return;
         }
-        
+
         console.log(`WebSocket connection attempt ${AppState.reconnectAttempts + 1}/${WEBSOCKET_CONFIG.MAX_RECONNECT_ATTEMPTS}`);
+        console.log('WebSocket URL:', sanitizedUrl);
         
         AppState.ws = new WebSocket(sanitizedUrl);
         

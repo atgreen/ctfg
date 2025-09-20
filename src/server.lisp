@@ -364,10 +364,12 @@
   "Quick identifier API"
   (let ((user (hunchentoot:session-value :user)))
     (if user
-        (respond-json `((:username . ,(user-username user))
-                        (:displayname . ,(user-displayname user))
-                        (:needs_name . ,(null (user-displayname user)))
-                        (:websocket_url . ,*websocket-url*)))
+        (let* ((token (issue-ws-token user))
+               (ws-url (append-query-param *websocket-url* "token" token)))
+          (respond-json `((:username . ,(user-username user))
+                          (:displayname . ,(user-displayname user))
+                          (:needs_name . ,(null (user-displayname user)))
+                          (:websocket_url . ,ws-url))))
         (respond-json '((:error . "no session")) :code 401))))
 
 (defun user-solved-p (user-id challenge-id)
@@ -740,45 +742,67 @@
                         (split-sequence:split-sequence #\& qs)))
          (token (cdr (assoc "token" pairs :test #'string=)))
          (uid (and token (validate-ws-token token))))
-    (values (and (or (null origin)
-                     *developer-mode*
-                     (alexandria:starts-with-subseq "http://localhost:" origin)
-                     (alexandria:starts-with-subseq "http://127.0.0.1:" origin))
-                 uid)
-            nil origin nil nil)))
+    (log:info "WebSocket connection attempt: origin=~S qs=~S token=~S uid=~S" origin qs token uid)
+    (let ((accepted (and (or (null origin)
+                             *developer-mode*
+                             (alexandria:starts-with-subseq "http://localhost:" origin)
+                             (alexandria:starts-with-subseq "http://127.0.0.1:" origin))
+                         uid)))
+      (log:info "WebSocket connection ~A" (if accepted "ACCEPTED" "REJECTED"))
+      (values accepted nil origin nil nil))))
 
 (defun send-events (client)
+  (log:info "send-events called in background thread")
   (let ((events (collect-events *db*)))
-    (bt2:make-thread
-     (lambda ()
-       (let ((json-events
+    (log:info "Collected ~D events from database" (length events))
+    (let ((json-events
               (loop for event in events
-                    collect (format nil "{ \"id\": ~A, \"type\": \"score\", \"displayname\": ~S, \"ts\": ~A, \"challenge_id\": ~A, \"challenge\": ~S, \"points\": ~A }"
-                                   (event-id event)
-                                   (get-displayname (event-user-id event))
-                                   (floor (event-ts event) 1000)
-                                   (event-challenge-id event)
-                                   (challenge-title (find (event-challenge-id event) *all-challenges* :key #'challenge-id))
-                                   (event-points event)))))
-         (log:info "Sending hydration to WS client (~D events)" (length events))
-         (handler-case
-             (progn
-               (with-write-lock-held ((client-lock client))
-                 (ws:write-to-client-text
-                  (client-socket client)
-                  (format nil "[~{~a~^,~}]" json-events))) ; Single array message
-               (when (log:debug) (log:debug "Hydration sent")))
-           (error (e)
-             (log:error "Error sending events: ~a" e)
-             (capture-exception e))))))))
+                    collect (handler-case
+                                (format nil "{ \"id\": ~A, \"type\": \"score\", \"displayname\": ~S, \"ts\": ~A, \"challenge_id\": ~A, \"challenge\": ~S, \"points\": ~A }"
+                                       (event-id event)
+                                       (get-displayname (event-user-id event))
+                                       (floor (event-ts event) 1000)
+                                       (event-challenge-id event)
+                                       (let ((challenge (find (event-challenge-id event) *all-challenges* :key #'challenge-id)))
+                                         (if challenge
+                                             (challenge-title challenge)
+                                             "Unknown Challenge"))
+                                       (event-points event))
+                              (error (e)
+                                (log:warn "Error formatting event ~A: ~A" (event-id event) e)
+                                nil)))))
+      ;; Remove any nil entries from failed formatting
+      (setf json-events (remove nil json-events))
+      (log:info "Sending hydration to WS client (~D events)" (length json-events))
+      (handler-case
+          (progn
+            (log:info "About to send WebSocket message...")
+            (with-write-lock-held ((client-lock client))
+              (ws:write-to-client-text
+               (client-socket client)
+               (format nil "[~{~a~^,~}]" json-events))) ; Single array message
+            (log:info "Hydration sent successfully"))
+        (error (e)
+          (log:error "Error sending events to WebSocket: ~A" e)
+          (capture-exception e))))))
 
 (defmethod ws:resource-client-connected ((res scorestream-resource) client)
   (log:info "Client connected to scorestream server from ~s : ~s" (ws:client-host client) (ws:client-port client))
-  (log:info client)
+  (log:info "Creating client wrapper...")
   (handler-case
-      (let ((client (make-client :socket client :lock (make-rwlock) :last-pong-ts (get-universal-time))))
-        (add-client client)
-        (send-events client))
+      (let ((client-wrapper (make-client :socket client :lock (make-rwlock) :last-pong-ts (get-universal-time))))
+        (log:info "Adding client to list...")
+        (add-client client-wrapper)
+        (log:info "Scheduling async send-events...")
+        ;; Schedule async send-events but don't wait for it
+        (bt2:make-thread
+         (lambda ()
+           (handler-bind ((error (lambda (c)
+                                   (log:error "Error in send-events thread: ~A" c)
+                                   (capture-exception c))))
+             (send-events client-wrapper)))
+         :name "send-events")
+        (log:info "Client setup completed successfully"))
     (error (e)
       (log:error "Error on websocket client connect: ~A" e)
       (capture-exception e))))
