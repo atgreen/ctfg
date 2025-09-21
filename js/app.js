@@ -720,11 +720,14 @@ const ViewManager = {
      */
     showView(view, push = false) {
         AppState.currentView = view;
-        
+
         if (push) {
             history.pushState({ view }, '', `#${view}`);
         }
-        
+
+        // Update navigation button states
+        this.updateNavButtons(view);
+
         switch (view) {
             case 'challenges':
                 this.showChallengesView();
@@ -734,6 +737,33 @@ const ViewManager = {
                 break;
             default:
                 console.warn('Unknown view:', view);
+        }
+    },
+
+    /**
+     * Update navigation button active states
+     * @param {string} activeView - The currently active view
+     */
+    updateNavButtons(activeView) {
+        const challengesBtn = document.getElementById('challenges-btn');
+        const scoreboardBtn = document.getElementById('scoreboard-btn');
+
+        if (challengesBtn && scoreboardBtn) {
+            // Remove active classes from both buttons
+            challengesBtn.classList.remove('active', 'bg-gradient-to-r', 'from-green-500', 'to-blue-500', 'text-white');
+            challengesBtn.classList.add('text-slate-300', 'hover:text-white', 'hover:bg-slate-700');
+
+            scoreboardBtn.classList.remove('active', 'bg-gradient-to-r', 'from-green-500', 'to-blue-500', 'text-white');
+            scoreboardBtn.classList.add('text-slate-300', 'hover:text-white', 'hover:bg-slate-700');
+
+            // Add active classes to the current view button
+            if (activeView === 'challenges') {
+                challengesBtn.classList.add('active', 'bg-gradient-to-r', 'from-green-500', 'to-blue-500', 'text-white');
+                challengesBtn.classList.remove('text-slate-300', 'hover:text-white', 'hover:bg-slate-700');
+            } else if (activeView === 'scoreboard') {
+                scoreboardBtn.classList.add('active', 'bg-gradient-to-r', 'from-green-500', 'to-blue-500', 'text-white');
+                scoreboardBtn.classList.remove('text-slate-300', 'hover:text-white', 'hover:bg-slate-700');
+            }
         }
     },
 
