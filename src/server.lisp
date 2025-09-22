@@ -827,11 +827,12 @@
 (ws:register-global-resource "/scorestream"
                              (make-instance 'scorestream-resource)
                              (lambda (origin)
-                               ;; Allow no Origin (non-browser clients) or localhost in dev.
-                               (or (null origin)
-                                   *developer-mode*
-                                   (alexandria:starts-with-subseq "http://localhost:" origin)
-                                   (alexandria:starts-with-subseq "http://127.0.0.1:" origin))))
+                               ;; Accept connections from any Origin; authentication is enforced by
+                               ;; a short-lived token during the resource accept step below.
+                               ;; This enables production deployments where the SPA and WS sit on
+                               ;; different hosts/routes behind an edge-terminated proxy.
+                               (declare (ignore origin))
+                               t))
 
 ;; Enforce token on WS handshake
 (defmethod ws:resource-accept-connection ((res scorestream-resource) resource-name headers client)
@@ -845,11 +846,7 @@
          (token (cdr (assoc "token" pairs :test #'string=)))
          (uid (and token (validate-ws-token token))))
     (log:info "WebSocket connection attempt: origin=~S qs=~S token=~S uid=~S" origin qs token uid)
-    (let ((accepted (and (or (null origin)
-                             *developer-mode*
-                             (alexandria:starts-with-subseq "http://localhost:" origin)
-                             (alexandria:starts-with-subseq "http://127.0.0.1:" origin))
-                         uid)))
+    (let ((accepted (and uid t)))
       (log:info "WebSocket connection ~A" (if accepted "ACCEPTED" "REJECTED"))
       (values accepted nil origin nil nil))))
 
