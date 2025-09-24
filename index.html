@@ -128,8 +128,9 @@
 
     <!-- Banner under fixed nav -->
     <header id="banner" class="w-full mt-20 flex justify-center hidden">
-        <!-- Replace the src with your real banner asset -->
-        <img src="/images/banner.png" alt="Competition banner"
+        <!-- Prefer JPG banner when present; fallback to PNG on load error -->
+        <img src="/images/banner.jpg" alt="Competition banner"
+             onerror="this.onerror=null;this.src='/images/banner.png'"
              class="h-48 md:h-64 lg:h-72 w-auto object-contain mx-auto" />
     </header>
 

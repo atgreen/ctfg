@@ -135,7 +135,7 @@ The following placeholders in challenge descriptions are automatically replaced 
 - **@CONTROL_CLUSTER@**: The control cluster from game-clusters.yaml
 - **@PLAYER_CLUSTER@**: The player's assigned cluster (assigned round-robin from the player clusters list)
 
-3. Replace `images/banner.png` with your own content.
+3. Banner image: place your banner at `images/banner.jpg` (preferred) or `images/banner.png`. If `.jpg` exists it will be used; otherwise the app falls back to `.png`.
 
 4. Edit `game-clusters.yaml` to point at the cluster hosting this app,
    as well as the list of player clusters (all possibly the same).

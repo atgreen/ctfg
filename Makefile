@@ -1,8 +1,8 @@
 ctfg: src/*.lisp *.asd runtime-files.tgz
 	sbcl --eval "(asdf:make :ctfg)" --quit
 
-runtime-files.tgz: css/ctfg.css js/app.js images/banner.png index.html
-	tar cvfz $@ css/ctfg.css js/app.js images/banner.png index.html
+runtime-files.tgz: css/ctfg.css js/app.js index.html $(if $(wildcard images/banner.jpg),images/banner.jpg,images/banner.png)
+	tar cvfz $@ css/ctfg.css js/app.js $(if $(wildcard images/banner.jpg),images/banner.jpg,images/banner.png) index.html
 
 src/main.lisp: runtime-files.tgz
 	touch $@

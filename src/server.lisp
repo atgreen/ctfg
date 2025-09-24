@@ -224,10 +224,17 @@
 (defun preload-static-files ()
   "Preload common static files into cache"
   (unless *developer-mode*
-    (let ((common-files '("css/ctfg.css" "js/app.js" "images/banner.png")))
+    (let* ((root (app-root))
+           (banner-jpg "images/banner.jpg")
+           (banner-png "images/banner.png")
+           ;; Prefer JPG banner if it exists, fallback to PNG
+           (banner-rel (if (probe-file (merge-pathnames banner-jpg root))
+                           banner-jpg
+                           banner-png))
+           (common-files (list "css/ctfg.css" "js/app.js" banner-rel)))
       (log:info "Preloading static files into cache...")
       (dolist (file-rel-path common-files)
-        (let ((file-path (merge-pathnames file-rel-path (app-root))))
+        (let ((file-path (merge-pathnames file-rel-path root)))
           (when (probe-file file-path)
             (handler-case
                 (let ((content-type (get-content-type file-path)))
