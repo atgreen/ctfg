@@ -7,6 +7,10 @@ This is a simple Capture-The-Flag game engine.
 
 ## Building and Running
 
+`ctfg` can run locally on your machine or in a container.
+
+### On your machine
+
 You will need to install a few dependencies first.  If you are running homebrew,
 run...
 ```sh
@@ -52,6 +56,40 @@ AUTHORS:
 LICENSE:
   MIT
 ```
+
+### In a container
+
+First, build the image:
+
+```sh
+# docker and podman can be used interchangeably here
+podman build -t ctfg .
+```
+
+Afterwards, use `docker run` or `podman run` to start a new `ctfg` game server
+with the options shown above:
+
+```sh
+podman run -v $PWD/credentials.csv:/data/credentials.csv \
+    -v $PWD/challenges.json:/data/challenges.json \
+    -v $PWD/challenges.json:/data/game-clusters.yaml \
+    ctfg --help
+```
+
+Since `ctfg` creates a database to track player and game activity, moutning a
+container volume to `/data` and copying game configuration into it is
+recommended:
+
+```sh
+podman volume create ctfg-data
+podman run --name copier -v ctfg-data:/data bash:5 sleep infinity
+for f in challenges.json credentials.csv game-clusters.yaml
+do podman cp "$f" "copier:/data/$f"
+done
+podman rm -f copier
+```
+
+---
 
 The `--developer-mode` option disables caching of static content, and
 reloads the challenges.json every time the Challenge page is
@@ -132,12 +170,12 @@ The following placeholders in challenge descriptions are automatically replaced 
 - **@USERID@**: The player's numeric user ID
 - **@DISPLAYNAME@**: The player's chosen display name (or "[unset]" if not configured)
 - **@OBFUSCATED_DISPLAYNAME@**: An XOR-masked and checksummed version of the display name (for anti-cheating purposes)
-- **@CONTROL_CLUSTER@**: The control cluster from game-clusters.yaml
-- **@PLAYER_CLUSTER@**: The player's assigned cluster (assigned round-robin from the player clusters list)
+- **@CONTROL_CLUSTER@**: The control Kubernetes cluster from game-clusters.yaml
+- **@PLAYER_CLUSTER@**: The player's assigned Kubernetes cluster (assigned round-robin from the player clusters list)
 
 3. Banner image: place your banner at `images/banner.jpg` (preferred) or `images/banner.png`. If `.jpg` exists it will be used; otherwise the app falls back to `.png`.
 
-4. Edit `game-clusters.yaml` to point at the cluster hosting this app,
+4. Edit `game-clusters.yaml` to point at the Kubernetes cluster hosting this app,
    as well as the list of player clusters (all possibly the same).
    Users are assigned to the different player clusters in a
    round-robin format as they join.

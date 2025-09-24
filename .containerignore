@@ -1,0 +1,12 @@
+*
+!css/
+!images/
+!js/
+!src/
+!Containerfile
+!index.html
+!package*.json
+!README.md
+!Makefile
+!ocicl.csv
+!ctfg.asd
