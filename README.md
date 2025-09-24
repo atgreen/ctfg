@@ -170,12 +170,12 @@ The following placeholders in challenge descriptions are automatically replaced 
 - **@USERID@**: The player's numeric user ID
 - **@DISPLAYNAME@**: The player's chosen display name (or "[unset]" if not configured)
 - **@OBFUSCATED_DISPLAYNAME@**: An XOR-masked and checksummed version of the display name (for anti-cheating purposes)
-- **@CONTROL_CLUSTER@**: The control cluster from game-clusters.yaml
-- **@PLAYER_CLUSTER@**: The player's assigned cluster (assigned round-robin from the player clusters list)
+- **@CONTROL_CLUSTER@**: The control Kubernetes cluster from game-clusters.yaml
+- **@PLAYER_CLUSTER@**: The player's assigned Kubernetes cluster (assigned round-robin from the player clusters list)
 
 3. Replace `images/banner.png` with your own content.
 
-4. Edit `game-clusters.yaml` to point at the cluster hosting this app,
+4. Edit `game-clusters.yaml` to point at the Kubernetes cluster hosting this app,
    as well as the list of player clusters (all possibly the same).
    Users are assigned to the different player clusters in a
    round-robin format as they join.
