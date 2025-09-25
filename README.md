@@ -227,6 +227,41 @@ An `AUTHORIZATION` token must be provided in the http header for this
 API.  Specify this token when you launch ctfg by setting the
 `CTFG_API_TOKEN` environment variable.
 
+## Admin Reset (Zero-Restart)
+
+CTFG includes a safe, zero-restart admin reset that wipes game state mid-run.
+
+- Configure an admin token by setting `CTFG_ADMIN_TOKEN` in the environment (or `.env`).
+- Visit `/reset` in a browser to open a minimal admin page, enter the token, and confirm.
+- Or call the action directly: `POST /admin/reset` with body `token=...&confirm=yes`.
+
+What reset does:
+- Deletes all rows from the `events` table (transactional)
+- Clears all user display names (sets `users.displayname = NULL`)
+- Invalidates all browser sessions without restart (auth epoch increment)
+- Broadcasts a WebSocket `system/reset` with `logout=true` and closes sockets
+- Clears in-memory caches (scoreboard/solves) so no stale "solved" remains
+
+Effect on users:
+- All clients are logged out immediately and must log in again
+- Scoreboard resets to empty, and users will be prompted to set a display name again
+
+Example curl:
+
+```bash
+# Using form-encoded body
+curl -X POST \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'token=YOUR_ADMIN_TOKEN&confirm=yes' \
+  http://localhost:8080/admin/reset
+
+# Using JSON
+curl -X POST \
+  -H 'Content-Type: application/json' \
+  -d '{"token":"YOUR_ADMIN_TOKEN"}' \
+  'http://localhost:8080/admin/reset?confirm=yes'
+```
+
 ## Author and License
 
 `ctfg` was written by Anthony Green and is distributed
