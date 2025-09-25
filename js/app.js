@@ -402,6 +402,24 @@ const AuthManager = {
     },
 
     /**
+     * Refresh user profile after server reset (update display name, prompt if needed)
+     */
+    async refreshProfileAfterReset() {
+        try {
+            const res = await fetch('/api/me', { credentials: 'include' });
+            if (!res.ok) return;
+            const data = await res.json();
+            const nameEl = document.getElementById('user-name');
+            nameEl && (nameEl.textContent = data.displayname || '(unnamed)');
+            if (!data.displayname) {
+                this.showNameModal();
+            }
+        } catch (e) {
+            // ignore
+        }
+    },
+
+    /**
      * Complete the login process and initialize the application
      * @param {Object} userData - User data from login response
      */
@@ -686,6 +704,22 @@ const WebSocketManager = {
             case 'score':
             case 'hint':
                 ScoreboardManager.handleScoreEvent(payload);
+                break;
+            case 'system':
+                if (payload.event === 'reset') {
+                    ScoreboardManager.resetAll();
+                    // Clear client-side solved/hints state and reload challenges
+                    AppState.solvedChallenges.clear();
+                    AppState.revealedHints.clear();
+                    if (payload.logout) {
+                        // Force logout UI immediately; server will also invalidate session via epoch
+                        AuthManager.handleLogout();
+                    } else {
+                        ChallengeManager.loadChallenges();
+                        AuthManager.refreshProfileAfterReset();
+                        UIUtils.showError('Game reset by admin', 3000);
+                    }
+                }
                 break;
             default:
                 ScoreboardManager.handleScoreEvent(payload);
@@ -1441,6 +1475,19 @@ const ChallengeRenderer = {
  * Scoreboard and live scoring functionality
  */
 const ScoreboardManager = {
+    /**
+     * Reset all scoreboard-related state (used on admin reset)
+     */
+    resetAll() {
+        AppState.timelines.clear();
+        AppState.scoreboard.clear();
+        AppState.userChallengeCount.clear();
+        AppState.seenEventIDs.clear();
+        const pointsElement = document.getElementById('user-points');
+        if (pointsElement) pointsElement.textContent = '0 pts';
+        this.flushChart();
+        this.refreshScoreboard();
+    },
     /**
      * Handle incoming score events from WebSocket
      * @param {Object} msg - Score event message

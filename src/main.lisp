@@ -22,6 +22,7 @@
 (defparameter *dbdir* nil)
 (defparameter *websocket-url* nil)
 (defparameter *ctfg-api-token* nil)
+(defparameter *ctfg-admin-token* nil)
 
 (defmacro fatal-error (&rest rest)
   `(progn
@@ -101,6 +102,8 @@
                     (setf *ws-ping-timeout* ws-ping-timeout))
                   (setf *ws-log-ping-latency* (and ws-log-latency t))
                   (setf *ctfg-api-token* (uiop:getenv "CTFG_API_TOKEN"))
+                  (setf *ctfg-admin-token* (or (uiop:getenv "CTFG_ADMIN_TOKEN")
+                                               nil))
                   (bt2:with-lock-held (*server-lock*)
                     (setf *developer-mode* (clingon:getopt cmd :developer-mode))
                     ;; Create the slynk server.  Allow connections from anywhere.

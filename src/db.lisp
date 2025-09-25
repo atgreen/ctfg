@@ -460,3 +460,47 @@ Returns two values: timestamp µs and new event-id."
                      :event-type   etype
                      :hint-number  hint
                      :points       pts)))))
+
+;;;; --------------------------------------------------------------------------
+;;;;  Admin: reset helpers
+;;;; --------------------------------------------------------------------------
+
+(defun reset-events (db)
+  "Delete all rows from the events table in a single transaction and
+return the number of rows removed. Runs a WAL checkpoint after commit
+to reclaim space."
+  (let ((deleted 0))
+    (with-fresh-connection (conn db)
+      (begin-immediate-with-retry conn :max-wait-ms 20000)
+      (handler-case
+          (progn
+            (sqlite:execute-non-query conn "DELETE FROM events;")
+            (let* ((row (sqlite:execute-to-list conn "SELECT changes();"))
+                   (chg (or (caar row) 0)))
+              (setf deleted chg))
+            (sqlite:execute-non-query conn "COMMIT;"))
+        (error (e)
+          (ignore-errors (sqlite:execute-non-query conn "ROLLBACK;"))
+          (error e)))
+      ;; Best-effort WAL checkpoint/truncate to keep file small
+      (ignore-errors
+        (sqlite:execute-non-query conn "PRAGMA wal_checkpoint(TRUNCATE);")
+        (sqlite:execute-non-query conn "PRAGMA optimize;")))
+    deleted))
+
+(defun reset-user-displaynames (db)
+  "Clear all display names in the users table. Returns number of rows updated."
+  (let ((changed 0))
+    (with-fresh-connection (conn db)
+      (begin-immediate-with-retry conn :max-wait-ms 10000)
+      (handler-case
+          (progn
+            (sqlite:execute-non-query conn "UPDATE users SET displayname = NULL;")
+            (let* ((row (sqlite:execute-to-list conn "SELECT changes();"))
+                   (chg (or (caar row) 0)))
+              (setf changed chg))
+            (sqlite:execute-non-query conn "COMMIT;"))
+        (error (e)
+          (ignore-errors (sqlite:execute-non-query conn "ROLLBACK;"))
+          (error e))))
+    changed))

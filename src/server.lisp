@@ -12,6 +12,8 @@
 (defvar *sentry-dsn* nil)
 
 (defparameter *websocket-url* nil)
+;; Global auth epoch; increment to invalidate all sessions
+(defvar *auth-epoch* 0)
 
 ;; WebSocket keepalive configuration
 (defparameter *ws-keepalive-interval* 15
@@ -170,12 +172,15 @@
 ;;; Macro: WITH-AUTHENTICATED-USER
 ;;; ------------------------------------------------------------
 (defmacro with-authenticated-user ((var) &body body)
-  "Bind VAR to the username stored in the current session and run BODY.
-   If the client has no valid session, immediately return HTTP 401."
-  `(let ((,var (hunchentoot:session-value :user)))
-     (if ,var
+  "Bind VAR to the session's user when present and session epoch matches *AUTH-EPOCH*.
+   Otherwise return 401 and clear the session."
+  `(let* ((,var (hunchentoot:session-value :user))
+          (sess-epoch (hunchentoot:session-value :epoch)))
+     (if (and ,var (eql sess-epoch *auth-epoch*))
          (progn ,@body)
-         (respond-unauthorized))))
+         (progn
+           (ignore-errors (hunchentoot:remove-session))
+           (respond-unauthorized)))))
 
 ;; Easy-routes setup
 (defclass my-acceptor (easy-routes:easy-routes-acceptor)
@@ -336,6 +341,15 @@
         (hunchentoot:return-code*) code)
   (cl-json:encode-json-to-string obj))
 
+(defun respond-html (html &key (code 200))
+  (setf (hunchentoot:content-type*) "text/html; charset=utf-8"
+        (hunchentoot:return-code*) code)
+  ;; Avoid caching sensitive admin responses
+  (hunchentoot:no-cache)
+  (setf (hunchentoot:header-out "X-Frame-Options") "DENY")
+  (setf (hunchentoot:header-out "Content-Security-Policy") "default-src 'self'; style-src 'self' 'unsafe-inline'")
+  html)
+
 (defvar *credentials* (make-hash-table :test #'equal))
 
 (defmethod read-credentials ()
@@ -364,6 +378,7 @@
           (hunchentoot:start-session)
           (let ((user (ensure-user *db* username)))
            (setf (hunchentoot:session-value :user) user)
+           (setf (hunchentoot:session-value :epoch) *auth-epoch*)
            (let ((needs-name (null (user-displayname user))))
              (let* ((token (issue-ws-token user))
                     (ws-url (append-query-param *websocket-url* "token" token)))
@@ -379,15 +394,18 @@
 
 (easy-routes:defroute me ("/api/me" :method :get) ()
   "Quick identifier API"
-  (let ((user (hunchentoot:session-value :user)))
-    (if user
+  (let ((user (hunchentoot:session-value :user))
+        (sess-epoch (hunchentoot:session-value :epoch)))
+    (if (and user (eql sess-epoch *auth-epoch*))
         (let* ((token (issue-ws-token user))
                (ws-url (append-query-param *websocket-url* "token" token)))
           (respond-json `((:username . ,(user-username user))
                           (:displayname . ,(user-displayname user))
                           (:needs_name . ,(null (user-displayname user)))
                           (:websocket_url . ,ws-url))))
-        (respond-json '((:error . "no session")) :code 401))))
+        (progn
+          (ignore-errors (hunchentoot:remove-session))
+          (respond-json '((:error . "no session")) :code 401)))))
 
 (defun user-solved-p (user-id challenge-id)
   "Checks if a user has already solved a given challenge.
@@ -827,6 +845,111 @@
   (when (or (null *index.html*) *developer-mode*)
     (setf *index.html* (uiop:read-file-string "index.html")))
   *index.html*)
+
+;;; ------------------------------------------------------------------
+;;; Admin reset UI + action
+;;; ------------------------------------------------------------------
+
+(defun %reset-page (msg &key (error nil))
+  (declare (ignore error))
+  (with-output-to-string (s)
+    (format s "<!doctype html>~%")
+    (format s "<html lang='en'>~%<head>~%")
+    (format s "  <meta charset='utf-8'>~%")
+    (format s "  <meta name='viewport' content='width=device-width, initial-scale=1'>~%")
+    (format s "  <title>CTFG Admin Reset</title>~%")
+    (format s "  <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>~%")
+    (format s "  <style>~%")
+    (format s "    body{font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial; background:#0f172a; color:#e2e8f0; margin:0;}~%")
+    (format s "    .wrap{max-width:560px; margin:6rem auto; padding:2rem; background:#111827; border:1px solid #1f2937; border-radius:12px;}~%")
+    (format s "    h1{margin:0 0 1rem 0; font-size:1.25rem}~%")
+    (format s "    .note{color:#94a3b8; font-size:.9rem; margin-bottom:1rem}~%")
+    (format s "    label{display:block; font-size:.9rem; color:#cbd5e1; margin:.5rem 0}~%")
+    (format s "    input{width:100%; padding:.6rem .75rem; border-radius:.5rem; background:#0b1220; border:1px solid #243244; color:#e2e8f0}~%")
+    (format s "    button{margin-top:1rem; background:#dc2626; color:white; border:none; padding:.6rem .9rem; border-radius:.5rem; cursor:pointer}~%")
+    (format s "    .msg{margin-top:1rem; color:#a7f3d0}~%")
+    (format s "    .err{margin-top:1rem; color:#fecaca}~%")
+    (format s "  </style>~%")
+    (format s "  <meta http-equiv='Cache-Control' content='no-store'>~%")
+    (format s "  <meta http-equiv='Pragma' content='no-cache'>~%")
+    (format s "  <meta http-equiv='Expires' content='0'>~%")
+    (format s "  <meta http-equiv='X-Frame-Options' content='DENY'>~%")
+    (format s "</head>~%<body>~%")
+    (format s "  <div class='wrap'>~%")
+    (format s "    <h1>CTFG Admin Reset</h1>~%")
+    (format s "    <p class='note'>Enter the admin token to clear all events and notify clients. This does not restart the server.</p>~%")
+    (format s "    <form method='POST' action='/admin/reset'>~%")
+    (format s "      <label for='token'>Admin token</label>~%")
+    (format s "      <input type='password' id='token' name='token' autocomplete='off' required>~%")
+    (format s "      <label><input type='checkbox' name='confirm' value='yes' required> I understand this clears the scoreboard</label>~%")
+    (format s "      <button type='submit'>Reset now</button>~%")
+    (format s "    </form>~%")
+    (when msg (format s "    <div class='msg'>~A</div>~%" msg))
+    (format s "  </div>~%")
+    (format s "</body>~%</html>")
+    ))
+
+(defun reset-in-memory-state ()
+  "Clear in-memory caches related to scoring so the UI and future calculations start fresh."
+  ;; Recreate solves table to guarantee a full clear (it's a lockfree castable, not a CL hash-table)
+  (ignore-errors (setf *solves-table* (lh:make-castable)))
+  ;; Reset cached user objects
+  (ignore-errors
+    (maphash (lambda (_k user)
+               (setf (user-total-points user) 0)
+               (setf (user-solved-challenges user) nil)
+               (setf (user-displayname user) nil))
+             *username-to-user-object*))
+  ;; Clear displayname cache
+  (ignore-errors (clrhash *user-id-to-displayname*))
+  t)
+
+(defun broadcast-reset-and-close (&key (logout t))
+  "Send a system reset notice, then close all WS client connections."
+  (let* ((ts (floor (now-micros) 1000))
+         (msg (if logout
+                  (format nil "{\"type\":\"system\",\"event\":\"reset\",\"logout\":true,\"ts\":~A}" ts)
+                  (format nil "{\"type\":\"system\",\"event\":\"reset\",\"ts\":~A}" ts))))
+    (dolist (client (get-client-list))
+      (handler-case
+          (progn
+            (with-write-lock-held ((client-lock client))
+              (ignore-errors (ws:write-to-client-text (client-socket client) msg))
+              (ignore-errors (ws:write-to-client-close (client-socket client))))
+            (remove-client (client-socket client)))
+        (error (_e)
+          (ignore-errors (remove-client (client-socket client)))))))
+  t)
+
+(easy-routes:defroute reset-page ("/reset" :method :get) ()
+  (respond-html (%reset-page nil)))
+
+(easy-routes:defroute admin-reset ("/admin/reset" :method :post) ()
+  (let* ((params (ignore-errors (hunchentoot:post-parameters*)))
+         (form-token (and params (cdr (assoc "token" params :test #'string=))))
+         (confirm (and params (cdr (assoc "confirm" params :test #'string=))))
+         (body (ignore-errors (json-body)))
+         (json-token (and (listp body) (cdr (assoc :token body))))
+         (token (or form-token json-token))
+         (admin-token *ctfg-admin-token*))
+    (cond
+      ((null admin-token)
+       (respond-html (%reset-page "Admin reset is not configured (CTFG_ADMIN_TOKEN unset).")))
+      ((or (null token) (not (string= token admin-token)))
+       (setf (hunchentoot:return-code*) 401)
+       (respond-html (%reset-page "Invalid admin token.")))
+      ((and form-token (not (string= confirm "yes")))
+       (respond-html (%reset-page "Please confirm the reset by checking the box.")))
+      (t
+       (handler-case
+           (let ((removed (reset-events *db*))
+                 (names-cleared (reset-user-displaynames *db*)))
+             (incf *auth-epoch*)
+             (reset-in-memory-state)
+             (broadcast-reset-and-close :logout t)
+             (respond-html (%reset-page (format nil "Reset complete. Removed ~D events, cleared ~D display names. Clients will reconnect automatically." removed names-cleared))))
+         (error (e)
+           (respond-html (%reset-page (format nil "Reset failed: ~A" e)))))))))
 
 (defclass scorestream-resource (ws:ws-resource)
   ())
