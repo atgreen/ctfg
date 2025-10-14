@@ -7,5 +7,6 @@
 (defpackage #:ctfg
   (:use #:cl #:bt2)
   (:local-nicknames (:lh :org.shirakumo.luckless.hashtable)
-                    (:ll :org.shirakumo.luckless.list))
+                    (:ll :org.shirakumo.luckless.list)
+                    (:log #:llog))
   (:export #:main))

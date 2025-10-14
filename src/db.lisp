@@ -264,7 +264,7 @@ Use this for any DB operation; opening/closing is cheap and avoids FD leaks."
                       *credentials*)
              (sqlite:execute-non-query conn "COMMIT;"))
         (ignore-errors (sqlite:execute-non-query conn "ROLLBACK;"))))
-    (log:info "Pre-loaded ~A users into database" count)))
+    (log:info (format nil "Pre-loaded ~A users into database" count))))
 
 ;;;; --------------------------------------------------------------------------
 ;;;;  Write helpers
@@ -320,8 +320,7 @@ Use this for any DB operation; opening/closing is cheap and avoids FD leaks."
 (defun record-hint (db user challenge hint-number cost)
   "Store a HINT purchase (negative points).
 Returns two values: timestamp µs and new event-id."
-  (log:info "Recording hint: user: ~A, challenge: ~A, hint-number: ~A, row-id: ~A"
-            user challenge hint-number cost)
+  (log:info (format nil "Recording hint: user: ~A, challenge: ~A, hint-number: ~A, row-id: ~A" user challenge hint-number cost))
   (let ((ts (now-micros)))
     (with-open-connection (conn db)
       (sqlite:execute-non-query
@@ -368,7 +367,7 @@ Returns two values: timestamp µs and new event-id."
                      AND event_type = 2"
                     (user-id user)
                     (challenge-id challenge)))
-                 (max-hint (or (car max-hint-row) 0))
+                 (max-hint (or (first max-hint-row) 0))
                  (expected-hint (1+ max-hint)))
             (cond
               (already-purchased
@@ -428,7 +427,7 @@ Returns two values: timestamp µs and new event-id."
                      AND challenge_id = ?
                      AND event_type   = 2"
                  uid cid))
-           (max-id (or (car row) 0)))
+           (max-id (or (first row) 0)))
       (1+ max-id))))
 
 ;;;; --------------------------------------------------------------------------

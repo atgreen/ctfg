@@ -24,20 +24,20 @@
 (defun add-client (client)
   (with-write-lock-held (*websocket-client-lock*)
     (push client *websocket-clients*)
-    (log:info "Adding websocket client.  Length = ~A"
-              (length *websocket-clients*)))
+    (log:info (format nil "Adding websocket client.  Length = ~A"
+                      (length *websocket-clients*))))
   t)
 
 (defun remove-client (client)
-  (log:info "About to remove websocket client.  Length = ~A"
-            (length *websocket-clients*))
+  (log:info (format nil "About to remove websocket client.  Length = ~A"
+                    (length *websocket-clients*)))
   (with-write-lock-held (*websocket-client-lock*)
     (setf *websocket-clients*
           (delete client *websocket-clients*
                   :key  #'client-socket
                   :test #'equal)))
-  (log:info "Removed websocket client.  Length = ~A"
-            (length *websocket-clients*))
+  (log:info (format nil "Removed websocket client.  Length = ~A"
+                    (length *websocket-clients*)))
   t)
 
 (defun get-client-list ()

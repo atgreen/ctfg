@@ -89,11 +89,8 @@ ironclad-text, ghcr.io/ocicl/clws@sha256:6d7408a006344838b4719cf537a3692dbe9962c
 iterate, ghcr.io/ocicl/iterate@sha256:f4d54a883bb9ca79037c3ea52581c375117a700fc5cb0970c45d1a8473955a5c, iterate-20250224-26cf129/iterate.asd
 lisp-namespace, ghcr.io/ocicl/lisp-namespace@sha256:ae08006e0b267958c50160658c729c799c6e1c18d94eef83f2ce5cf6ab8bbd20, lisp-namespace-20240503-699fccb/lisp-namespace.asd
 lisp-namespace.test, ghcr.io/ocicl/lisp-namespace@sha256:ae08006e0b267958c50160658c729c799c6e1c18d94eef83f2ce5cf6ab8bbd20, lisp-namespace-20240503-699fccb/lisp-namespace.test.asd
+llog, ghcr.io/ocicl/llog@sha256:f3e0061014282d4f4c7a42ca0aee973471094df99dc69e8a02a99799b29dbd79, cl-llog-20251013-408c68a/llog.asd
 local-time, ghcr.io/ocicl/local-time@sha256:7f53539308b9fdfd32cfd6a632ee25f5c3a4187cf5ef858d33846e6b1e33d3df, local-time-20250427-fea5b15/local-time.asd
-log4cl, ghcr.io/ocicl/log4cl@sha256:bd33f6e5ad346892e852492e7101bc18d263f9ef2ba6192178568d1b20337112, log4cl-20240503-fe3da51/log4cl.asd
-log4cl-examples, ghcr.io/ocicl/log4cl@sha256:bd33f6e5ad346892e852492e7101bc18d263f9ef2ba6192178568d1b20337112, log4cl-20240503-fe3da51/log4cl-examples.asd
-log4cl.log4slime, ghcr.io/ocicl/log4cl@sha256:bd33f6e5ad346892e852492e7101bc18d263f9ef2ba6192178568d1b20337112, log4cl-20240503-fe3da51/log4cl.log4slime.asd
-log4cl.log4sly, ghcr.io/ocicl/log4cl@sha256:bd33f6e5ad346892e852492e7101bc18d263f9ef2ba6192178568d1b20337112, log4cl-20240503-fe3da51/log4cl.log4sly.asd
 luckless, ghcr.io/ocicl/luckless@sha256:65507b8c15fe3e191d758992a9ef609c5cb87a6cc3bbe7d04cd1240790fc241d, luckless-20241016-868320e/luckless.asd
 luckless-test, ghcr.io/ocicl/luckless@sha256:65507b8c15fe3e191d758992a9ef609c5cb87a6cc3bbe7d04cd1240790fc241d, luckless-20241016-868320e/luckless-test.asd
 markup, ghcr.io/ocicl/markup@sha256:4a0e39392bc9dc3b109b39159647a43dcd039ad02f4ac099cd9e2c7c528990ad, markup-20241207-0d094d3/markup.asd

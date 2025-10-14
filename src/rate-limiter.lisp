@@ -121,8 +121,8 @@
                        (cleanup-old-buckets *hint-rate-limiter* (* 30 60 1000))
                        (cleanup-old-buckets *api-rate-limiter* (* 30 60 1000)))
                    (error (e)
-                     (log:error "Rate limit cleanup error: ~A" e))))))
-           :name "rate-limit-cleanup"))))
+                     (log:error (format nil "Rate limit cleanup error: ~A" e)))))))))
+           :name "rate-limit-cleanup"))
 
 (defun stop-rate-limit-cleanup ()
   "Stop the rate limit cleanup thread"

@@ -27,13 +27,13 @@
                :hints       (cdr (assoc :hints challenge))
                :requirements (cdr (assoc :requirements challenge)))
               clist)))
-    (log:info "Read ~A challenges." (length clist))
+    (log:info (format nil "Read ~A challenges." (length clist)))
     (setf *all-challenges* clist)))
 
 (defun available-challenges (solves)
   "Give a list of solved challenge IDs (SOLVES), return
 the list of challenges available."
-  (log:info "SOLVES: " solves)
+  (log:info (format nil "SOLVES: ~A" solves))
   (loop for challenge in *all-challenges*
         when (subsetp (challenge-requirements challenge) solves :test #'=)
           collect challenge))

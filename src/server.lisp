@@ -96,7 +96,7 @@
                                       (setf (client-last-ping-ms c) tsms)
                                       (funcall ping-fn (client-socket c) payload)))
                                 (error (e)
-                                  (log:warn "Keepalive ping failed; removing client: ~A" e)
+                                  (log:warn (format nil "Keepalive ping failed; removing client: ~A" e))
                                   (ignore-errors (remove-client (client-socket c)))))))
                           ;; Reap clients that haven't PONGed in time
                           (let ((now (get-universal-time)))
@@ -110,11 +110,11 @@
                                           (ignore-errors
                                             (ws:write-to-client-close (client-socket c))))
                                         (remove-client (client-socket c))
-                                        (log:info "Dropped client due to missed PONG (~As)" (or (and last (- now last)) :unknown)))
+                                        (log:info (format nil "Dropped client due to missed PONG (~As)" (or (and last (- now last)) :unknown))))
                                     (error (e)
-                                      (log:warn "Error dropping stale client: ~A" e))))))))))
+                                      (log:warn (format nil "Error dropping stale client: ~A" e)))))))))))
            :name "ws keepalive")))
-    (log:info "WebSocket keepalive enabled (~As)" *ws-keepalive-interval*)
+    (log:info (format nil "WebSocket keepalive enabled (~As)" *ws-keepalive-interval*))
     *ws-keepalive-thread*))
 
 
@@ -138,7 +138,7 @@
          (json-file (or *challenges-path* default-file)))
     (when (or *developer-mode*             ; always reload in dev
               (null *all-challenges*))     ; first load in prod
-      (log:debug "Reloading challenges from ~A" json-file)
+      (log:debug (format nil "Reloading challenges from ~A" json-file))
       (read-challenges (uiop:read-file-string json-file)))))
 
 (defun save-solve (key value)
@@ -244,11 +244,11 @@
             (handler-case
                 (let ((content-type (get-content-type file-path)))
                   (get-cached-file file-path content-type)
-                  (log:debug "Preloaded: ~A (~A)" file-rel-path content-type))
+                  (log:debug (format nil "Preloaded: ~A (~A)" file-rel-path content-type)))
               (error (e)
-                (log:warn "Failed to preload ~A: ~A" file-rel-path e))))))
+                (log:warn (format nil "Failed to preload ~A: ~A" file-rel-path e)))))))
       (multiple-value-bind (entries total-size) (get-cache-stats)
-        (log:info "Static cache preloaded: ~D files, ~D bytes" entries total-size)))))
+        (log:info (format nil "Static cache preloaded: ~D files, ~D bytes" entries total-size))))))
 
 (defun get-content-type (file-path)
   "Determine content type based on file extension"
@@ -305,8 +305,8 @@
                                   (setf (hunchentoot:header-out "Cache-Control") "public, max-age=31536000")
                                   (setf (hunchentoot:header-out "Expires")
                                         (hunchentoot:rfc-1123-date (+ (get-universal-time) (* 365 24 60 60))))))
-                            (when (and (not *developer-mode*) (log:debug))
-                              (log:debug "Static file ~A: ~A" candidate (if cached-p "CACHE HIT" "CACHE MISS")))
+                            (when (not *developer-mode*)
+                              (log:debug (format nil "Static file ~A: ~A" candidate (if cached-p "CACHE HIT" "CACHE MISS"))))
                             content)))
                        (t
                         (setf (hunchentoot:return-code*) hunchentoot:+http-not-found+)
@@ -360,7 +360,7 @@
     (dolist (row csv)
       (when (not (string= "username" (car row)))
         (setf (gethash (car row) *credentials*) (cadr row))))
-    (log:info "Read ~A credentials from credentials.csv" (hash-table-count *credentials*))))
+    (log:info (format nil "Read ~A credentials from credentials.csv" (hash-table-count *credentials*)))))
 
 (easy-routes:defroute threads ("/debug/threads" :method :get) ()
   (format nil "Threads: ~{~A~%~}"
@@ -546,7 +546,7 @@
   (with-authenticated-user (user)
     ;; Rate limit check
     (unless (check-rate-limit *api-rate-limiter* user "set-name")
-      (log:warn "Rate limit exceeded for ~A on /api/set-name" (user-displayname user))
+      (log:warn (format nil "Rate limit exceeded for ~A on /api/set-name" (user-displayname user)))
       (return-from set-name
         (respond-json '((:error . "rate_limit_exceeded")) :code 429)))
     (let* ((body   (json-body))
@@ -555,17 +555,17 @@
       (multiple-value-bind (normalized-name error-message)
           (validate-displayname raw-name)
         (when error-message
-          (log:info "Invalid display name from ~A: ~A" (user-username user) error-message)
+          (log:info (format nil "Invalid display name from ~A: ~A" (user-username user) error-message))
           (return-from set-name
             (respond-json `((:error . ,error-message)) :code 400)))
 
         ;; Check if the normalized display name is already taken by another user
         (when (displayname-exists-p *db* normalized-name (user-id user))
-          (log:info "Display name ~A already taken (requested by ~A)" normalized-name (user-username user))
+          (log:info (format nil "Display name ~A already taken (requested by ~A)" normalized-name (user-username user)))
           (return-from set-name
             (respond-json '((:error . "name_taken")) :code 409)))
 
-        (log:info "Setting displayname for player ~A to ~A" (user-username user) normalized-name)
+        (log:info (format nil "Setting displayname for player ~A to ~A" (user-username user) normalized-name))
         (set-displayname *db* user normalized-name)
         (respond-json '((:result . "ok")))))))
 
@@ -573,26 +573,26 @@
   (with-authenticated-user (user)
     ;; Rate limit check
     (unless (check-rate-limit *hint-rate-limiter* user "hint")
-      (log:warn "Rate limit exceeded for ~A on /api/hint" (user-displayname user))
+      (log:warn (format nil "Rate limit exceeded for ~A on /api/hint" (user-displayname user)))
       (return-from hint
         (respond-json '((:error . "rate_limit_exceeded")) :code 429)))
     (let* ((body (json-body))
            (cid  (cdr (assoc :id body)))
            (hid  (cdr (assoc :hint--id body))))
       (unless (and cid hid)
-        (log:info "Hint missing parameters for " user)
+        (log:info (format nil "Hint missing parameters for ~A" user))
         (return-from hint
           (respond-json '((:error "missing_parameters")) :code 400)))
       (let ((chal (find cid *all-challenges* :key #'challenge-id)))
         (unless chal
-          (log:info "Hint for unknown challenge from " user)
+          (log:info (format nil "Hint for unknown challenge from ~A" user))
           (return-from hint (respond-json '((:error "unknown_challenge")) :code 400)))
         ;; cost & text from challenge meta
         (let* ((hint (find hid (challenge-hints chal)
                            :key (lambda (h) (cdr (assoc :id h)))))
                (cost (cdr (assoc :cost hint))))
           (unless hint
-            (log:info "Hint not found for challenge ~A hint ~A" cid hid)
+            (log:info (format nil "Hint not found for challenge ~A hint ~A" cid hid))
             (return-from hint (respond-json '((:error "unknown_hint")) :code 400)))
           ;; Use atomic hint purchase
           (multiple-value-bind (status ts eid)
@@ -610,16 +610,16 @@
                      (ws:write-to-client-text (client-socket client) msg))))
                (respond-json '((:result . "ok"))))
               (:already-purchased
-               (log:info "Hint already purchased by ~A" user)
+               (log:info (format nil "Hint already purchased by ~A" user))
                (respond-json '((:error . "already_purchased")) :code 400))
               (:wrong-sequence
-               (log:info "Wrong hint sequence for ~A" user)
+               (log:info (format nil "Wrong hint sequence for ~A" user))
                (respond-json '((:error . "locked")) :code 403))
               (:insufficient-points
-               (log:info "Insufficient points for ~A" user)
+               (log:info (format nil "Insufficient points for ~A" user))
                (respond-json '((:error . "insufficient_points")) :code 402))
               (t
-               (log:error "Unknown status from record-hint-atomic: ~A" status)
+               (log:error (format nil "Unknown status from record-hint-atomic: ~A" status))
                (respond-json '((:error . "internal_error")) :code 500)))))))))
 
 (easy-routes:defroute award ("/api/award" :method :post) ()
@@ -648,7 +648,7 @@
            (solved
             (respond-json `(:result "already_solved" :total ,(user-total-points user))))
            (t
-            (log:info "Awarding points for challenge ~A to ~A" cid user)
+            (log:info (format nil "Awarding points for challenge ~A to ~A" cid user))
             ;; Use atomic award to prevent double-awarding
             (if (award-points-atomic user chal t)
                 (respond-json '((:result . "ok")))
@@ -659,17 +659,17 @@
   (with-authenticated-user (user)
     ;; Rate limit check
     (unless (check-rate-limit *submit-rate-limiter* user "submit")
-      (log:warn "Rate limit exceeded for ~A on /api/submit" (user-displayname user))
+      (log:warn (format nil "Rate limit exceeded for ~A on /api/submit" (user-displayname user)))
       (return-from submit
         (respond-json '((:error . "rate_limit_exceeded")) :code 429)))
     (let* ((body   (json-body))
            (cid    (cdr (assoc :id body)))
            (guess  (string-trim '(#\Space #\Tab #\Newline) (cdr (assoc :flag body))))
            (chal   (find cid *all-challenges* :key #'challenge-id)))
-      (log:info "~A submitting for challenge ~A: ~A"
+      (log:info (format nil "~A submitting for challenge ~A: ~A"
                 (user-displayname user)
                 cid
-                guess)
+                guess))
       (cond
         ((null chal)
          (respond-json '(:error "unknown_id") :code 400))
@@ -771,7 +771,7 @@
                    stored-checksum calculated-checksum))
           (%utf8->string data)))
     (error (e)
-      (log:error "Error unmasking string: ~A" e)
+      (log:error (format nil "Error unmasking string: ~A" e))
       (error e))))
 
 (defun process-description (user description)
@@ -802,11 +802,11 @@
   (with-authenticated-user (user)
     (let ((user (hunchentoot:session-value :user))
           (events (collect-events *db*)))
-      (log:info "Computing challenges for user: " (user-username user))
+      (log:info (format nil "Computing challenges for user: ~A" (user-username user)))
       (setf (hunchentoot:content-type*) "application/json")
       (let* ((ll (lh:gethash (user-id user) *solves-table*))
              (solves (if ll (ll:to-list ll) nil)))
-        (log:info "Solves for user ~A: ~A" (user-displayname user) solves)
+        (log:info (format nil "Solves for user ~A: ~A" (user-displayname user) solves))
         (let ((challenges (available-challenges solves)))
           (let ((json-data (mapcar (lambda (challenge)
                                      (list (cons "id" (challenge-id challenge))
@@ -975,15 +975,15 @@
                         (split-sequence:split-sequence #\& qs)))
          (token (cdr (assoc "token" pairs :test #'string=)))
          (uid (and token (validate-ws-token token))))
-    (log:info "WebSocket connection attempt: origin=~S qs=~S token=~S uid=~S" origin qs token uid)
+    (log:info (format nil "WebSocket connection attempt: origin=~S qs=~S token=~S uid=~S" origin qs token uid))
     (let ((accepted (and uid t)))
-      (log:info "WebSocket connection ~A" (if accepted "ACCEPTED" "REJECTED"))
+      (log:info (format nil "WebSocket connection ~A" (if accepted "ACCEPTED" "REJECTED")))
       (values accepted nil origin nil nil))))
 
 (defun send-events (client)
   (log:info "send-events called in background thread")
   (let ((events (collect-events *db*)))
-    (log:info "Collected ~D events from database" (length events))
+    (log:info (format nil "Collected ~D events from database" (length events)))
     (let ((json-events
               (loop for event in events
                     collect (handler-case
@@ -998,11 +998,11 @@
                                              "Unknown Challenge"))
                                        (event-points event))
                               (error (e)
-                                (log:warn "Error formatting event ~A: ~A" (event-id event) e)
+                                (log:warn (format nil "Error formatting event ~A: ~A" (event-id event) e))
                                 nil)))))
       ;; Remove any nil entries from failed formatting
       (setf json-events (remove nil json-events))
-      (log:info "Sending hydration to WS client (~D events)" (length json-events))
+      (log:info (format nil "Sending hydration to WS client (~D events)" (length json-events)))
       (handler-case
           (progn
             (log:info "About to send WebSocket message...")
@@ -1012,11 +1012,11 @@
                (format nil "[~{~a~^,~}]" json-events))) ; Single array message
             (log:info "Hydration sent successfully"))
         (error (e)
-          (log:error "Error sending events to WebSocket: ~A" e)
+          (log:error (format nil "Error sending events to WebSocket: ~A" e))
           (capture-exception e))))))
 
 (defmethod ws:resource-client-connected ((res scorestream-resource) client)
-  (log:info "Client connected to scorestream server from ~s : ~s" (ws:client-host client) (ws:client-port client))
+  (log:info (format nil "Client connected to scorestream server from ~s : ~s" (ws:client-host client) (ws:client-port client)))
   (log:info "Creating client wrapper...")
   (handler-case
       (let ((client-wrapper (make-client :socket client :lock (make-rwlock) :last-pong-ts (get-universal-time))))
@@ -1027,13 +1027,13 @@
         (bt2:make-thread
          (lambda ()
            (handler-bind ((error (lambda (c)
-                                   (log:error "Error in send-events thread: ~A" c)
+                                   (log:error (format nil "Error in send-events thread: ~A" c))
                                    (capture-exception c))))
              (send-events client-wrapper)))
          :name "send-events")
         (log:info "Client setup completed successfully"))
     (error (e)
-      (log:error "Error on websocket client connect: ~A" e)
+      (log:error (format nil "Error on websocket client connect: ~A" e))
       (capture-exception e))))
 
 (defmethod ws:resource-received-text ((res scorestream-resource) client message)
@@ -1041,7 +1041,7 @@
   ;; to keep network devices between the client and server from timing
   ;; out the connection.  We can ignore these.
   (when *developer-mode*
-    (log:debug "Received ~S from ~S." message client)))
+    (log:debug (format nil "Received ~S from ~S." message client))))
 
 (defmethod ws:resource-received-pong ((res scorestream-resource) client message)
   ;; Update last-pong timestamp and log latency. MESSAGE is the pong payload octets.
@@ -1061,18 +1061,18 @@
         (when latency
           (cond
             ((> latency *ws-ping-latency-warn-ms*)
-             (log:warn "WS Pong latency ~A ms from ~A:~A" latency (ws:client-host client) (ws:client-port client)))
+             (log:warn (format nil "WS Pong latency ~A ms from ~A:~A" latency (ws:client-host client) (ws:client-port client))))
             (*ws-log-ping-latency*
-             (log:info "WS Pong latency ~A ms from ~A:~A" latency (ws:client-host client) (ws:client-port client))))))
+             (log:info (format nil "WS Pong latency ~A ms from ~A:~A" latency (ws:client-host client) (ws:client-port client)))))))
     (error (e)
-      (log:warn "Error handling PONG: ~A" e))))
+      (log:warn (format nil "Error handling PONG: ~A" e)))))
 
 (defmethod ws:resource-client-disconnected ((resource scorestream-resource) client)
-  (log:info "Client disconnected from resource ~A: ~A" resource client)
+  (log:info (format nil "Client disconnected from resource ~A: ~A" resource client))
   (handler-case
       (remove-client client)
     (error (e)
-      (log:error "Error on websocket client disconnect: ~A" e)
+      (log:error (format nil "Error on websocket client disconnect: ~A" e))
       (capture-exception e))))
 
 (defmethod hunchentoot:maybe-invoke-debugger :after (condition)
@@ -1102,8 +1102,8 @@
 
   (setf *db* (make-instance 'db/sqlite :filename (merge-pathnames "events.db" *dbdir*)))
 
-  (log:info "Static content directory: ~A" (uiop:getcwd))
-  (log:info "Starting server version ~A on port ~A" +version+ port)
+  (log:info (format nil "Static content directory: ~A" (uiop:getcwd)))
+  (log:info (format nil "Starting server version ~A on port ~A" +version+ port))
 
   ;; Preload static files into cache for better performance
   (preload-static-files)
@@ -1143,10 +1143,10 @@
                (apply #'ws:run-server (append (list 12345)
                                               (when *ws-backlog* (list :backlog *ws-backlog*))))
              (error (e)
-               (log:warn "CLWS run-server does not accept :backlog (~A); using default" e)
+               (log:warn (format nil "CLWS run-server does not accept :backlog (~A); using default" e))
                (ws:run-server 12345)))
          (error (e)
-           (log:error "WebSocket server crashed: ~A" e)
+           (log:error (format nil "WebSocket server crashed: ~A" e))
            (capture-exception e)))))
    :name "websockets server")
 
@@ -1161,7 +1161,7 @@
            (ws:run-resource-listener
            (ws:find-global-resource "/scorestream"))
          (error (e)
-           (log:error "Resource listener crashed: ~A" e)
+           (log:error (format nil "Resource listener crashed: ~A" e))
            (capture-exception e)))))
    :name "resource listener for /scorestream")
 
@@ -1175,7 +1175,7 @@
                                    :max-thread-count 500      ; 5x default for high load
                                    :max-accept-count 600)))   ; 500 + 100 buffer
   (hunchentoot:start *acceptor*)
-  (log:info "Server started successfully on port ~A" port)
+  (log:info (format nil "Server started successfully on port ~A" port))
   *acceptor*)
 
 (defun shutdown-server ()

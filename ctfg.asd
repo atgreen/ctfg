@@ -9,7 +9,7 @@
   :author      "Anthony Green"
   :license     "MIT"
   :version     "0.1.14"
-  :depends-on  (:version-string :clingon :hunchentoot :easy-routes :log4cl
+  :depends-on  (:version-string :clingon :hunchentoot :easy-routes :llog
                 :markup :slynk :cl-json :cl-csv :clws :sqlite
                 :cl-dbi :dbd-sqlite3 :luckless :sentry-client :cl-ppcre
                 :cl-dotenv :cl-yaml :bordeaux-threads :archive :chipz)

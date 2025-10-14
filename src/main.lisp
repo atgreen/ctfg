@@ -24,9 +24,9 @@
 (defparameter *ctfg-api-token* nil)
 (defparameter *ctfg-admin-token* nil)
 
-(defmacro fatal-error (&rest rest)
+(defmacro fatal-error (message &rest args)
   `(progn
-     (log:error ,@rest)
+     (log:error (format nil ,message ,@args))
      (uiop:quit 1)))
 
 (define-condition malformed-game-clusters-yaml (error)
@@ -114,7 +114,7 @@
                                               (sb-debug:print-backtrace :count 50 :stream *error-output*)
                                               (finish-output *error-output*))))
                         (slynk:create-server :port slynk-port :interface "0.0.0.0" :dont-close t))
-                      (log:info "Started slynk server on port ~A" slynk-port))
+                      (log:info (format nil "Started slynk server on port ~A" slynk-port)))
                     (start-server port)
                     (log:info "Waiting for connections...")
                     ;; Wait forever.
