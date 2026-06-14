@@ -1,7 +1,8 @@
-# Use the host SBCL by default. Override with e.g. `make SBCL=sbcl ctfg`.
+# Prefer a system-packaged /usr/bin/sbcl when present, otherwise the one on
+# PATH. Override explicitly with e.g. `make SBCL=sbcl ctfg`.
 # (A Homebrew SBCL records CC=gcc-12 in its sbcl.mk, which can't link against
-# the system glibc; the Fedora-packaged /usr/bin/sbcl uses the system gcc.)
-SBCL ?= /usr/bin/sbcl
+# the system glibc; a distro-packaged sbcl uses the system gcc.)
+SBCL ?= $(shell command -v /usr/bin/sbcl || command -v sbcl)
 
 ctfg: src/*.lisp *.asd runtime-files.tgz
 	$(SBCL) --eval "(asdf:make :ctfg)" --quit
