@@ -156,7 +156,10 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          # Pin to Node 20: Node 24.16+/26 hang in extract-zip during
+          # `playwright install` with @playwright/test < 1.60
+          # (microsoft/playwright#41000, #40998). Revisit if Playwright is bumped.
+          node-version: 20
 
       - name: Install Playwright Dependencies
         run: npm ci
