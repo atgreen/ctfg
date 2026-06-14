@@ -175,6 +175,8 @@ jobs:
       # runs is slow/unreliable.
       - name: Install Playwright Browsers
         run: npx playwright install chromium
+        env:
+          DEBUG: pw:install
 
       - name: Run Playwright Tests (Linux)
         if: runner.os == 'Linux'
