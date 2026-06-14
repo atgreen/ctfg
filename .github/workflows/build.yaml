@@ -161,8 +161,18 @@ jobs:
       - name: Install Playwright Dependencies
         run: npm ci
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/ms-playwright
+            ~/Library/Caches/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+
+      # The test suite only uses the chromium project (see playwright.config.ts),
+      # so don't download Firefox/WebKit.
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
 
       - name: Run Playwright Tests (Linux)
         if: runner.os == 'Linux'
