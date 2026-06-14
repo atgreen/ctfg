@@ -19,10 +19,28 @@
 ;;;; --------------------------------------------------------------------------
 
 (defun now-micros ()
-  ;; convert internal-time (1/1 sec on most Lisps) to µs since UNIX epoch
-  (+ (* (- (get-universal-time) 2208988800) 1000000)     ; 1900→1970 offset
-     (truncate (/ (get-internal-real-time)
-                  (/ internal-time-units-per-second 1000000)))))
+  "Microseconds since the UNIX epoch, read from the system real-time clock.
+
+   Note: we deliberately do NOT add GET-INTERNAL-REAL-TIME here.  On SBCL it
+   counts time since the image started (i.e. process uptime), not the
+   sub-second fraction of the wall clock, so adding it made every timestamp
+   drift ahead of real time by the pod's uptime."
+  (multiple-value-bind (ok sec usec) (sb-unix:unix-gettimeofday)
+    (declare (ignore ok))
+    (+ (* sec 1000000) usec)))
+
+(defun check-clock-sanity (&optional (threshold-secs 5))
+  "Cross-check NOW-MICROS against an independent time source (GET-UNIVERSAL-TIME)
+   and warn loudly if they disagree by more than THRESHOLD-SECS.  This guards
+   against a recurrence of the uptime-offset bug, where NOW-MICROS drifted ahead
+   of the real clock.  Returns the drift in seconds (now-micros minus system)."
+  (let* ((micros-secs    (truncate (now-micros) 1000000))
+         (universal-secs (- (get-universal-time) 2208988800)) ; 1900→1970 offset
+         (drift          (- micros-secs universal-secs)))
+    (when (> (abs drift) threshold-secs)
+      (log:warn (format nil "Clock sanity check FAILED: now-micros() disagrees with the system clock by ~D seconds (now-micros=~D, get-universal-time=~D). Event timestamps may be wrong."
+                        drift micros-secs universal-secs)))
+    drift))
 
 ;;;; --------------------------------------------------------------------------
 ;;;;  Connection macros (fresh per operation)
