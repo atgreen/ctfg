@@ -170,9 +170,11 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
 
       # The test suite only uses the chromium project (see playwright.config.ts),
-      # so don't download Firefox/WebKit.
+      # so don't download Firefox/WebKit. Skip --with-deps: the GitHub-hosted
+      # runners already ship Chromium's shared libraries, and the apt step it
+      # runs is slow/unreliable.
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
 
       - name: Run Playwright Tests (Linux)
         if: runner.os == 'Linux'
