@@ -1100,6 +1100,10 @@
 
   (load-challenges)
 
+  ;; Verify our timestamp source agrees with the system clock before we start
+  ;; recording events with it.
+  (check-clock-sanity)
+
   (setf *db* (make-instance 'db/sqlite :filename (merge-pathnames "events.db" *dbdir*)))
 
   (log:info (format nil "Static content directory: ~A" (uiop:getcwd)))

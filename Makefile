@@ -1,5 +1,11 @@
+# Prefer a system-packaged /usr/bin/sbcl when present, otherwise the one on
+# PATH. Override explicitly with e.g. `make SBCL=sbcl ctfg`.
+# (A Homebrew SBCL records CC=gcc-12 in its sbcl.mk, which can't link against
+# the system glibc; a distro-packaged sbcl uses the system gcc.)
+SBCL ?= $(shell command -v /usr/bin/sbcl || command -v sbcl)
+
 ctfg: src/*.lisp *.asd runtime-files.tgz
-	sbcl --eval "(asdf:make :ctfg)" --quit
+	$(SBCL) --eval "(asdf:make :ctfg)" --quit
 
 runtime-files.tgz: css/ctfg.css js/app.js index.html $(if $(wildcard images/banner.jpg),images/banner.jpg,images/banner.png)
 	tar cvfz $@ css/ctfg.css js/app.js $(if $(wildcard images/banner.jpg),images/banner.jpg,images/banner.png) index.html

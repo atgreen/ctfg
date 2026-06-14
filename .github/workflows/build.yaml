@@ -156,13 +156,30 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          # Pin to Node 20: Node 24.16+/26 hang in extract-zip during
+          # `playwright install` with @playwright/test < 1.60
+          # (microsoft/playwright#41000, #40998). Revisit if Playwright is bumped.
+          node-version: 20
 
       - name: Install Playwright Dependencies
         run: npm ci
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/ms-playwright
+            ~/Library/Caches/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+
+      # The test suite only uses the chromium project (see playwright.config.ts),
+      # so don't download Firefox/WebKit. Skip --with-deps: the GitHub-hosted
+      # runners already ship Chromium's shared libraries, and the apt step it
+      # runs is slow/unreliable.
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install chromium
+        env:
+          DEBUG: pw:install
 
       - name: Run Playwright Tests (Linux)
         if: runner.os == 'Linux'
