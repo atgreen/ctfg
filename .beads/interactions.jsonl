@@ -1,0 +1,2 @@
+{"id":"int-8d86aa5d032511453fb8bdb672ffd755","kind":"field_change","created_at":"2026-09-04T14:17:19.796933468Z","actor":"Anthony Green","issue_id":"ctfg-rxl","extra":{"field":"status","new_value":"in_progress","old_value":"open"}}
+{"id":"int-a8c08efc39fec49eeb67a2ff405926e0","kind":"field_change","created_at":"2026-09-04T14:20:32.543417614Z","actor":"Anthony Green","issue_id":"ctfg-rxl","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Closed"}}

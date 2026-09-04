@@ -133,6 +133,7 @@ a TLS terminated route for your ctfg service and connect to it thusly:
         }
     ],
     "requirements": [2, 3],
+    "minPoints": 500,
     "content": "Optional additional content field"
 }
 ```
@@ -153,6 +154,7 @@ a TLS terminated route for your ctfg service and connect to it thusly:
   - **cost**: Points deducted when hint is revealed
   - Hints are revealed sequentially - players must purchase earlier hints first
 - **requirements** (optional): Array of challenge IDs that must be solved before this challenge becomes available
+- **minPoints** (optional): Minimum number of earned points required before this challenge is revealed. Earned points are the sum of solved challenge values — hint purchases don't count against this, so a revealed challenge never disappears. Can be combined with **requirements**; both conditions must be met
 - **content** (optional): Additional content field for extended challenge information
 
 ### Text Formatting

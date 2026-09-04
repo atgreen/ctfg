@@ -227,5 +227,20 @@
       { "id": 2, "text": "V = π × 5² × 12", "cost": 25 },
       { "id": 3, "text": "V = π × 25 × 12 = 300π", "cost": 30 }
     ]
+  },
+  {
+    "id": 16,
+    "title": "The Commissioner's Commendation",
+    "category": "Bonus",
+    "difficulty": "Hard",
+    "points": 500,
+    "minPoints": 1500,
+    "description": "Your outstanding detective work has caught the Commissioner's attention! This classified case is only shared with detectives who have proven themselves. A safety deposit box holds the evidence: its code is the sum of the first <b>10 prime numbers</b>. Enter the code.",
+    "flag": "^129$",
+    "testflag": "129",
+    "hints": [
+      { "id": 1, "text": "The first 10 primes start with 2, 3, 5, 7, 11, ...", "cost": 25 },
+      { "id": 2, "text": "2 + 3 + 5 + 7 + 11 + 13 + 17 + 19 + 23 + 29 = ?", "cost": 35 }
+    ]
   }
 ]

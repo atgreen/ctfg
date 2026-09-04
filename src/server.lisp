@@ -414,6 +414,11 @@
     (when solves-list
       (ll:member challenge-id solves-list))))
 
+(defun user-solve-ids (user-id)
+  "Return the list of challenge IDs solved by USER-ID."
+  (let ((ll (lh:gethash user-id *solves-table*)))
+    (if ll (ll:to-list ll) nil)))
+
 (defun award-points (user challenge reload)
   (log:info "award points")
   (multiple-value-bind (ts event-id)
@@ -673,6 +678,10 @@
       (cond
         ((null chal)
          (respond-json '(:error "unknown_id") :code 400))
+        ;; Don't accept flags for challenges the player can't see yet;
+        ;; respond as if the challenge doesn't exist so nothing leaks.
+        ((not (challenge-available-p chal (user-solve-ids (user-id user))))
+         (respond-json '(:error "unknown_id") :code 400))
         ((eq 1 (ppcre:count-matches (challenge-flag chal) guess))
          (log:info "Correct!")
          ;; Use atomic award-points to prevent double-submit
@@ -804,8 +813,7 @@
           (events (collect-events *db*)))
       (log:info (format nil "Computing challenges for user: ~A" (user-username user)))
       (setf (hunchentoot:content-type*) "application/json")
-      (let* ((ll (lh:gethash (user-id user) *solves-table*))
-             (solves (if ll (ll:to-list ll) nil)))
+      (let ((solves (user-solve-ids (user-id user))))
         (log:info (format nil "Solves for user ~A: ~A" (user-displayname user) solves))
         (let ((challenges (available-challenges solves)))
           (let ((json-data (mapcar (lambda (challenge)

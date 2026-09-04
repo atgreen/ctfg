@@ -24,6 +24,7 @@ CTFG is a Capture-The-Flag game engine with a Common Lisp backend and modern web
 1. **Challenge System** (src/challenges.lisp)
    - Loads from challenges.json with hot-reload support in dev mode
    - Supports dependency chains via requirements field
+   - Supports point-gated reveals via minPoints field (hidden until enough points are earned)
    - Hint system with progressive point deduction
 
 2. **Authentication** (src/user.lisp)
