@@ -75,11 +75,23 @@ jobs:
           path: ./ctfg-${{ matrix.target }}*
           name: ctfg-${{ matrix.target }}
 
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk -v ver="$VERSION" '
+            $0 ~ "^## \\[" ver "\\]" {flag=1; next}
+            /^## \[/ {flag=0}
+            flag' CHANGELOG.md > RELEASE_NOTES.md
+          if ! [ -s RELEASE_NOTES.md ]; then
+            echo "No CHANGELOG.md entry found for version ${VERSION}." > RELEASE_NOTES.md
+          fi
+          cat RELEASE_NOTES.md
+
       - name: Create a GitHub release
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ steps.tag_version.outputs.new_tag }}
-          name: Release ${{ steps.tag_version.outputs.new_tag }}
-          body: ${{ steps.tag_version.outputs.changelog }}
+          tag: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          bodyFile: RELEASE_NOTES.md
           artifacts: ./ctfg-${{ matrix.target }}*
           allowUpdates: true
